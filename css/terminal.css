@@ -1,0 +1,31 @@
+/* 终端特定样式 */
+#terminalContent {
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.terminal-prompt {
+    color: #10b981; /* emerald-400 */
+}
+
+.terminal-path {
+    color: #3b82f6; /* blue-400 */
+}
+
+.terminal-command {
+    color: #d1d5db; /* slate-300 */
+}
+
+.terminal-output {
+    color: #9ca3af; /* slate-400 */
+}
+
+/* 终端窗口按钮 */
+.terminal-btn-close { background-color: #ef4444; }
+.terminal-btn-minimize { background-color: #f59e0b; }
+.terminal-btn-maximize { background-color: #10b981; }
+
+.terminal-btn-close:hover { background-color: #dc2626; }
+.terminal-btn-minimize:hover { background-color: #d97706; }
+.terminal-btn-maximize:hover { background-color: #059669; }

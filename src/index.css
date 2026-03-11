@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 基础样式 - 苹果风格字体 */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 代码字体 - 苹果风格等宽字体 */
+code, pre, .font-mono {
+  font-family: 'SF Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'PingFang SC', 'Microsoft YaHei', monospace;
+}
+
+/* 自定义组件样式 */
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium 
+           transition-all duration-200 shadow-md shadow-blue-500/20 
+           hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-sm font-medium 
+           transition-all duration-200 border border-gray-200;
+  }
+
+  .card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm 
+           hover:shadow-md transition-all duration-200;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg 
+           focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 
+           text-gray-900 placeholder-gray-400 transition-all duration-200;
+  }
+
+  .status-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .terminal {
+    @apply bg-gray-900 text-gray-100 font-mono text-sm;
+  }
+}
+
+/* 动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* 终端光标闪烁 */
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 网格背景 */
+.bg-grid-light {
+  background-image: 
+    linear-gradient(to right, #f1f5f9 1px, transparent 1px),
+    linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* 卡片交错动画 */
+.card-stagger-1 { animation-delay: 0.05s; }
+.card-stagger-2 { animation-delay: 0.1s; }
+.card-stagger-3 { animation-delay: 0.15s; }
+.card-stagger-4 { animation-delay: 0.2s; }
+.card-stagger-5 { animation-delay: 0.25s; }
+.card-stagger-6 { animation-delay: 0.3s; }
+
+/* Slide down animation for expandable content */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.2s ease-out forwards;
+}

@@ -1,0 +1,86 @@
+# Local work folder that is not checked in
+_LOCAL/
+
+# Eclipse
+.apt_generated/
+.checkstyle
+.classpath
+.factorypath
+.project
+.settings/
+bin/
+
+# IntelliJ
+/.idea
+/*.iml
+/*.ipr
+/*.iws
+
+# NetBeans
+nb-configuration.xml
+
+# Visual Studio Code
+/.vscode
+
+# OSX
+.DS_Store
+
+# Vim
+*.swo
+*.swp
+
+# patch
+*.orig
+*.rej
+
+node_modules/
+logs/
+
+# Environment variables (只忽略实际的配置文件，保留示例文件)
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Database - 只保留 SQL 文件，忽略实际数据文件
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Coverage reports
+coverage/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
