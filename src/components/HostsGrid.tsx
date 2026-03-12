@@ -1,7 +1,26 @@
 import { useState } from 'react';
-import { Server, CheckCircle, Terminal, Key, ChevronDown, ChevronUp, Copy, Check, Cpu, HardDrive, MemoryStick, Files, FolderOpen, X } from 'lucide-react';
+import {
+  Terminal,
+  FolderOpen,
+  Plug,
+  Pencil,
+  Trash2,
+  Copy,
+  MoreVertical,
+  Server,
+  CheckCircle2,
+  Cpu,
+  HardDrive,
+  MemoryStick,
+  Key,
+  Lock,
+  Check,
+  Plus,
+  Power,
+  RefreshCw
+} from 'lucide-react';
 import type { SSHHost } from '@/types';
-import OSIcon, { getOSColor, getOSLabel } from './OSIcon';
+import OSIcon, { getOSLabel } from './OSIcon';
 
 interface HostsGridProps {
   hosts: SSHHost[];
@@ -26,18 +45,33 @@ const HostsGrid = ({
   onAddHost,
   onCopyHost
 }: HostsGridProps) => {
-  const [expandedHostId, setExpandedHostId] = useState<number | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [activeMenu, setActiveMenu] = useState<number | null>(null);
 
   // 获取状态样式
-  const getStatusStyle = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'connected':
-        return { color: 'bg-emerald-500', pulse: 'status-pulse', text: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' };
+        return {
+          dot: 'bg-emerald-500',
+          label: '运行中',
+          badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          border: 'hover:border-emerald-300'
+        };
       case 'warning':
-        return { color: 'bg-amber-500', pulse: 'animate-pulse', text: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' };
+        return {
+          dot: 'bg-amber-500',
+          label: '警告',
+          badge: 'bg-amber-50 text-amber-700 border-amber-200',
+          border: 'hover:border-amber-300'
+        };
       default:
-        return { color: 'bg-gray-400', pulse: '', text: 'text-gray-500', bg: 'bg-gray-50', border: 'border-gray-200' };
+        return {
+          dot: 'bg-gray-400',
+          label: '已停止',
+          badge: 'bg-gray-50 text-gray-600 border-gray-200',
+          border: 'hover:border-gray-300'
+        };
     }
   };
 
@@ -52,11 +86,6 @@ const HostsGrid = ({
     }
   };
 
-  // 切换展开状态
-  const toggleExpand = (hostId: number) => {
-    setExpandedHostId(expandedHostId === hostId ? null : hostId);
-  };
-
   // 格式化内存显示
   const formatMemory = (memoryGb?: number) => {
     if (!memoryGb || memoryGb === 0) return '-';
@@ -67,25 +96,42 @@ const HostsGrid = ({
     }
   };
 
+  // 格式化磁盘显示
+  const formatDisk = (used?: number, total?: number) => {
+    if (!total || total === 0) return '-';
+    return `${used?.toFixed(0) || '0'}/${total.toFixed(0)}G`;
+  };
+
   // 处理复制主机
-  const handleCopyHost = (e: React.MouseEvent, host: SSHHost) => {
-    e.stopPropagation();
+  const handleCopyHost = (host: SSHHost) => {
     if (onCopyHost) {
       onCopyHost(host);
     }
+    setActiveMenu(null);
+  };
+
+  // 关闭菜单
+  const handleClickOutside = () => {
+    setActiveMenu(null);
   };
 
   if (loading) {
     return (
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
-              <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-48"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-200 p-5 animate-pulse">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg" />
+                <div>
+                  <div className="h-4 bg-gray-100 rounded w-24 mb-2" />
+                  <div className="h-3 bg-gray-100 rounded w-32" />
+                </div>
               </div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-100 rounded w-full" />
+              <div className="h-3 bg-gray-100 rounded w-3/4" />
             </div>
           </div>
         ))}
@@ -95,377 +141,274 @@ const HostsGrid = ({
 
   return (
     <>
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-500 text-sm">总主机数</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Server className="w-4 h-4 text-blue-500" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-gray-900">{hosts.length}</div>
+      {/* Stats Bar */}
+      <div className="flex items-center gap-6 mb-5 px-1">
+        <div className="flex items-center gap-2">
+          <Server className="w-4 h-4 text-gray-400" />
+          <span className="text-[13px] text-gray-600">总主机</span>
+          <span className="text-[13px] font-semibold text-gray-900">{hosts.length}</span>
         </div>
-
-        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-500 text-sm">在线主机</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <CheckCircle className="w-4 h-4 text-emerald-500" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-gray-900">
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          <span className="text-[13px] text-gray-600">在线</span>
+          <span className="text-[13px] font-semibold text-emerald-600">
             {hosts.filter(h => h.status === 'connected').length}
-          </div>
+          </span>
         </div>
-
-        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-500 text-sm">活跃会话</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-              <Terminal className="w-4 h-4 text-amber-500" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {hosts.filter(h => h.status === 'connected').length}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-500 text-sm">密钥管理</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-              <Key className="w-4 h-4 text-purple-500" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-gray-900">
+        <div className="w-px h-4 bg-gray-200" />
+        <div className="flex items-center gap-2">
+          <Key className="w-4 h-4 text-purple-500" />
+          <span className="text-[13px] text-gray-600">密钥认证</span>
+          <span className="text-[13px] font-semibold text-purple-600">
             {hosts.filter(h => h.auth_type === 'key').length}
-          </div>
+          </span>
         </div>
       </div>
 
-      {/* Hosts List */}
-      <div className="space-y-3">
-        {hosts.map((host, index) => {
-          const statusStyle = getStatusStyle(host.status);
-          const isExpanded = expandedHostId === host.id;
-          const copyKey = `host-${host.id}`;
-          const osColor = getOSColor(host.os_key, host.system_type);
+      {/* Host Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {hosts.map((host) => {
+          const statusConfig = getStatusConfig(host.status);
+          const isActive = host.status === 'connected';
 
           return (
             <div
               key={host.id}
-              className={`bg-white rounded-xl border ${
-                host.status === 'connected' ? 'border-emerald-200' :
-                host.status === 'warning' ? 'border-amber-200' : 'border-gray-200'
-              } overflow-hidden group hover:shadow-lg transition-all duration-300 animate-fade-in relative`}
-              style={{ animationDelay: `${Math.min(index * 0.05, 0.3)}s` }}
+              className={`bg-white rounded-lg border border-gray-200 ${statusConfig.border}
+                        transition-all duration-200 hover:shadow-md group relative`}
             >
-              {/* 左上角删除按钮 */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(host.id);
-                }}
-                className="absolute top-2 left-2 z-10 w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 border border-red-200 shadow-sm"
-                title="删除主机"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-              {/* Main Row - Always Visible */}
-              <div
-                className="p-4 flex items-center gap-4 cursor-pointer"
-                onClick={() => toggleExpand(host.id)}
-              >
-                {/* OS Icon - 使用系统类型图标替代数字 */}
-                <div className="relative flex-shrink-0">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105"
-                    style={{ backgroundColor: osColor + '20' }}
-                  >
-                    <div className="w-8 h-8" style={{ color: osColor }}>
+              {/* Card Header */}
+              <div className="p-4 border-b border-gray-100">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    {/* OS Icon */}
+                    <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 
+                                  flex items-center justify-center flex-shrink-0">
                       <OSIcon
                         osKey={host.os_key}
                         systemType={host.system_type}
-                        size="lg"
+                        size="md"
                       />
                     </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-[14px] text-gray-900 truncate">
+                          {host.name || host.address}
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[12px] text-gray-500 font-mono">{host.address}</span>
+                        <button
+                          onClick={() => copyToClipboard(host.address, `host-${host.id}-ip`)}
+                          className="p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 
+                                   opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="复制IP"
+                        >
+                          {copiedField === `host-${host.id}-ip` ? (
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 ${statusStyle.color} rounded-full border-2 border-white ${statusStyle.pulse}`}></div>
-                </div>
 
-                {/* Host Info */}
-                <div className="flex-1 min-w-0">
+                  {/* Status & Menu */}
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">
-                      {host.name}
-                    </h3>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyToClipboard(host.name, `${copyKey}-name`);
-                      }}
-                      className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="复制名称"
-                    >
-                      {copiedField === `${copyKey}-name` ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-500" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <span className="font-mono">{host.address}:{host.port}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyToClipboard(`${host.address}:${host.port}`, `${copyKey}-address`);
-                      }}
-                      className="p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="复制地址"
-                    >
-                      {copiedField === `${copyKey}-address` ? (
-                        <Check className="w-3 h-3 text-emerald-500" />
-                      ) : (
-                        <Copy className="w-3 h-3" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* System Info Badge */}
-                <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
-                  {host.system_type && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-100">
-                      <OSIcon
-                        osKey={host.os_key}
-                        systemType={host.system_type}
-                        size="sm"
-                      />
-                      <span className="text-xs text-gray-600 font-medium">
-                        {getOSLabel(host.os_key, host.system_type)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Quick Stats */}
-                  {host.cpu_cores && host.cpu_cores > 0 && (
-                    <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
-                      <Cpu className="w-3.5 h-3.5" />
-                      <span>{host.cpu_cores}核</span>
-                    </div>
-                  )}
-                  {host.memory_gb && host.memory_gb > 0 && (
-                    <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
-                      <MemoryStick className="w-3.5 h-3.5" />
-                      <span>{formatMemory(host.memory_gb)}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Auth Type Badge */}
-                <div className="flex-shrink-0">
-                  {host.auth_type === 'key' ? (
-                    <span className="px-2 py-1 rounded-full bg-purple-50 text-purple-600 text-xs border border-purple-100 flex items-center gap-1 font-medium">
-                      <Key className="w-3 h-3" />
-                      密钥
+                    <span className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] 
+                                    font-medium border ${statusConfig.badge}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                      {statusConfig.label}
                     </span>
-                  ) : (
-                    <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs border border-gray-200 flex items-center gap-1 font-medium">
-                      <i className="fas fa-lock text-xs"></i>
-                      密码
-                    </span>
-                  )}
-                </div>
-
-                {/* Expand Icon */}
-                <div className="flex-shrink-0 text-gray-400">
-                  {isExpanded ? (
-                    <ChevronUp className="w-5 h-5" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5" />
-                  )}
+                    
+                    {/* More Actions */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setActiveMenu(activeMenu === host.id ? null : host.id)}
+                        className="p-1.5 hover:bg-gray-100 rounded-md text-gray-400 hover:text-gray-600 
+                                 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                      
+                      {/* Dropdown Menu */}
+                      {activeMenu === host.id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={handleClickOutside} />
+                          <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-lg 
+                                        border border-gray-200 shadow-lg z-20 py-1">
+                            <button
+                              onClick={() => { onEdit(host); setActiveMenu(null); }}
+                              className="w-full px-3 py-2 text-left text-[13px] text-gray-700 
+                                       hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                              编辑
+                            </button>
+                            <button
+                              onClick={() => handleCopyHost(host)}
+                              className="w-full px-3 py-2 text-left text-[13px] text-gray-700 
+                                       hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              复制
+                            </button>
+                            <button
+                              onClick={() => { onTestConnection(host.id); setActiveMenu(null); }}
+                              className="w-full px-3 py-2 text-left text-[13px] text-gray-700 
+                                       hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <RefreshCw className="w-3.5 h-3.5" />
+                              测试连接
+                            </button>
+                            <div className="border-t border-gray-100 my-1" />
+                            <button
+                              onClick={() => { onDelete(host.id); setActiveMenu(null); }}
+                              className="w-full px-3 py-2 text-left text-[13px] text-red-600 
+                                       hover:bg-red-50 flex items-center gap-2"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              删除
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Expanded Content */}
-              {isExpanded && (
-                <div className="border-t border-gray-100 bg-gray-50/50 p-4 animate-slide-down">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    {/* System Details */}
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                      <div className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wider">系统信息</div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">操作系统</span>
-                          <div className="flex items-center gap-1.5">
-                            <OSIcon
-                              osKey={host.os_key}
-                              systemType={host.system_type}
-                              size="sm"
-                            />
-                            <span className="text-sm font-medium text-gray-900">
-                              {getOSLabel(host.os_key, host.system_type)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">内核版本</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-sm font-mono text-gray-900 truncate max-w-[120px]">
-                              {host.kernel_version || '-'}
-                            </span>
-                            {host.kernel_version && (
-                              <button
-                                onClick={() => copyToClipboard(host.kernel_version!, `${copyKey}-kernel`)}
-                                className="p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600"
-                              >
-                                {copiedField === `${copyKey}-kernel` ? (
-                                  <Check className="w-3 h-3 text-emerald-500" />
-                                ) : (
-                                  <Copy className="w-3 h-3" />
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">架构</span>
-                          <span className="text-sm font-mono text-gray-900">{host.architecture || '-'}</span>
-                        </div>
+              {/* Card Body - Specs */}
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {/* CPU */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-md bg-blue-50 flex items-center justify-center">
+                      <Cpu className="w-3.5 h-3.5 text-blue-500" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-gray-400">CPU</div>
+                      <div className="text-[12px] font-medium text-gray-700">
+                        {host.cpu_cores && host.cpu_cores > 0 ? `${host.cpu_cores} 核` : '-'}
                       </div>
                     </div>
+                  </div>
 
-                    {/* Hardware Info */}
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                      <div className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wider">硬件信息</div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">CPU 核心</span>
-                          <div className="flex items-center gap-1.5">
-                            <Cpu className="w-4 h-4 text-blue-500" />
-                            <span className="text-sm font-medium text-gray-900">
-                              {host.cpu_cores && host.cpu_cores > 0 ? `${host.cpu_cores} 核` : '-'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">内存容量</span>
-                          <div className="flex items-center gap-1.5">
-                            <MemoryStick className="w-4 h-4 text-emerald-500" />
-                            <span className="text-sm font-medium text-gray-900">
-                              {formatMemory(host.memory_gb)}
-                            </span>
-                          </div>
-                        </div>
+                  {/* Memory */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-md bg-emerald-50 flex items-center justify-center">
+                      <MemoryStick className="w-3.5 h-3.5 text-emerald-500" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-gray-400">内存</div>
+                      <div className="text-[12px] font-medium text-gray-700">
+                        {formatMemory(host.memory_gb)}
                       </div>
                     </div>
+                  </div>
 
-                    {/* Connection Info */}
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                      <div className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wider">连接信息</div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">用户名</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-sm font-mono text-gray-900">{host.username}</span>
-                            <button
-                              onClick={() => copyToClipboard(host.username, `${copyKey}-username`)}
-                              className="p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600"
-                            >
-                              {copiedField === `${copyKey}-username` ? (
-                                <Check className="w-3 h-3 text-emerald-500" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">认证方式</span>
-                          <span className="text-sm text-gray-900">
-                            {host.auth_type === 'key' ? 'SSH 密钥' : '密码'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">状态</span>
-                          <span className={`text-sm font-medium ${statusStyle.text}`}>
-                            {host.status === 'connected' ? '已连接' :
-                             host.status === 'warning' ? '警告' : '未连接'}
-                          </span>
-                        </div>
+                  {/* Disk */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-md bg-amber-50 flex items-center justify-center">
+                      <HardDrive className="w-3.5 h-3.5 text-amber-500" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-gray-400">系统盘</div>
+                      <div className="text-[12px] font-medium text-gray-700">
+                        {formatDisk(host.system_disk_used, host.system_disk_total)}
                       </div>
                     </div>
+                  </div>
 
-                    {/* Actions */}
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                      <div className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wider">操作</div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => onOpenTerminal(host)}
-                          className="py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5 border border-blue-200"
-                        >
-                          <Terminal className="w-4 h-4" />
-                          终端
-                        </button>
-                        <button
-                          onClick={() => onOpenSFTP && onOpenSFTP(host)}
-                          disabled={!onOpenSFTP || host.status !== 'connected'}
-                          className="py-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5 border border-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <FolderOpen className="w-4 h-4" />
-                          SFTP
-                        </button>
-                        <button
-                          onClick={() => onTestConnection(host.id)}
-                          className="py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5 border border-emerald-200"
-                        >
-                          <i className="fas fa-plug"></i>
-                          测试
-                        </button>
-                        <button
-                          onClick={() => onEdit(host)}
-                          className="py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5 border border-gray-200"
-                        >
-                          <i className="fas fa-edit"></i>
-                          编辑
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        <button
-                          onClick={(e) => handleCopyHost(e, host)}
-                          className="py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5 border border-indigo-200"
-                        >
-                          <Files className="w-4 h-4" />
-                          复制主机
-                        </button>
-                        <button
-                          onClick={() => onDelete(host.id)}
-                          className="py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5 border border-red-200"
-                        >
-                          <i className="fas fa-trash"></i>
-                          删除
-                        </button>
+                  {/* Auth */}
+                  <div className="flex items-center gap-2">
+                    <div className={`w-7 h-7 rounded-md flex items-center justify-center 
+                                  ${host.auth_type === 'key' ? 'bg-purple-50' : 'bg-gray-50'}`}>
+                      {host.auth_type === 'key' ? (
+                        <Key className="w-3.5 h-3.5 text-purple-500" />
+                      ) : (
+                        <Lock className="w-3.5 h-3.5 text-gray-500" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-gray-400">认证</div>
+                      <div className="text-[12px] font-medium text-gray-700">
+                        {host.auth_type === 'key' ? '密钥' : '密码'}
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
+
+                {/* OS Info */}
+                {host.system_type && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-[12px]">
+                      <span className="text-gray-400">操作系统</span>
+                      <div className="flex items-center gap-1.5">
+                        <OSIcon osKey={host.os_key} systemType={host.system_type} size="sm" />
+                        <span className="text-gray-700">{getOSLabel(host.os_key, host.system_type)}</span>
+                      </div>
+                    </div>
+                    {host.os_version && (
+                      <div className="flex items-center justify-between text-[12px] mt-1.5">
+                        <span className="text-gray-400">版本</span>
+                        <span className="text-gray-700 font-mono text-[11px]">{host.os_version}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Card Footer - Actions */}
+              <div className="px-4 pb-4">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onOpenTerminal(host)}
+                    className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white 
+                             rounded-md text-[12px] font-medium transition-colors
+                             flex items-center justify-center gap-1.5"
+                  >
+                    <Terminal className="w-3.5 h-3.5" />
+                    终端
+                  </button>
+                  <button
+                    onClick={() => onOpenSFTP && onOpenSFTP(host)}
+                    disabled={!onOpenSFTP || !isActive}
+                    className="flex-1 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 
+                             rounded-md text-[12px] font-medium transition-colors
+                             flex items-center justify-center gap-1.5
+                             disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FolderOpen className="w-3.5 h-3.5" />
+                    SFTP
+                  </button>
+                </div>
+              </div>
             </div>
           );
         })}
 
-        {/* Add New Host Button */}
+        {/* Add New Host Card */}
         <button
           onClick={onAddHost}
-          className="w-full border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-all duration-300 group"
+          className="bg-white rounded-lg border-2 border-dashed border-gray-200 
+                   hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-200
+                   min-h-[280px] flex flex-col items-center justify-center gap-3 group"
         >
-          <div className="w-12 h-12 rounded-full bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center mb-3 transition-all duration-300 group-hover:scale-110">
-            <i className="fas fa-plus text-xl group-hover:rotate-90 transition-transform duration-300"></i>
+          <div className="w-12 h-12 rounded-full bg-gray-100 group-hover:bg-blue-100 
+                        flex items-center justify-center transition-colors">
+            <Plus className="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors" />
           </div>
-          <span className="font-medium">添加新主机</span>
-          <span className="text-xs mt-1 text-gray-500">支持密码或密钥认证</span>
+          <div className="text-center">
+            <div className="text-[14px] font-medium text-gray-600 group-hover:text-blue-600 transition-colors">
+              添加主机
+            </div>
+            <div className="text-[12px] text-gray-400 mt-1">
+              支持密码或密钥认证
+            </div>
+          </div>
         </button>
       </div>
     </>

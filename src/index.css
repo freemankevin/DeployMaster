@@ -2,58 +2,139 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   macOS Design System - Global Styles
+   ============================================ */
+
 /* 基础样式 - 苹果风格字体 */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #F5F5F7;
+  color: #1D1D1F;
+  line-height: 1.47059;
+  letter-spacing: -0.022em;
 }
 
 /* 代码字体 - 苹果风格等宽字体 */
 code, pre, .font-mono {
   font-family: 'SF Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'PingFang SC', 'Microsoft YaHei', monospace;
+  font-feature-settings: 'liga' 0, 'calt' 0;
 }
 
-/* 自定义组件样式 */
+/* ============================================
+   macOS Button Styles
+   ============================================ */
 @layer components {
+  /* 主按钮 - macOS 风格 */
   .btn-primary {
-    @apply px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium 
-           transition-all duration-200 shadow-md shadow-blue-500/20 
-           hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5;
+    @apply px-4 py-2 bg-macos-blue text-white rounded-macos text-sm font-medium
+           transition-all duration-200 ease-macos
+           shadow-macos-button
+           hover:shadow-macos-button hover:brightness-105
+           active:shadow-macos-button-active active:scale-[0.98]
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
   }
 
+  /* 次要按钮 */
   .btn-secondary {
-    @apply px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-sm font-medium 
-           transition-all duration-200 border border-gray-200;
+    @apply px-4 py-2 bg-white text-gray-700 rounded-macos text-sm font-medium
+           border border-gray-200
+           transition-all duration-200 ease-macos
+           shadow-macos-button
+           hover:bg-gray-50 hover:border-gray-300
+           active:shadow-macos-button-active active:bg-gray-100 active:scale-[0.98];
   }
 
-  .card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-sm 
-           hover:shadow-md transition-all duration-200;
+  /* 幽灵按钮 */
+  .btn-ghost {
+    @apply px-3 py-1.5 text-macos-blue text-sm font-medium
+           transition-all duration-200 ease-macos
+           hover:bg-macos-blue/10 rounded-macos-sm
+           active:bg-macos-blue/20 active:scale-[0.98];
   }
 
-  .input-field {
-    @apply w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg 
-           focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 
-           text-gray-900 placeholder-gray-400 transition-all duration-200;
+  /* macOS 卡片 */
+  .card-macos {
+    @apply bg-white rounded-macos-lg border border-gray-200/60
+           shadow-macos
+           transition-all duration-300 ease-macos
+           hover:shadow-macos-lg hover:-translate-y-0.5;
   }
 
+  /* macOS 输入框 */
+  .input-macos {
+    @apply w-full px-3 py-2 bg-white border border-gray-300 rounded-macos-sm
+           text-sm text-gray-900 placeholder-gray-400
+           transition-all duration-200 ease-macos
+           shadow-macos-input
+           focus:outline-none focus:border-macos-blue focus:shadow-macos-input-focus
+           hover:border-gray-400;
+  }
+
+  /* macOS 标签 */
+  .badge-macos {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
+           text-xs font-medium
+           transition-all duration-200;
+  }
+
+  /* macOS 侧边栏项 */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-macos
+           text-sm font-medium
+           transition-all duration-150 ease-macos
+           cursor-pointer;
+  }
+
+  .sidebar-item-active {
+    @apply bg-macos-blue/10 text-macos-blue;
+  }
+
+  .sidebar-item-inactive {
+    @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900;
+  }
+
+  /* 状态脉冲动画 */
   .status-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: statusPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
-  .terminal {
-    @apply bg-gray-900 text-gray-100 font-mono text-sm;
+  /* macOS 风格分隔线 */
+  .divider-macos {
+    @apply h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent;
+  }
+
+  /* macOS 玻璃效果 */
+  .glass-macos {
+    @apply bg-white/80 backdrop-blur-xl;
+  }
+
+  /* macOS 窗口 */
+  .window-macos {
+    @apply bg-white rounded-macos-xl shadow-macos-window
+           border border-gray-200/50;
   }
 }
 
-/* 动画 */
-@keyframes pulse {
+/* ============================================
+   Animations
+   ============================================ */
+@keyframes statusPulse {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: .5;
+    opacity: 0.6;
+    transform: scale(0.9);
   }
 }
 
@@ -68,7 +149,7 @@ code, pre, .font-mono {
 
 @keyframes slideUp {
   from {
-    transform: translateY(10px);
+    transform: translateY(20px);
     opacity: 0;
   }
   to {
@@ -77,12 +158,98 @@ code, pre, .font-mono {
   }
 }
 
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .animate-slide-up {
-  animation: slideUp 0.3s ease-out;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 卡片交错动画 */
+.card-stagger-1 { animation-delay: 0.03s; }
+.card-stagger-2 { animation-delay: 0.06s; }
+.card-stagger-3 { animation-delay: 0.09s; }
+.card-stagger-4 { animation-delay: 0.12s; }
+.card-stagger-5 { animation-delay: 0.15s; }
+.card-stagger-6 { animation-delay: 0.18s; }
+
+/* ============================================
+   Scrollbar Styles - macOS Style
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ============================================
+   Selection Styles
+   ============================================ */
+::selection {
+  background-color: rgba(0, 122, 255, 0.2);
+  color: inherit;
+}
+
+/* ============================================
+   Focus Styles
+   ============================================ */
+*:focus-visible {
+  outline: 2px solid rgba(0, 122, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Grid Background
+   ============================================ */
+.bg-grid-macos {
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ============================================
+   Terminal Styles
+   ============================================ */
+.terminal-macos {
+  @apply bg-[#1E1E1E] text-gray-100 font-mono text-sm rounded-macos-lg;
+  font-feature-settings: 'liga' 0;
 }
 
 /* 终端光标闪烁 */
@@ -99,54 +266,56 @@ code, pre, .font-mono {
   animation: blink 1s step-end infinite;
 }
 
-/* 滚动条样式 */
-::-webkit-scrollbar {
+/* ============================================
+   Icon Styles - CSS-based macOS Icons
+   ============================================ */
+.icon-macos {
+  @apply inline-flex items-center justify-center;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* 图标容器 */
+.icon-container {
+  @apply flex items-center justify-center rounded-macos-sm
+         transition-all duration-200 ease-macos;
+}
+
+.icon-container-sm {
+  @apply w-6 h-6;
+}
+
+.icon-container-md {
+  @apply w-8 h-8;
+}
+
+.icon-container-lg {
+  @apply w-10 h-10;
+}
+
+/* ============================================
+   Tooltip Styles
+   ============================================ */
+.tooltip-macos {
+  @apply absolute px-2 py-1 bg-gray-800 text-white text-xs rounded-macos-sm
+         opacity-0 invisible
+         transition-all duration-200 ease-macos
+         pointer-events-none z-50;
+}
+
+.tooltip-macos::before {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 8px;
   height: 8px;
+  background: inherit;
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* 网格背景 */
-.bg-grid-light {
-  background-image: 
-    linear-gradient(to right, #f1f5f9 1px, transparent 1px),
-    linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* 卡片交错动画 */
-.card-stagger-1 { animation-delay: 0.05s; }
-.card-stagger-2 { animation-delay: 0.1s; }
-.card-stagger-3 { animation-delay: 0.15s; }
-.card-stagger-4 { animation-delay: 0.2s; }
-.card-stagger-5 { animation-delay: 0.25s; }
-.card-stagger-6 { animation-delay: 0.3s; }
-
-/* Slide down animation for expandable content */
-@keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-slide-down {
-  animation: slide-down 0.2s ease-out forwards;
+.group:hover .tooltip-macos {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-8px);
 }

@@ -85,7 +85,12 @@ class DatabaseManager:
                 ('kernel_version', 'TEXT'),
                 ('architecture', 'TEXT'),
                 ('cpu_cores', 'INTEGER'),
-                ('memory_gb', 'REAL')
+                ('memory_gb', 'REAL'),
+                ('os_version', 'TEXT'),  # 操作系统版本号
+                ('system_disk_total', 'REAL'),  # 系统盘总容量(GB)
+                ('system_disk_used', 'REAL'),   # 系统盘已用(GB)
+                ('data_disk_total', 'REAL'),    # 数据盘总容量(GB)
+                ('data_disk_used', 'REAL'),     # 数据盘已用(GB)
             ]
             for col_name, col_type in new_columns:
                 try:
@@ -188,7 +193,9 @@ class DatabaseManager:
                             'auth_type', 'password', 'private_key', 
                             'key_passphrase', 'tags', 'status', 
                             'system_type', 'os_key', 'last_seen',
-                            'kernel_version', 'architecture', 'cpu_cores', 'memory_gb']
+                            'kernel_version', 'architecture', 'cpu_cores', 'memory_gb',
+                            'os_version', 'system_disk_total', 'system_disk_used',
+                            'data_disk_total', 'data_disk_used']
             
             set_clauses = []
             values = []

@@ -3,7 +3,7 @@ Pydantic 数据模型定义
 用于 FastAPI 请求和响应验证
 """
 
-from typing import Optional, List
+from typing import Optional, List, Any, Dict
 from datetime import datetime
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -60,6 +60,11 @@ class HostUpdate(BaseModel):
     architecture: Optional[str] = None
     cpu_cores: Optional[int] = None
     memory_gb: Optional[float] = None
+    os_version: Optional[str] = None  # 操作系统版本号
+    system_disk_total: Optional[float] = None  # 系统盘总容量(GB)
+    system_disk_used: Optional[float] = None   # 系统盘已用(GB)
+    data_disk_total: Optional[float] = None    # 数据盘总容量(GB)
+    data_disk_used: Optional[float] = None     # 数据盘已用(GB)
     last_seen: Optional[str] = None
 
 
@@ -73,6 +78,11 @@ class HostResponse(HostBase):
     architecture: Optional[str] = None
     cpu_cores: Optional[int] = None
     memory_gb: Optional[float] = None
+    os_version: Optional[str] = None  # 操作系统版本号
+    system_disk_total: Optional[float] = None  # 系统盘总容量(GB)
+    system_disk_used: Optional[float] = None   # 系统盘已用(GB)
+    data_disk_total: Optional[float] = None    # 数据盘总容量(GB)
+    data_disk_used: Optional[float] = None     # 数据盘已用(GB)
     last_seen: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -84,13 +94,14 @@ class HostResponse(HostBase):
 class HostListResponse(BaseModel):
     """主机列表响应"""
     success: bool = True
-    data: List[HostResponse]
+    data: List[Dict[str, Any]]
 
 
 class HostSingleResponse(BaseModel):
     """单个主机响应"""
     success: bool = True
-    data: HostResponse
+    message: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
 
 
 # ==================== SSH 密钥模型 ====================
@@ -150,6 +161,7 @@ class CommandResult(BaseModel):
     success: bool
     stdout: Optional[str] = None
     stderr: Optional[str] = None
+    exit_code: Optional[int] = None
     message: Optional[str] = None
 
 

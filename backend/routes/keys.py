@@ -23,6 +23,7 @@ router = APIRouter(prefix="/keys", tags=["keys"])
 @router.get("", response_model=SSHKeyListResponse)
 async def get_keys():
     """获取所有 SSH 密钥"""
+    logger.info("→ GET /api/keys")
     try:
         keys = db_manager.get_all_ssh_keys()
         # 不返回私钥内容
@@ -35,47 +36,54 @@ async def get_keys():
                 'fingerprint': key.get('fingerprint'),
                 'created_at': key['created_at']
             })
+        logger.info(f"← GET /api/keys | 200 | 返回 {len(safe_keys)} 个密钥")
         return SSHKeyListResponse(data=safe_keys)
     except Exception as e:
-        logger.error(f"获取密钥列表失败: {e}")
+        logger.error(f"✗ GET /api/keys | Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=MessageResponse, status_code=201)
 async def add_key(key_data: SSHKeyCreate):
     """添加 SSH 密钥"""
+    logger.info(f"→ POST /api/keys | name={key_data.name}")
     try:
         key_dict = key_data.model_dump()
         key_id = db_manager.add_ssh_key(key_dict)
         
+        logger.info(f"← POST /api/keys | 201 | 密钥添加成功: {key_data.name}")
         return MessageResponse(
             success=True,
             message="密钥添加成功"
         )
     except Exception as e:
-        logger.error(f"添加密钥失败: {e}")
+        logger.error(f"✗ POST /api/keys | Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{key_id}", response_model=MessageResponse)
 async def delete_key(key_id: int):
     """删除 SSH 密钥"""
+    logger.info(f"→ DELETE /api/keys/{key_id}")
     try:
         success = db_manager.delete_ssh_key(key_id)
         if success:
+            logger.info(f"← DELETE /api/keys/{key_id} | 200 | 密钥删除成功")
             return MessageResponse(success=True, message="密钥删除成功")
         else:
+            logger.warning(f"← DELETE /api/keys/{key_id} | 404 | 密钥不存在")
             raise HTTPException(status_code=404, detail="密钥不存在")
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"删除密钥失败: {e}")
+        logger.error(f"✗ DELETE /api/keys/{key_id} | Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/generate", response_model=MessageResponse, status_code=201)
 async def generate_key(key_data: SSHKeyGenerate):
     """生成新的 SSH 密钥对"""
+    logger.info(f"→ POST /api/keys/generate | name={key_data.name}, type={key_data.key_type}")
     try:
         key_type = key_data.key_type
         key_name = key_data.name
@@ -114,6 +122,7 @@ async def generate_key(key_data: SSHKeyGenerate):
             # 计算指纹
             fingerprint = hashlib.md5(public_bytes).hexdigest()
         else:
+            logger.warning(f"← POST /api/keys/generate | 400 | 不支持的密钥类型: {key_type}")
             raise HTTPException(status_code=400, detail="不支持的密钥类型")
         
         # 保存到数据库
@@ -127,6 +136,7 @@ async def generate_key(key_data: SSHKeyGenerate):
         
         key_id = db_manager.add_ssh_key(key_dict)
         
+        logger.info(f"← POST /api/keys/generate | 201 | 密钥生成成功: {key_name}")
         return MessageResponse(
             success=True,
             message="密钥生成成功"
@@ -135,5 +145,5 @@ async def generate_key(key_data: SSHKeyGenerate):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"生成密钥失败: {e}")
+        logger.error(f"✗ POST /api/keys/generate | Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

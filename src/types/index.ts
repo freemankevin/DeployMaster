@@ -13,10 +13,15 @@ export interface SSHHost {
   status: 'connected' | 'disconnected' | 'warning';
   system_type?: string;
   os_key?: string;  // 操作系统标识符，用于图标映射
+  os_version?: string;  // 操作系统版本号
   kernel_version?: string;  // 内核版本
   architecture?: string;    // 架构类型
   cpu_cores?: number;       // CPU核心数
   memory_gb?: number;       // 内存容量(GB)
+  system_disk_total?: number;  // 系统盘总容量(GB)
+  system_disk_used?: number;   // 系统盘已用(GB)
+  data_disk_total?: number;    // 数据盘总容量(GB)
+  data_disk_used?: number;     // 数据盘已用(GB)
   last_seen?: string;
   created_at?: string;
   updated_at?: string;

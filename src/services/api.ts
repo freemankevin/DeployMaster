@@ -32,10 +32,14 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
+    console.log('API Response:', response.config.url, response.status, response.data);
     return response.data;
   },
   (error) => {
-    console.error('API Error:', error);
+    console.error('API Error:', error.config?.url, error.response?.status, error.message);
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+    }
     return Promise.reject(error);
   }
 );

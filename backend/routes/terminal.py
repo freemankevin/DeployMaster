@@ -37,42 +37,50 @@ class TabCompletionResponse(BaseModel):
 @router.post("/{host_id}/connect", response_model=MessageResponse)
 async def connect_terminal(host_id: int):
     """连接终端"""
+    logger.info(f"→ POST /api/terminal/{host_id}/connect")
     try:
         host = db_manager.get_host(host_id)
         if not host:
+            logger.warning(f"主机不存在: host_id={host_id}")
             raise HTTPException(status_code=404, detail="主机不存在")
         
         # 获取终端会话
         channel = SSHService.get_terminal_session(host)
         
         if channel:
+            logger.info(f"← POST /api/terminal/{host_id}/connect | 200 | 终端连接成功")
             return MessageResponse(success=True, message="终端连接成功")
         else:
+            logger.error(f"← POST /api/terminal/{host_id}/connect | 500 | 无法建立终端连接")
             raise HTTPException(status_code=500, detail="无法建立终端连接")
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"连接终端失败: {e}")
+        logger.error(f"✗ POST /api/terminal/{host_id}/connect | Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/{host_id}/disconnect", response_model=MessageResponse)
 async def disconnect_terminal(host_id: int):
     """断开终端连接"""
+    logger.info(f"→ POST /api/terminal/{host_id}/disconnect")
     try:
         SSHService.disconnect_host(host_id)
+        logger.info(f"← POST /api/terminal/{host_id}/disconnect | 200 | 终端已断开")
         return MessageResponse(success=True, message="终端已断开")
     except Exception as e:
-        logger.error(f"断开终端失败: {e}")
+        logger.error(f"✗ POST /api/terminal/{host_id}/disconnect | Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/{host_id}/complete", response_model=TabCompletionResponse)
 async def tab_completion(host_id: int, request: TabCompletionRequest):
     """Tab 补全 - 通过 SSH 在远程服务器上执行补全"""
+    logger.info(f"→ POST /api/terminal/{host_id}/complete | command={request.command[:20]}...")
     try:
         host = db_manager.get_host(host_id)
         if not host:
+            logger.warning(f"主机不存在: host_id={host_id}")
             raise HTTPException(status_code=404, detail="主机不存在")
         
         command = request.command
@@ -82,32 +90,25 @@ async def tab_completion(host_id: int, request: TabCompletionRequest):
         current_input = command[:cursor_pos]
         
         # 使用 compgen 命令在远程服务器上获取补全建议
-        # 根据输入内容判断是命令补全还是路径补全
         completions = []
         common_prefix = ""
         
         try:
             # 构建补全命令
-            # 使用 bash 的 compgen 命令来获取补全建议
             if ' ' in current_input:
-                # 包含空格，可能是命令参数或路径补全
-                # 提取最后一个词
                 parts = current_input.rsplit(' ', 1)
                 if len(parts) == 2:
-                    prefix, partial = parts
-                    # 路径补全
+                    partial = parts[1]
                     compgen_cmd = f'compgen -o bashdefault -o default -A file -- "{partial}" 2>/dev/null || echo ""'
                 else:
                     compgen_cmd = f'compgen -c -- "{current_input}" 2>/dev/null || echo ""'
             else:
-                # 命令补全
                 compgen_cmd = f'compgen -c -- "{current_input}" 2>/dev/null || compgen -b -- "{current_input}" 2>/dev/null || echo ""'
             
             # 执行补全命令
             result = SSHService.execute_on_host(host, compgen_cmd)
             
             if result['success']:
-                # 解析补全结果
                 output = result['stdout'].strip()
                 if output:
                     completions = [line.strip() for line in output.split('\n') if line.strip()]
@@ -134,7 +135,6 @@ async def tab_completion(host_id: int, request: TabCompletionRequest):
             
             # 如果没有找到补全，尝试使用 ls 进行路径补全
             if not completions and ('/' in current_input or current_input.startswith('~')):
-                # 路径补全
                 dir_path = current_input.rsplit('/', 1)[0] if '/' in current_input else '.'
                 file_prefix = current_input.rsplit('/', 1)[1] if '/' in current_input else current_input
                 
@@ -152,6 +152,7 @@ async def tab_completion(host_id: int, request: TabCompletionRequest):
         except Exception as e:
             logger.warning(f"补全命令执行失败: {e}")
         
+        logger.info(f"← POST /api/terminal/{host_id}/complete | 200 | {len(completions)} 个补全建议")
         return TabCompletionResponse(
             success=True,
             completions=completions,
@@ -162,7 +163,7 @@ async def tab_completion(host_id: int, request: TabCompletionRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Tab 补全失败: {e}")
+        logger.error(f"✗ POST /api/terminal/{host_id}/complete | Error: {e}")
         return TabCompletionResponse(
             success=False,
             completions=[],
@@ -174,18 +175,18 @@ async def tab_completion(host_id: int, request: TabCompletionRequest):
 @router.websocket("/ws/{host_id}")
 async def websocket_terminal(websocket: WebSocket, host_id: int):
     """WebSocket 终端连接"""
-    logger.info(f"WebSocket connection request for host_id={host_id}")
+    logger.info(f"[WS] 收到 WebSocket 连接请求: host_id={host_id}")
     
     try:
         await websocket.accept()
-        logger.info(f"WebSocket accepted for host_id={host_id}")
+        logger.info(f"[WS] WebSocket 已接受: host_id={host_id}")
     except Exception as e:
-        logger.error(f"WebSocket accept failed: {e}")
+        logger.error(f"[WS] WebSocket 接受失败: {e}")
         return
     
     host = db_manager.get_host(host_id)
     if not host:
-        logger.error(f"Host not found: host_id={host_id}")
+        logger.error(f"[WS] 主机不存在: host_id={host_id}")
         try:
             await websocket.send_text(json.dumps({"error": "主机不存在"}))
             await websocket.close()
@@ -198,13 +199,16 @@ async def websocket_terminal(websocket: WebSocket, host_id: int):
     connection_active = True
     
     try:
-        # 建立 SSH 连接 - 创建独立连接而不是使用连接池
+        # 建立 SSH 连接
         from services.ssh_service import SSHConnection, SSHConnectionConfig
         
-        logger.info(f"Creating SSH connection to {host['address']}:{host.get('port', 22)}")
+        host_addr = host['address']
+        host_port = host.get('port', 22)
+        logger.info(f"[WS] 正在建立 SSH 连接: {host['name']} ({host_addr}:{host_port})")
+        
         config = SSHConnectionConfig(
-            host=host['address'],
-            port=host.get('port', 22),
+            host=host_addr,
+            port=host_port,
             username=host['username'],
             password=host.get('password'),
             private_key=host.get('private_key'),
@@ -214,7 +218,7 @@ async def websocket_terminal(websocket: WebSocket, host_id: int):
         ssh_conn = SSHConnection(config)
         if not ssh_conn.connect():
             error_msg = f"无法建立SSH连接: {ssh_conn.last_error}"
-            logger.error(error_msg)
+            logger.error(f"[WS] {error_msg}")
             try:
                 await websocket.send_text(json.dumps({"error": error_msg}))
                 await websocket.close()
@@ -222,10 +226,10 @@ async def websocket_terminal(websocket: WebSocket, host_id: int):
                 pass
             return
         
-        logger.info(f"SSH connected, getting shell...")
+        logger.info(f"[WS] SSH 连接成功，正在获取 shell...")
         channel = ssh_conn.get_shell()
         if not channel:
-            logger.error("Failed to get shell channel")
+            logger.error(f"[WS] 无法打开终端会话")
             try:
                 await websocket.send_text(json.dumps({"error": "无法打开终端会话"}))
                 await websocket.close()
@@ -233,19 +237,21 @@ async def websocket_terminal(websocket: WebSocket, host_id: int):
                 pass
             return
         
-        # 等待客户端发送 resize 消息来设置正确的终端大小
-        # 先设置一个默认大小
+        # 设置终端大小
         channel.resize_pty(width=80, height=24)
         
         # 发送连接成功消息
-        logger.info(f"Sending connected message to client")
+        logger.info(f"[WS] 终端会话已建立: {host['name']}")
         try:
-            await websocket.send_text(json.dumps({"type": "connected", "message": f"已连接到 {host['name']}"}))
+            await websocket.send_text(json.dumps({
+                "type": "connected",
+                "message": f"已连接到 {host['name']}"
+            }))
         except Exception as e:
-            logger.error(f"Failed to send connected message: {e}")
+            logger.error(f"[WS] 发送连接消息失败: {e}")
             return
         
-        # 发送一个换行来触发命令提示符显示
+        # 发送换行触发提示符
         await asyncio.sleep(0.1)
         channel.send(b'\r')
         
@@ -263,12 +269,12 @@ async def websocket_terminal(websocket: WebSocket, host_id: int):
                                     "data": data.decode('utf-8', errors='replace')
                                 }))
                             except Exception as e:
-                                logger.error(f"Failed to send data to WebSocket: {e}")
+                                logger.debug(f"[WS] 发送数据失败，连接可能已关闭: {e}")
                                 connection_active = False
                                 break
                     await asyncio.sleep(0.01)
                 except Exception as e:
-                    logger.error(f"读取SSH数据错误: {e}")
+                    logger.debug(f"[WS] 读取 SSH 数据错误: {e}")
                     connection_active = False
                     break
         
@@ -289,13 +295,13 @@ async def websocket_terminal(websocket: WebSocket, host_id: int):
                         rows = message.get("rows", 24)
                         if channel:
                             channel.resize_pty(width=cols, height=rows)
-                        
+                    
                 except WebSocketDisconnect:
-                    logger.info(f"WebSocket disconnected by client: host_id={host_id}")
+                    logger.info(f"[WS] 客户端断开连接: host_id={host_id}")
                     connection_active = False
                     break
                 except Exception as e:
-                    logger.error(f"写入SSH数据错误: {e}")
+                    logger.debug(f"[WS] 接收数据错误: {e}")
                     connection_active = False
                     break
         
@@ -303,9 +309,9 @@ async def websocket_terminal(websocket: WebSocket, host_id: int):
         await asyncio.gather(read_from_ssh(), write_to_ssh())
         
     except WebSocketDisconnect:
-        logger.info(f"WebSocket 断开连接: host_id={host_id}")
+        logger.info(f"[WS] WebSocket 断开: host_id={host_id}")
     except Exception as e:
-        logger.error(f"WebSocket 错误: {e}")
+        logger.error(f"[WS] WebSocket 错误: {e}")
     finally:
         connection_active = False
         if channel:
@@ -318,4 +324,4 @@ async def websocket_terminal(websocket: WebSocket, host_id: int):
                 ssh_conn.close()
             except:
                 pass
-        logger.info(f"WebSocket connection closed: host_id={host_id}")
+        logger.info(f"[WS] 终端会话已关闭: {host['name']} (host_id={host_id})")

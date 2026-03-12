@@ -93,7 +93,9 @@ function App() {
   // 更新主机
   const handleUpdateHost = async (id: number, data: UpdateHostRequest) => {
     try {
+      console.log('handleUpdateHost 被调用, id:', id, 'data:', data);
       const response = await hostApi.update(id, data);
+      console.log('API 响应:', response);
       if (response.success) {
         await loadHosts();
         await loadStats();
@@ -146,13 +148,12 @@ function App() {
     setIsTerminalOpen(true);
   };
 
-  // 打开 SFTP - 暂时使用提示功能，后续可以添加完整的 SFTP 客户端
+  // 打开 SFTP
   const handleOpenSFTP = (host: SSHHost) => {
     if (host.status !== 'connected') {
       alert('请先连接主机后再使用 SFTP 功能');
       return;
     }
-    // 构建 SFTP URL 或使用外部客户端打开
     const sftpUrl = `sftp://${host.username}@${host.address}:${host.port}`;
     alert(`SFTP 连接信息:\n${sftpUrl}\n\n您可以使用 FileZilla、WinSCP 等 SFTP 客户端连接。`);
   };
@@ -164,7 +165,7 @@ function App() {
     setIsAddModalOpen(true);
   };
 
-  // 复制主机 - 打开模态框并预填充数据
+  // 复制主机
   const handleCopyHost = (host: SSHHost) => {
     setEditingHost(null);
     setCopyingHost(host);
@@ -179,12 +180,12 @@ function App() {
   };
 
   return (
-    <div className="bg-gray-50 text-gray-800 h-screen overflow-hidden flex">
+    <div className="bg-[#F5F5F7] text-gray-900 h-screen overflow-hidden flex">
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar hostCount={hosts.length} />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col bg-grid-light relative">
+      <main className="flex-1 flex flex-col bg-grid-macos relative">
         {/* Header */}
         <Header
           stats={stats}
