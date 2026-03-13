@@ -1,4 +1,4 @@
-import { Upload, Download, Check, X, AlertCircle, Clock, Trash2, FileText, FolderPlus, Edit3, Trash, Terminal, Info } from 'lucide-react';
+import { Upload, Download, Check, X, AlertCircle, Clock, Trash2, Folder, FileText, Terminal } from 'lucide-react';
 import type { TransferTask, TransferLog, LogFilter } from './types';
 import { formatFileSize } from './utils';
 
@@ -34,116 +34,48 @@ const getStatusIcon = (status: TransferTask['status']) => {
   }
 };
 
-// Get appropriate icon for log type
-const getLogTypeIcon = (log: TransferLog) => {
-  if (log.status === 'error') {
-    return <AlertCircle className="w-3 h-3 text-red-400" />;
-  }
-  
-  switch (log.type) {
-    case 'upload':
-      return <Upload className="w-3 h-3 text-blue-400" />;
-    case 'download':
-      return <Download className="w-3 h-3 text-emerald-400" />;
-    case 'mkdir':
-      return <FolderPlus className="w-3 h-3 text-amber-400" />;
-    case 'rename':
-      return <Edit3 className="w-3 h-3 text-purple-400" />;
-    case 'delete':
-      return <Trash className="w-3 h-3 text-red-400" />;
-    case 'error':
-      return <AlertCircle className="w-3 h-3 text-red-400" />;
-    case 'info':
-    default:
-      return <Info className="w-3 h-3 text-gray-400" />;
-  }
-};
-
-// Get log entry background color
-const getLogBackgroundColor = (log: TransferLog) => {
-  if (log.status === 'error') return 'bg-red-500/10 border-red-500/20';
-  
-  switch (log.type) {
-    case 'upload':
-      return 'bg-blue-500/10 border-blue-500/20';
-    case 'download':
-      return 'bg-emerald-500/10 border-emerald-500/20';
-    case 'mkdir':
-      return 'bg-amber-500/10 border-amber-500/20';
-    case 'rename':
-      return 'bg-purple-500/10 border-purple-500/20';
-    case 'delete':
-      return 'bg-red-500/10 border-red-500/20';
-    default:
-      return 'bg-white/5 border-white/10';
-  }
-};
-
 const TransferPanel = ({
   transferTasks,
-  transferLogs,
   activeLogFilter,
   onFilterChange,
   onClearLogs,
   onClearLogsByFilter,
   onCancelTask
 }: TransferPanelProps) => {
+  // 活跃任务
   const activeTasks = transferTasks.filter(t =>
     t.status === 'transferring' || t.status === 'pending' || t.status === 'paused'
   );
 
-  const completedTasks = transferTasks.filter(t =>
-    t.status === 'completed' || t.status === 'failed'
-  );
-
-  // 按类型分组日志
-  const uploadLogs = transferLogs.filter(log => log.type === 'upload');
-  const downloadLogs = transferLogs.filter(log => log.type === 'download');
-  const errorLogs = transferLogs.filter(log => log.status === 'error' || log.type === 'error');
-  const otherLogs = transferLogs.filter(log => 
-    log.type !== 'upload' && log.type !== 'download' && log.type !== 'error' && log.status !== 'error'
-  );
-
-  // 根据当前筛选获取要显示的日志
-  const getDisplayLogs = () => {
-    switch (activeLogFilter) {
-      case 'upload': return uploadLogs;
-      case 'download': return downloadLogs;
-      case 'error': return errorLogs;
-      default: return transferLogs;
-    }
-  };
-
-  const displayLogs = getDisplayLogs();
-
-  // Remove duplicate logs (same message and path within 1 second)
-  const uniqueLogs = displayLogs.filter((log, index, self) => {
-    const isDuplicate = self.findIndex((l) => 
-      l.message === log.message && 
-      l.path === log.path &&
-      Math.abs(l.timestamp.getTime() - log.timestamp.getTime()) < 1000
-    ) !== index;
-    return !isDuplicate;
+  // 根据当前筛选过滤已完成的任务和日志
+  const filteredTasks = transferTasks.filter(t => {
+    if (t.status !== 'completed' && t.status !== 'failed') return false;
+    if (activeLogFilter === 'all') return true;
+    if (activeLogFilter === 'upload') return t.type === 'upload';
+    if (activeLogFilter === 'download') return t.type === 'download';
+    return true;
   });
 
-  // 获取日志计数
-  const getLogCount = (filter: LogFilter) => {
-    switch (filter) {
-      case 'upload': return uploadLogs.length;
-      case 'download': return downloadLogs.length;
-      case 'error': return errorLogs.length;
-      default: return transferLogs.length;
-    }
+  // 获取计数
+  const getCount = (filter: LogFilter) => {
+    if (filter === 'all') return transferTasks.filter(t => t.status === 'completed' || t.status === 'failed').length;
+    if (filter === 'upload') return transferTasks.filter(t => (t.status === 'completed' || t.status === 'failed') && t.type === 'upload').length;
+    if (filter === 'download') return transferTasks.filter(t => (t.status === 'completed' || t.status === 'failed') && t.type === 'download').length;
+    return 0;
   };
+
+  const currentCount = activeLogFilter === 'all' 
+    ? filteredTasks.length 
+    : getCount(activeLogFilter);
 
   return (
     <div
       className="w-80 bg-[#1e1e1e] border-l border-white/5 flex flex-col"
       style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif' }}
     >
-      {/* Tabs */}
+      {/* Tabs - 只显示 All, Upload, Download */}
       <div className="flex border-b border-white/5">
-        {(['all', 'upload', 'download', 'error'] as LogFilter[]).map((filter) => (
+        {(['all', 'upload', 'download'] as LogFilter[]).map((filter) => (
           <button
             key={filter}
             onClick={() => onFilterChange(filter)}
@@ -157,15 +89,13 @@ const TransferPanel = ({
               {filter === 'all' && 'All'}
               {filter === 'upload' && 'Upload'}
               {filter === 'download' && 'Download'}
-              {filter === 'error' && 'Error'}
-              {getLogCount(filter) > 0 && (
+              {getCount(filter) > 0 && (
                 <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                  filter === 'error' ? 'bg-red-500/20 text-red-400' :
                   filter === 'upload' ? 'bg-blue-500/20 text-blue-400' :
                   filter === 'download' ? 'bg-emerald-500/20 text-emerald-400' :
                   'bg-gray-500/20 text-gray-400'
                 }`}>
-                  {getLogCount(filter)}
+                  {getCount(filter)}
                 </span>
               )}
             </span>
@@ -219,7 +149,6 @@ const TransferPanel = ({
                       <span>{formatFileSize(task.transferred)} / {formatFileSize(task.size)}</span>
                       <span className="font-medium text-blue-400">{task.speed}</span>
                     </div>
-                    {/* Progress Bar */}
                     <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-300 ${
@@ -244,19 +173,21 @@ const TransferPanel = ({
           </div>
         )}
 
-        {/* Completed Tasks */}
-        {completedTasks.length > 0 && (
+        {/* Completed/Failed Tasks */}
+        {filteredTasks.length > 0 && (
           <div>
             <h5 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
               <Check className="w-3 h-3" />
-              Completed ({completedTasks.length})
+              {activeLogFilter === 'all' ? 'Completed' : activeLogFilter === 'upload' ? 'Uploads' : 'Downloads'} ({filteredTasks.length})
             </h5>
             <div className="space-y-1">
-              {completedTasks.slice(0, 5).map(task => (
+              {filteredTasks.slice(0, 10).map(task => (
                 <div
                   key={task.id}
                   className={`flex items-center gap-2 p-2 rounded-lg text-[12px] ${
-                    task.status === 'failed' ? 'bg-red-500/10 border border-red-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'
+                    task.status === 'failed' 
+                      ? 'bg-red-500/10 border border-red-500/20' 
+                      : 'bg-emerald-500/10 border border-emerald-500/20'
                   }`}
                 >
                   {task.type === 'upload' ? (
@@ -272,50 +203,11 @@ const TransferPanel = ({
           </div>
         )}
 
-        {/* Transfer Logs - 按类型分组显示 */}
-        {uniqueLogs.length > 0 && (
-          <div>
-            <h5 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <FileText className="w-3 h-3" />
-              {activeLogFilter === 'all' ? 'All Logs' : 
-               activeLogFilter === 'upload' ? 'Upload Logs' :
-               activeLogFilter === 'download' ? 'Download Logs' : 'Error Logs'}
-              <span className="text-gray-600">({uniqueLogs.length})</span>
-            </h5>
-            <div className="space-y-1">
-              {uniqueLogs.slice(0, 20).map(log => (
-                <div
-                  key={log.id}
-                  className={`flex items-start gap-2 p-2 rounded-lg text-[12px] border ${getLogBackgroundColor(log)}`}
-                >
-                  <div className="mt-0.5 flex-shrink-0">
-                    {getLogTypeIcon(log)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-300 truncate">{log.message}</div>
-                    <div className="text-gray-500 text-[11px] truncate">{log.path}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[11px] text-gray-500">
-                        {log.timestamp.toLocaleTimeString()}
-                      </span>
-                      {log.size && <span className="text-[11px] text-gray-500">{log.size}</span>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Empty State */}
-        {transferTasks.length === 0 && transferLogs.length === 0 && (
-          <div className="text-center py-8 text-gray-500 text-[12px]">No transfer tasks</div>
-        )}
-        
-        {/* Empty State for current filter */}
-        {transferLogs.length > 0 && uniqueLogs.length === 0 && (
+        {activeTasks.length === 0 && filteredTasks.length === 0 && (
           <div className="text-center py-8 text-gray-500 text-[12px]">
-            No {activeLogFilter === 'all' ? '' : activeLogFilter} logs
+            {activeLogFilter === 'all' ? 'No transfer tasks' : 
+             activeLogFilter === 'upload' ? 'No upload tasks' : 'No download tasks'}
           </div>
         )}
       </div>
@@ -324,10 +216,9 @@ const TransferPanel = ({
       <div className="p-3 border-t border-white/5 bg-[#1a1a1a]">
         <div className="flex items-center justify-between text-[12px] text-gray-500">
           <span>
-            {activeLogFilter === 'all' && `Total: ${transferLogs.length}`}
-            {activeLogFilter === 'upload' && `Upload: ${uploadLogs.length}`}
-            {activeLogFilter === 'download' && `Download: ${downloadLogs.length}`}
-            {activeLogFilter === 'error' && `Error: ${errorLogs.length}`}
+            {activeLogFilter === 'all' && `Total: ${currentCount}`}
+            {activeLogFilter === 'upload' && `Upload: ${currentCount}`}
+            {activeLogFilter === 'download' && `Download: ${currentCount}`}
           </span>
           <button
             onClick={() => {
@@ -340,7 +231,7 @@ const TransferPanel = ({
             className="text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"
           >
             <Trash2 className="w-3 h-3" />
-            Clear {activeLogFilter !== 'all' ? activeLogFilter : ''}
+            Clear
           </button>
         </div>
       </div>

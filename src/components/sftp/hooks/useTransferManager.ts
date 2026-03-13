@@ -181,23 +181,31 @@ export const useTransferManager = () => {
   // 清空日志
   const clearLogs = useCallback(() => {
     setTransferLogs([]);
+    // 同时清空所有已完成的任务
+    setTransferTasks(prev => prev.filter(t =>
+      t.status === 'transferring' || t.status === 'pending' || t.status === 'paused'
+    ));
   }, []);
 
-  // 按分类清空日志
-  const clearLogsByFilter = useCallback((filter: 'all' | 'upload' | 'download' | 'error') => {
+  // 按分类清空日志和已完成的任务
+  const clearLogsByFilter = useCallback((filter: 'all' | 'upload' | 'download') => {
     if (filter === 'all') {
-      setTransferLogs([]);
-    } else if (filter === 'error') {
-      // 清理所有错误日志（包括 status === 'error' 和 type === 'error'）
-      setTransferLogs(prev => prev.filter(log => log.status !== 'error' && log.type !== 'error'));
+      // 清空所有已完成的任务
+      setTransferTasks(prev => prev.filter(t =>
+        t.status === 'transferring' || t.status === 'pending' || t.status === 'paused'
+      ));
     } else {
-      setTransferLogs(prev => prev.filter(log => log.type !== filter));
+      // 清理特定类型的已完成任务
+      setTransferTasks(prev => prev.filter(t => {
+        if (t.status !== 'completed' && t.status !== 'failed') return true;
+        return t.type !== filter;
+      }));
     }
   }, []);
 
   // 清空已完成的任务
   const clearCompletedTasks = useCallback(() => {
-    setTransferTasks(prev => prev.filter(t => 
+    setTransferTasks(prev => prev.filter(t =>
       t.status === 'transferring' || t.status === 'pending' || t.status === 'paused'
     ));
   }, []);

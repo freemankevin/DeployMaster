@@ -22,6 +22,10 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
+    // 如果数据是 FormData，删除默认的 Content-Type，让浏览器自动设置正确的 multipart/form-data 边界
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     return config;
   },
   (error) => {
@@ -165,6 +169,15 @@ export interface SFTPListResponse {
   error?: string;
 }
 
+export interface UploadProgress {
+  stage: 'init' | 'receiving' | 'received' | 'transferring' | 'completed' | 'error' | 'not_found';
+  progress: number;  // 0-100
+  bytes_sent: number;
+  total_bytes: number;
+  speed: string;
+  message: string;
+}
+
 export const sftpApi = {
   // 连接 SFTP
   connect: (hostId: number) =>
@@ -190,26 +203,42 @@ export const sftpApi = {
   rename: (hostId: number, oldPath: string, newPath: string) =>
     api.post<unknown, ApiResponse<void>>('/sftp/rename', { host_id: hostId, old_path: oldPath, new_path: newPath }),
 
-  // 上传文件
-  uploadFile: (hostId: number, remotePath: string, file: File, relativePath?: string) => {
+  // 上传文件（带进度ID）
+  uploadFile: (hostId: number, remotePath: string, file: File, relativePath?: string, uploadId?: string) => {
     const formData = new FormData();
     formData.append('host_id', hostId.toString());
     formData.append('remote_path', remotePath);
+    // 如果提供了上传ID，添加到表单
+    if (uploadId) {
+      formData.append('upload_id', uploadId);
+    }
     // 如果提供了相对路径，使用相对路径作为文件名，以支持目录结构
     const fileName = relativePath || file.name;
-    // 创建一个新的 File 对象来保留相对路径
-    const fileToUpload = new File([file], fileName, { type: file.type });
-    formData.append('file', fileToUpload);
+    // 直接使用 File 对象，避免创建额外的 Blob 副本
+    formData.append('file', file, fileName);
+    // 根据文件大小动态计算超时时间（至少60秒，每MB增加5秒，最大30分钟）
+    // 假设最慢传输速度为 200KB/s
+    const sizeMB = file.size / 1024 / 1024;
+    const timeout = Math.min(30 * 60 * 1000, Math.max(60000, sizeMB * 5000));
     return api.post<unknown, ApiResponse<void>>('/sftp/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      // 不要手动设置 Content-Type，让浏览器自动设置（包含 boundary）
+      timeout: timeout,
     });
   },
+
+  // 获取上传进度
+  getUploadProgress: (uploadId: string) =>
+    api.get<unknown, { success: boolean; progress: UploadProgress }>(`/sftp/upload-progress/${uploadId}`),
 
   // 下载文件
   downloadFile: (hostId: number, remotePath: string) =>
     api.post<unknown, Blob>('/sftp/download', { host_id: hostId, path: remotePath }, {
+      responseType: 'blob',
+    }),
+
+  // 下载目录为ZIP
+  downloadFolder: (hostId: number, remotePath: string) =>
+    api.post<unknown, Blob>('/sftp/download-folder', { host_id: hostId, path: remotePath }, {
       responseType: 'blob',
     }),
 

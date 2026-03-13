@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Terminal,
-  FolderOpen,
+  HardDrive,
   Plug,
   Pencil,
   Trash2,
@@ -10,7 +10,6 @@ import {
   Server,
   CheckCircle2,
   Cpu,
-  HardDrive,
   MemoryStick,
   Key,
   Check,
@@ -424,7 +423,7 @@ const HostsGrid = ({
                              border border-gray-200
                              disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    <FolderOpen className="w-3.5 h-3.5" />
+                    <HardDrive className="w-3.5 h-3.5" />
                     SFTP
                   </button>
                 </div>

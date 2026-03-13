@@ -17,6 +17,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import uvicorn
 
 # 添加项目根目录到 Python 路径
@@ -106,11 +107,14 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     """创建 FastAPI 应用实例"""
+    # 设置大文件上传限制 - 通过自定义请求体限制
+    # FastAPI/Starlette 默认不限制请求体大小，但需要确保内存足够
     app = FastAPI(
         title="DeployMaster API",
         description="DeployMaster SSH 管理模块 API 接口",
         version="1.0.0",
-        lifespan=lifespan
+        lifespan=lifespan,
+        # 大文件上传不需要严格的请求体大小限制
     )
     
     # 配置 CORS
@@ -132,10 +136,17 @@ def create_app() -> FastAPI:
         # 记录请求
         start_time = time.time()
         
-        # 获取请求体（仅对 POST/PUT/PATCH）
+        # 获取请求体（仅对 POST/PUT/PATCH，且排除文件上传等大请求）
         body = None
         body_bytes = None
-        if request.method in ['POST', 'PUT', 'PATCH']:
+        content_type = request.headers.get('content-type', '')
+        
+        # 排除 multipart/form-data（文件上传）和大的请求体
+        is_file_upload = 'multipart/form-data' in content_type
+        content_length = int(request.headers.get('content-length', 0))
+        max_log_body_size = 10 * 1024  # 只记录小于 10KB 的请求体
+        
+        if request.method in ['POST', 'PUT', 'PATCH'] and not is_file_upload and content_length < max_log_body_size:
             try:
                 # 读取 body 用于日志记录
                 body_bytes = await request.body()
@@ -148,12 +159,21 @@ def create_app() -> FastAPI:
                 pass
         
         # 记录请求日志
-        api_logger.log_request(
-            request.method,
-            request.url.path,
-            params=dict(request.query_params) if request.query_params else None,
-            body=body
-        )
+        if is_file_upload:
+            # 文件上传只记录基本信息
+            api_logger.log_request(
+                request.method,
+                request.url.path,
+                params=dict(request.query_params) if request.query_params else None,
+                body={'file_upload': True, 'content_length': content_length}
+            )
+        else:
+            api_logger.log_request(
+                request.method,
+                request.url.path,
+                params=dict(request.query_params) if request.query_params else None,
+                body=body
+            )
         
         # 如果读取了 body，需要创建一个包装器来恢复 body 供后续使用
         if body_bytes is not None:
@@ -241,7 +261,13 @@ def main():
             host=args.host,
             port=args.port,
             reload=args.reload,
-            log_level="warning"  # 降低 uvicorn 日志级别
+            log_level="warning",  # 降低 uvicorn 日志级别
+            limit_max_requests=None,  # 不限制请求数量
+            limit_concurrency=None,   # 不限制并发数
+            # 大文件上传支持
+            timeout_keep_alive=600,  # 保持连接 10 分钟
+            # 移除默认的请求超时限制
+            timeout_graceful_shutdown=30,
         )
     except KeyboardInterrupt:
         logger.info("服务已停止")

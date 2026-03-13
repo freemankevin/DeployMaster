@@ -1,4 +1,4 @@
-import { Folder, Activity, HardDrive } from 'lucide-react';
+import { Folder, Activity } from 'lucide-react';
 
 interface StatusBarProps {
   fileCount: number;
@@ -6,7 +6,6 @@ interface StatusBarProps {
   searchQuery: string;
   activeTransfers: number;
   hostAddress: string;
-  currentPath: string;
 }
 
 const StatusBar = ({
@@ -14,8 +13,7 @@ const StatusBar = ({
   selectedCount,
   searchQuery,
   activeTransfers,
-  hostAddress,
-  currentPath
+  hostAddress
 }: StatusBarProps) => {
   return (
     <div
@@ -51,15 +49,13 @@ const StatusBar = ({
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Current Path */}
-        <div className="flex items-center gap-1.5 text-gray-500">
-          <HardDrive className="w-3.5 h-3.5" />
-          <span className="font-mono text-[11px]">{currentPath}</span>
-        </div>
-
-        {/* Host Address */}
-        <div className="text-gray-400">
-          {hostAddress}
+        {/* Host Address with Status Indicator */}
+        <div className="flex items-center gap-2 text-gray-400">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          <span>{hostAddress}</span>
         </div>
       </div>
     </div>

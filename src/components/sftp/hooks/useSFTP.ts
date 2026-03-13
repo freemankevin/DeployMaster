@@ -69,7 +69,7 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
       if (response.success) {
         await loadDirectory('/');
         await loadDiskUsage();
-        onLog('info', 'SFTP connected successfully', '/', 'success');
+        // 连接成功不添加日志，改用界面展示
         return true;
       } else {
         setError('SFTP connection failed: ' + (response.message || 'Unknown error'));
@@ -81,7 +81,7 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
     } finally {
       setConnecting(false);
     }
-  }, [hostId, loadDirectory, loadDiskUsage, onLog]);
+  }, [hostId, loadDirectory, loadDiskUsage]);
 
   const navigateTo = useCallback(async (path: string) => {
     const newHistory = pathHistory.slice(0, historyIndex + 1);

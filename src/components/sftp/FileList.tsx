@@ -123,15 +123,13 @@ const FileList = ({
 
             {/* Action Buttons - Show on hover */}
             <div className="w-24 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-              {!file.is_dir && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDownload(file); }}
-                  className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
-                  title="Download"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                </button>
-              )}
+              <button
+                onClick={(e) => { e.stopPropagation(); onDownload(file); }}
+                className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
+                title={file.is_dir ? "Download as ZIP" : "Download"}
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onRename(file); }}
                 className="p-1.5 text-gray-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors"
@@ -188,15 +186,13 @@ const FileList = ({
               {contextMenu.file.is_dir ? 'Open' : 'Edit'}
             </button>
             
-            {!contextMenu.file.is_dir && (
-              <button
-                onClick={() => { onDownload(contextMenu.file); closeContextMenu(); }}
-                className="w-full px-3 py-2 text-left text-[13px] text-gray-300 hover:bg-white/5 flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Download
-              </button>
-            )}
+            <button
+              onClick={() => { onDownload(contextMenu.file); closeContextMenu(); }}
+              className="w-full px-3 py-2 text-left text-[13px] text-gray-300 hover:bg-white/5 flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              {contextMenu.file.is_dir ? 'Download as ZIP' : 'Download'}
+            </button>
             
             <div className="h-px bg-white/10 my-1" />
             
