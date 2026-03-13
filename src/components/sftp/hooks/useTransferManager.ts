@@ -188,7 +188,8 @@ export const useTransferManager = () => {
     if (filter === 'all') {
       setTransferLogs([]);
     } else if (filter === 'error') {
-      setTransferLogs(prev => prev.filter(log => log.status !== 'error'));
+      // 清理所有错误日志（包括 status === 'error' 和 type === 'error'）
+      setTransferLogs(prev => prev.filter(log => log.status !== 'error' && log.type !== 'error'));
     } else {
       setTransferLogs(prev => prev.filter(log => log.type !== filter));
     }

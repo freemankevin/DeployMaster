@@ -35,11 +35,11 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
         setCurrentPath(response.path);
         return response.path;
       } else {
-        setError(response.error || '加载目录失败');
+        setError(response.error || 'Failed to load directory');
         return null;
       }
     } catch (err) {
-      setError('加载目录错误: ' + (err as Error).message);
+      setError('Error loading directory: ' + (err as Error).message);
       return null;
     } finally {
       setLoading(false);
@@ -58,7 +58,7 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
         });
       }
     } catch (err) {
-      console.error('加载磁盘使用情况失败:', err);
+      console.error('Failed to load disk usage:', err);
     }
   }, [hostId]);
 
@@ -69,14 +69,14 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
       if (response.success) {
         await loadDirectory('/');
         await loadDiskUsage();
-        onLog('info', 'SFTP 连接成功', '/', 'success');
+        onLog('info', 'SFTP connected successfully', '/', 'success');
         return true;
       } else {
-        setError('SFTP 连接失败: ' + (response.message || '未知错误'));
+        setError('SFTP connection failed: ' + (response.message || 'Unknown error'));
         return false;
       }
     } catch (err) {
-      setError('SFTP 连接错误: ' + (err as Error).message);
+      setError('SFTP connection error: ' + (err as Error).message);
       return false;
     } finally {
       setConnecting(false);

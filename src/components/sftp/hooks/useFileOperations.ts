@@ -30,39 +30,39 @@ export const useFileOperations = ({
     try {
       const response = await sftpApi.createDirectory(hostId, newPath);
       if (response.success) {
-        onSuccess('创建成功', '目录已创建');
-        onLog('mkdir', `创建目录: ${folderName}`, newPath, 'success');
+        onSuccess('Success', 'Folder created successfully');
+        onLog('mkdir', `Created folder: ${folderName}`, newPath, 'success');
         onRefresh();
         return true;
       } else {
-        onError('创建失败', response.message || '无法创建目录');
-        onLog('mkdir', `创建目录失败: ${folderName}`, newPath, 'error');
+        onError('Failed', response.message || 'Failed to create folder');
+        onLog('mkdir', `Failed to create folder: ${folderName}`, newPath, 'error');
         return false;
       }
     } catch (err) {
-      onError('创建失败', (err as Error).message);
-      onLog('mkdir', `创建目录错误: ${(err as Error).message}`, newPath, 'error');
+      onError('Failed', (err as Error).message);
+      onLog('mkdir', `Error creating folder: ${(err as Error).message}`, newPath, 'error');
       return false;
     }
   }, [hostId, currentPath, onLog, onSuccess, onError, onRefresh]);
 
   const deleteFile = useCallback(async (file: SFTPFile) => {
-    if (!confirm(`确定要删除 ${file.name} 吗？`)) return false;
+    if (!confirm(`Are you sure you want to delete "${file.name}"?`)) return false;
     try {
       const response = await sftpApi.remove(hostId, file.path, file.is_dir);
       if (response.success) {
-        onSuccess('删除成功', `${file.name} 已删除`);
-        onLog('delete', `删除${file.is_dir ? '目录' : '文件'}: ${file.name}`, file.path, 'success', file.size_formatted);
+        onSuccess('Deleted', `${file.name} has been deleted`);
+        onLog('delete', `Deleted ${file.is_dir ? 'folder' : 'file'}: ${file.name}`, file.path, 'success', file.size_formatted);
         onRefresh();
         return true;
       } else {
-        onError('删除失败', response.message || '无法删除');
-        onLog('delete', `删除失败: ${file.name}`, file.path, 'error');
+        onError('Failed', response.message || 'Failed to delete');
+        onLog('delete', `Failed to delete: ${file.name}`, file.path, 'error');
         return false;
       }
     } catch (err) {
-      onError('删除失败', (err as Error).message);
-      onLog('delete', `删除错误: ${(err as Error).message}`, file.path, 'error');
+      onError('Failed', (err as Error).message);
+      onLog('delete', `Error deleting: ${(err as Error).message}`, file.path, 'error');
       return false;
     }
   }, [hostId, onLog, onSuccess, onError, onRefresh]);
@@ -74,18 +74,18 @@ export const useFileOperations = ({
     try {
       const response = await sftpApi.rename(hostId, target.path, newPath);
       if (response.success) {
-        onSuccess('重命名成功', `${target.name} -> ${newName}`);
-        onLog('rename', `重命名: ${target.name} -> ${newName}`, newPath, 'success');
+        onSuccess('Renamed', `${target.name} → ${newName}`);
+        onLog('rename', `Renamed: ${target.name} → ${newName}`, newPath, 'success');
         onRefresh();
         return true;
       } else {
-        onError('重命名失败', response.message || '无法重命名');
-        onLog('rename', `重命名失败: ${target.name}`, newPath, 'error');
+        onError('Failed', response.message || 'Failed to rename');
+        onLog('rename', `Failed to rename: ${target.name}`, newPath, 'error');
         return false;
       }
     } catch (err) {
-      onError('重命名失败', (err as Error).message);
-      onLog('rename', `重命名错误: ${(err as Error).message}`, target.path, 'error');
+      onError('Failed', (err as Error).message);
+      onLog('rename', `Error renaming: ${(err as Error).message}`, target.path, 'error');
       return false;
     }
   }, [hostId, currentPath, onLog, onSuccess, onError, onRefresh]);
@@ -103,11 +103,11 @@ export const useFileOperations = ({
         setFileContent(response.content);
         return response.content;
       } else {
-        onError('读取失败', response.error || '无法读取文件');
+        onError('Failed', response.error || 'Failed to read file');
         return null;
       }
     } catch (err) {
-      onError('读取失败', (err as Error).message);
+      onError('Failed', (err as Error).message);
       return null;
     }
   }, [hostId, onError]);
@@ -118,15 +118,15 @@ export const useFileOperations = ({
       setSaving(true);
       const response = await sftpApi.writeFile(hostId, editingFile.path, fileContent);
       if (response.success) {
-        onSuccess('保存成功', '文件已保存');
+        onSuccess('Saved', 'File saved successfully');
         onRefresh();
         return true;
       } else {
-        onError('保存失败', response.message || '无法保存文件');
+        onError('Failed', response.message || 'Failed to save file');
         return false;
       }
     } catch (err) {
-      onError('保存失败', (err as Error).message);
+      onError('Failed', (err as Error).message);
       return false;
     } finally {
       setSaving(false);

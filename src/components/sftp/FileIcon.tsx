@@ -1,4 +1,31 @@
-import { Folder, File, FileCode, FileJson, FileText, Terminal, Image, FileArchive, FileSpreadsheet, Settings, Link2 } from 'lucide-react';
+import { 
+  Folder, 
+  File, 
+  FileCode, 
+  FileJson, 
+  FileText, 
+  Terminal, 
+  Image, 
+  FileArchive, 
+  FileSpreadsheet, 
+  Settings, 
+  Link2, 
+  Music, 
+  Video, 
+  Database,
+  Braces,
+  Hash,
+  FileType2,
+  FileImage,
+  FileAudio,
+  FileVideo,
+  FileBox,
+  FileCog,
+  FileKey,
+  FileLock,
+  FileCode2,
+  FileStack
+} from 'lucide-react';
 import type { SFTPFile } from '@/services/api';
 
 interface FileIconProps {
@@ -6,72 +33,259 @@ interface FileIconProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
+// Tabby-style color palette (without backgrounds)
+const tabbyColors = {
+  folder: '#F0C75E',       // Yellow/Gold for folders
+  folderOpen: '#E5B84A',   // Slightly darker for open folders
+  link: '#A78BFA',         // Purple for symlinks
+  code: '#60A5FA',         // Blue for code files
+  image: '#F472B6',        // Pink for images
+  video: '#FB7185',        // Red/Rose for videos
+  audio: '#A78BFA',        // Purple for audio
+  archive: '#FBBF24',      // Yellow/Amber for archives
+  document: '#34D399',     // Green for documents
+  config: '#22D3EE',       // Cyan for config files
+  data: '#818CF8',         // Indigo for data files
+  executable: '#4ADE80',   // Green for executables
+  default: '#9CA3AF'       // Gray for default
+};
+
 const FileIcon = ({ file, size = 'md' }: FileIconProps) => {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-5 h-5',
-    lg: 'w-8 h-8'
+    sm: 'w-5 h-5',
+    md: 'w-6 h-6',
+    lg: 'w-12 h-12'
   };
 
   const iconSize = sizeClasses[size];
+  const iconInnerSize = size === 'lg' ? 'w-6 h-6' : 'w-4 h-4';
 
-  // 链接文件显示链接图标
+  // Symlink - simple icon without background
   if (file.is_link) {
     return (
-      <div className={`${iconSize} rounded-md bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-sm relative`}>
-        <Link2 className={`${size === 'lg' ? 'w-5 h-5' : 'w-3 h-3'} text-white`} />
-        {/* 小链接标记 */}
-        <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-purple-300 rounded-full border border-white" />
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <Link2 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.link }}
+        />
       </div>
     );
   }
 
+  // Folder - solid filled icon (no background)
   if (file.is_dir) {
     return (
-      <div className={`${iconSize} rounded-md bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-sm`}>
-        <Folder className={`${size === 'lg' ? 'w-5 h-5' : 'w-3 h-3'} text-white`} />
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <Folder 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.folder }}
+          fill={tabbyColors.folder}
+        />
       </div>
     );
   }
 
+  // Get file extension
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
-  const iconConfig: Record<string, { icon: typeof File; color: string; bg: string }> = {
-    js: { icon: FileCode, color: 'text-yellow-600', bg: 'from-yellow-100 to-yellow-200' },
-    ts: { icon: FileCode, color: 'text-blue-600', bg: 'from-blue-100 to-blue-200' },
-    jsx: { icon: FileCode, color: 'text-cyan-600', bg: 'from-cyan-100 to-cyan-200' },
-    tsx: { icon: FileCode, color: 'text-blue-500', bg: 'from-blue-100 to-blue-200' },
-    json: { icon: FileJson, color: 'text-gray-600', bg: 'from-gray-100 to-gray-200' },
-    md: { icon: FileText, color: 'text-purple-600', bg: 'from-purple-100 to-purple-200' },
-    py: { icon: FileCode, color: 'text-green-600', bg: 'from-green-100 to-green-200' },
-    sh: { icon: Terminal, color: 'text-gray-700', bg: 'from-gray-200 to-gray-300' },
-    yml: { icon: FileText, color: 'text-red-500', bg: 'from-red-100 to-red-200' },
-    yaml: { icon: FileText, color: 'text-red-500', bg: 'from-red-100 to-red-200' },
-    html: { icon: FileCode, color: 'text-orange-600', bg: 'from-orange-100 to-orange-200' },
-    css: { icon: FileCode, color: 'text-blue-400', bg: 'from-blue-50 to-blue-100' },
-    png: { icon: Image, color: 'text-purple-500', bg: 'from-purple-100 to-purple-200' },
-    jpg: { icon: Image, color: 'text-purple-500', bg: 'from-purple-100 to-purple-200' },
-    jpeg: { icon: Image, color: 'text-purple-500', bg: 'from-purple-100 to-purple-200' },
-    gif: { icon: Image, color: 'text-purple-500', bg: 'from-purple-100 to-purple-200' },
-    svg: { icon: Image, color: 'text-purple-500', bg: 'from-purple-100 to-purple-200' },
-    zip: { icon: FileArchive, color: 'text-amber-600', bg: 'from-amber-100 to-amber-200' },
-    tar: { icon: FileArchive, color: 'text-amber-600', bg: 'from-amber-100 to-amber-200' },
-    gz: { icon: FileArchive, color: 'text-amber-600', bg: 'from-amber-100 to-amber-200' },
-    csv: { icon: FileSpreadsheet, color: 'text-green-500', bg: 'from-green-100 to-green-200' },
-    xlsx: { icon: FileSpreadsheet, color: 'text-green-600', bg: 'from-green-100 to-green-200' },
-    xls: { icon: FileSpreadsheet, color: 'text-green-600', bg: 'from-green-100 to-green-200' },
-    txt: { icon: FileText, color: 'text-gray-500', bg: 'from-gray-100 to-gray-200' },
-    log: { icon: FileText, color: 'text-gray-500', bg: 'from-gray-100 to-gray-200' },
-    conf: { icon: Settings, color: 'text-gray-600', bg: 'from-gray-100 to-gray-200' },
-    cfg: { icon: Settings, color: 'text-gray-600', bg: 'from-gray-100 to-gray-200' },
-    ini: { icon: Settings, color: 'text-gray-600', bg: 'from-gray-100 to-gray-200' },
-  };
+  const name = file.name.toLowerCase();
 
-  const config = iconConfig[ext] || { icon: File, color: 'text-gray-400', bg: 'from-gray-50 to-gray-100' };
-  const IconComponent = config.icon;
+  // Code files
+  const codeExts = ['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'cpp', 'c', 'h', 'cs', 'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'r', 'm', 'mm'];
+  if (codeExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileCode2 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.code }}
+        />
+      </div>
+    );
+  }
 
+  // JSON files
+  if (ext === 'json') {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <Braces 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.config }}
+        />
+      </div>
+    );
+  }
+
+  // Markdown files
+  if (ext === 'md' || ext === 'markdown' || ext === 'mdx') {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileText 
+          className={iconInnerSize}
+          style={{ color: '#14B8A6' }}
+        />
+      </div>
+    );
+  }
+
+  // Shell scripts
+  if (ext === 'sh' || ext === 'bash' || ext === 'zsh' || ext === 'fish' || name === 'makefile' || ext === 'mk') {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <Terminal 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.executable }}
+        />
+      </div>
+    );
+  }
+
+  // Image files
+  const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'webp', 'ico', 'tiff', 'raw', 'heic'];
+  if (imageExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileImage 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.image }}
+        />
+      </div>
+    );
+  }
+
+  // Video files
+  const videoExts = ['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg', '3gp'];
+  if (videoExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileVideo 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.video }}
+        />
+      </div>
+    );
+  }
+
+  // Audio files
+  const audioExts = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'wma', 'aiff', 'opus'];
+  if (audioExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileAudio 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.audio }}
+        />
+      </div>
+    );
+  }
+
+  // Archive files
+  const archiveExts = ['zip', 'rar', 'tar', 'gz', 'bz2', '7z', 'xz', 'tgz', 'tbz', 'lz', 'br'];
+  if (archiveExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileBox 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.archive }}
+        />
+      </div>
+    );
+  }
+
+  // Spreadsheet files
+  const spreadsheetExts = ['xls', 'xlsx', 'csv', 'ods', 'numbers'];
+  if (spreadsheetExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileSpreadsheet 
+          className={iconInnerSize}
+          style={{ color: '#10B981' }}
+        />
+      </div>
+    );
+  }
+
+  // Document files
+  const documentExts = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'pages', 'odt', 'epub'];
+  if (documentExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileText 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.document }}
+        />
+      </div>
+    );
+  }
+
+  // Config files
+  const configExts = ['yml', 'yaml', 'xml', 'ini', 'conf', 'cfg', 'toml', 'env', 'properties'];
+  if (configExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileCog 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.config }}
+        />
+      </div>
+    );
+  }
+
+  // Database files
+  const dbExts = ['db', 'sqlite', 'sql', 'mdb', 'accdb', 'frm', 'ibd'];
+  if (dbExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <Database 
+          className={iconInnerSize}
+          style={{ color: tabbyColors.data }}
+        />
+      </div>
+    );
+  }
+
+  // Key/Security files
+  const keyExts = ['pem', 'key', 'crt', 'cer', 'p12', 'pfx', 'pub'];
+  if (keyExts.includes(ext)) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileKey 
+          className={iconInnerSize}
+          style={{ color: '#F97316' }}
+        />
+      </div>
+    );
+  }
+
+  // Log files
+  if (ext === 'log') {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileStack 
+          className={iconInnerSize}
+          style={{ color: '#6B7280' }}
+        />
+      </div>
+    );
+  }
+
+  // Lock/Encrypted files
+  if (ext === 'lock' || name.endsWith('.lock')) {
+    return (
+      <div className={`${iconSize} flex items-center justify-center`}>
+        <FileLock 
+          className={iconInnerSize}
+          style={{ color: '#EF4444' }}
+        />
+      </div>
+    );
+  }
+
+  // Default file icon - no background
   return (
-    <div className={`${iconSize} rounded-md bg-gradient-to-br ${config.bg} flex items-center justify-center shadow-sm`}>
-      <IconComponent className={`${size === 'lg' ? 'w-5 h-5' : 'w-3 h-3'} ${config.color}`} />
+    <div className={`${iconSize} flex items-center justify-center`}>
+      <File 
+        className={iconInnerSize}
+        style={{ color: tabbyColors.default }}
+      />
     </div>
   );
 };

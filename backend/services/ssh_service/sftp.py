@@ -110,12 +110,31 @@ class SFTPService:
             for entry in entries:
                 full_path = os.path.join(remote_path, entry.filename).replace("\\", "/")
 
-                # 解析权限
-                mode = entry.st_mode
-                if mode is None:
+                # 解析权限 - 确保 mode 是整数
+                mode = self._get_file_mode(entry)
+                if mode == 0:
                     continue
-                is_dir = stat.S_ISDIR(mode)
+
+                # 注意：先检查符号链接，因为符号链接可能指向目录
                 is_link = stat.S_ISLNK(mode)
+                # 如果是符号链接，获取目标的类型
+                if is_link:
+                    try:
+                        # 尝试获取链接目标的信息
+                        if self.sftp is not None:
+                            target_stat = self.sftp.stat(full_path)
+                            if target_stat.st_mode is not None:
+                                # 使用目标的 mode 来判断是否是目录
+                                is_dir = stat.S_ISDIR(target_stat.st_mode)
+                            else:
+                                is_dir = False
+                        else:
+                            is_dir = False
+                    except:
+                        # 如果无法获取目标信息，默认为文件
+                        is_dir = False
+                else:
+                    is_dir = stat.S_ISDIR(mode)
 
                 # 格式化权限字符串
                 perms = self._format_permissions(mode)
@@ -401,25 +420,87 @@ class SFTPService:
 
     @staticmethod
     def _format_permissions(mode: int) -> str:
-        """格式化权限为字符串"""
+        """格式化权限为字符串 - 与 ls -l 格式一致"""
+        # 确保 mode 是整数类型
+        if not isinstance(mode, int):
+            try:
+                mode = int(mode)
+            except (TypeError, ValueError):
+                return "----------"
+
+        # 使用 stat 模块的 filemode 函数（Python 3.4+）
+        try:
+            # 尝试使用 stat.filemode（Python 3.4+）
+            return stat.filemode(mode)
+        except AttributeError:
+            # 如果不可用，手动格式化
+            pass
+
+        # 只保留低 12 位（标准 Unix 权限位）
+        mode = mode & 0o7777
+
         perms = ""
         # 文件类型
         if stat.S_ISDIR(mode):
             perms = "d"
         elif stat.S_ISLNK(mode):
             perms = "l"
+        elif stat.S_ISBLK(mode):
+            perms = "b"
+        elif stat.S_ISCHR(mode):
+            perms = "c"
+        elif stat.S_ISSOCK(mode):
+            perms = "s"
+        elif stat.S_ISFIFO(mode):
+            perms = "p"
         else:
             perms = "-"
 
-        # 权限位
-        for who in [stat.S_IRUSR, stat.S_IWUSR, stat.S_IXUSR,
-                    stat.S_IRGRP, stat.S_IWGRP, stat.S_IXGRP,
-                    stat.S_IROTH, stat.S_IWOTH, stat.S_IXOTH]:
-            perms += "r" if mode & who and who & 0o444 else "-"
-            perms += "w" if mode & who and who & 0o222 else "-"
-            perms += "x" if mode & who and who & 0o111 else "-"
+        # 所有者权限 (user)
+        perms += "r" if mode & stat.S_IRUSR else "-"
+        perms += "w" if mode & stat.S_IWUSR else "-"
+        if mode & stat.S_ISUID:
+            perms += "s" if mode & stat.S_IXUSR else "S"
+        else:
+            perms += "x" if mode & stat.S_IXUSR else "-"
+
+        # 组权限 (group)
+        perms += "r" if mode & stat.S_IRGRP else "-"
+        perms += "w" if mode & stat.S_IWGRP else "-"
+        if mode & stat.S_ISGID:
+            perms += "s" if mode & stat.S_IXGRP else "S"
+        else:
+            perms += "x" if mode & stat.S_IXGRP else "-"
+
+        # 其他用户权限 (others)
+        perms += "r" if mode & stat.S_IROTH else "-"
+        perms += "w" if mode & stat.S_IWOTH else "-"
+        if mode & stat.S_ISVTX:
+            perms += "t" if mode & stat.S_IXOTH else "T"
+        else:
+            perms += "x" if mode & stat.S_IXOTH else "-"
 
         return perms
+
+    def _get_file_mode(self, entry) -> int:
+        """获取文件 mode，处理各种可能的类型"""
+        mode = entry.st_mode
+        if mode is None:
+            return 0
+        
+        # 处理 mode 可能是字符串或其他类型的情况
+        if isinstance(mode, str):
+            try:
+                mode = int(mode, 8) if mode.startswith('0') else int(mode)
+            except (ValueError, TypeError):
+                mode = 0
+        elif not isinstance(mode, int):
+            try:
+                mode = int(mode)
+            except (ValueError, TypeError):
+                mode = 0
+        
+        return mode
 
 
 def create_sftp_service(host_data: Dict[str, Any]) -> SFTPService:

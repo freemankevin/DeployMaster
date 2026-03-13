@@ -242,7 +242,34 @@ async def upload_file(
 
         try:
             # 构建远程文件路径
-            remote_file_path = f"{remote_path}/{file.filename}".replace("//", "/")
+            # file.filename 可能包含相对路径（如 folder/subfolder/file.txt）
+            # 我们需要保留目录结构
+            if file.filename:
+                # 检查是否包含目录路径
+                if '/' in file.filename or '\\' in file.filename:
+                    # 标准化路径分隔符
+                    relative_path = file.filename.replace('\\', '/')
+                    # 移除开头的 ./ 或其他相对路径标记
+                    if relative_path.startswith('./'):
+                        relative_path = relative_path[2:]
+                    # 构建完整的远程路径
+                    remote_file_path = f"{remote_path}/{relative_path}".replace('//', '/')
+                    
+                    # 确保目标目录存在
+                    dir_path = os.path.dirname(remote_file_path)
+                    if dir_path and dir_path != remote_path:
+                        # 递归创建目录
+                        try:
+                            if sftp.ssh_conn and sftp.ssh_conn.client:
+                                sftp.ssh_conn.client.exec_command(f'mkdir -p "{dir_path}"')
+                        except:
+                            pass  # 目录可能已存在
+                else:
+                    # 普通文件上传，只使用文件名
+                    remote_file_path = f"{remote_path}/{file.filename}".replace('//', '/')
+            else:
+                remote_file_path = f"{remote_path}/unnamed".replace('//', '/')
+            
             result = sftp.upload_file(tmp_path, remote_file_path)
 
             if result["success"]:

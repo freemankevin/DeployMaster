@@ -191,11 +191,15 @@ export const sftpApi = {
     api.post<unknown, ApiResponse<void>>('/sftp/rename', { host_id: hostId, old_path: oldPath, new_path: newPath }),
 
   // 上传文件
-  uploadFile: (hostId: number, remotePath: string, file: File) => {
+  uploadFile: (hostId: number, remotePath: string, file: File, relativePath?: string) => {
     const formData = new FormData();
     formData.append('host_id', hostId.toString());
     formData.append('remote_path', remotePath);
-    formData.append('file', file);
+    // 如果提供了相对路径，使用相对路径作为文件名，以支持目录结构
+    const fileName = relativePath || file.name;
+    // 创建一个新的 File 对象来保留相对路径
+    const fileToUpload = new File([file], fileName, { type: file.type });
+    formData.append('file', fileToUpload);
     return api.post<unknown, ApiResponse<void>>('/sftp/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

@@ -1,4 +1,4 @@
-import { Folder, Activity, Clock, Wifi } from 'lucide-react';
+import { Folder, Activity, HardDrive } from 'lucide-react';
 
 interface StatusBarProps {
   fileCount: number;
@@ -6,7 +6,7 @@ interface StatusBarProps {
   searchQuery: string;
   activeTransfers: number;
   hostAddress: string;
-  connectionTime?: string;
+  currentPath: string;
 }
 
 const StatusBar = ({
@@ -15,56 +15,49 @@ const StatusBar = ({
   searchQuery,
   activeTransfers,
   hostAddress,
-  connectionTime
+  currentPath
 }: StatusBarProps) => {
-  const folderCount = fileCount; // 简化计算
-
   return (
-    <div className="h-8 bg-[#1a1a1a] border-t border-white/5 flex items-center justify-between px-4 text-xs">
+    <div
+      className="h-8 bg-[#1a1a1a] border-t border-white/5 flex items-center justify-between px-4 text-[12px]"
+      style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif' }}
+    >
       <div className="flex items-center gap-4">
-        {/* 文件统计 */}
+        {/* File Count */}
         <div className="flex items-center gap-2 text-gray-400">
           <Folder className="w-3.5 h-3.5" />
-          <span>{folderCount} 个项目</span>
+          <span>{fileCount} items</span>
           {selectedCount > 0 && (
             <span className="text-blue-400 font-medium">
-              ({selectedCount} 已选择)
+              ({selectedCount} selected)
             </span>
           )}
         </div>
 
-        {/* 搜索状态 */}
+        {/* Search Status */}
         {searchQuery && (
           <div className="flex items-center gap-1 text-amber-400">
-            <span>搜索: "{searchQuery}"</span>
+            <span>Filter: "{searchQuery}"</span>
           </div>
         )}
 
-        {/* 传输状态 */}
+        {/* Transfer Status */}
         {activeTransfers > 0 && (
           <div className="flex items-center gap-1.5 text-blue-400">
             <Activity className="w-3.5 h-3.5 animate-pulse" />
-            <span>{activeTransfers} 个传输进行中</span>
+            <span>{activeTransfers} transfer(s) active</span>
           </div>
         )}
       </div>
 
       <div className="flex items-center gap-4">
-        {/* 连接状态 */}
-        <div className="flex items-center gap-1.5 text-emerald-400">
-          <Wifi className="w-3.5 h-3.5" />
-          <span>已连接</span>
+        {/* Current Path */}
+        <div className="flex items-center gap-1.5 text-gray-500">
+          <HardDrive className="w-3.5 h-3.5" />
+          <span className="font-mono text-[11px]">{currentPath}</span>
         </div>
 
-        {/* 连接时间 */}
-        {connectionTime && (
-          <div className="flex items-center gap-1.5 text-gray-500">
-            <Clock className="w-3.5 h-3.5" />
-            <span>{connectionTime}</span>
-          </div>
-        )}
-
-        {/* 主机地址 */}
+        {/* Host Address */}
         <div className="text-gray-400">
           {hostAddress}
         </div>

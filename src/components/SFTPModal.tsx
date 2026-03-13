@@ -3,85 +3,50 @@ import type { SFTPFile } from '@/services/api';
 import { sftpApi } from '@/services/api';
 import { useToast } from '@/hooks/useToast';
 
-import type { SFTPModalProps, ViewMode, LogFilter } from './sftp/types';
+import type { SFTPModalProps, LogFilter, WindowState } from './sftp/types';
 import { useTransferManager } from './sftp/hooks/useTransferManager';
 import { useSFTP } from './sftp/hooks/useSFTP';
 import { useFileOperations } from './sftp/hooks/useFileOperations';
 import { formatFileSize } from './sftp/utils';
 
-import SFTPHeader from './sftp/SFTPHeader';
-import SFTPToolbar from './sftp/SFTPToolbar';
-import Sidebar from './sftp/Sidebar';
 import FileList from './sftp/FileList';
 import TransferPanel from './sftp/TransferPanel';
 import StatusBar from './sftp/StatusBar';
 import { NewFolderDialog, RenameDialog, FileEditor, LoadingOverlay, ErrorOverlay } from './sftp/Dialogs';
 
-// Mac Terminal 风格窗口控制按钮
-const WindowControls = ({
-  onClose,
-  onMinimize,
-  onMaximize,
-  isMaximized
-}: {
-  onClose: () => void;
-  onMinimize: () => void;
-  onMaximize: () => void;
-  isMaximized: boolean;
-}) => (
-  <div className="flex items-center gap-2">
-    {/* 关闭按钮 - 红色 */}
-    <button
-      onClick={onClose}
-      className="w-3 h-3 rounded-full bg-[#ff5f56] hover:bg-[#ff5f56]/80 transition-all hover:scale-110 flex items-center justify-center group"
-      title="关闭"
-    >
-      <span className="text-[8px] text-black/60 opacity-0 group-hover:opacity-100 font-bold">×</span>
-    </button>
-    {/* 最小化按钮 - 黄色 */}
-    <button
-      onClick={onMinimize}
-      className="w-3 h-3 rounded-full bg-[#ffbd2e] hover:bg-[#ffbd2e]/80 transition-all hover:scale-110 flex items-center justify-center group"
-      title="最小化"
-    >
-      <span className="text-[8px] text-black/60 opacity-0 group-hover:opacity-100 font-bold">−</span>
-    </button>
-    {/* 最大化/恢复按钮 - 绿色 */}
-    <button
-      onClick={onMaximize}
-      className="w-3 h-3 rounded-full bg-[#27c93f] hover:bg-[#27c93f]/80 transition-all hover:scale-110 flex items-center justify-center group"
-      title={isMaximized ? "恢复" : "最大化"}
-    >
-      <span className="text-[8px] text-black/60 opacity-0 group-hover:opacity-100 font-bold">{isMaximized ? '⤢' : '⤢'}</span>
-    </button>
-  </div>
-);
-
+// Mac Terminal Style SFTP Modal
 const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
   const [pathInputValue, setPathInputValue] = useState('/');
   const [isPathEditing, setIsPathEditing] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showFilter, setShowFilter] = useState(false);
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [activeLogFilter, setActiveLogFilter] = useState<LogFilter>('all');
-  const [isMaximized, setIsMaximized] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [renameTarget, setRenameTarget] = useState<SFTPFile | null>(null);
   const [newFileName, setNewFileName] = useState('');
   const [showFileEditor, setShowFileEditor] = useState(false);
-  const [lastActivityTime, setLastActivityTime] = useState(Date.now());
-  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  
+  // Window state for Mac-style controls
+  const [windowState, setWindowState] = useState<WindowState>({
+    isMaximized: false,
+    isMinimized: false
+  });
+  
+  // Window size and position
+  const [windowSize, setWindowSize] = useState({ width: 1200, height: 700 });
+  const [windowPosition, setWindowPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pathInputRef = useRef<HTMLInputElement>(null);
   const { success, error: showError } = useToast();
   
   const transfer = useTransferManager();
@@ -91,204 +56,381 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     onLog: transfer.addTransferLog, onSuccess: success, onError: showError, onRefresh: sftp.refresh
   });
 
-  // 超时自动断开配置（30分钟）
-  const TIMEOUT_DURATION = 30 * 60 * 1000; // 30分钟
-  const WARNING_DURATION = 5 * 60 * 1000; // 提前5分钟警告
-
-  // 更新活动时间
-  const updateActivityTime = useCallback(() => {
-    setLastActivityTime(Date.now());
-    setShowTimeoutWarning(false);
+  // Center window on mount
+  useEffect(() => {
+    const centerX = Math.max(0, (window.innerWidth - windowSize.width) / 2);
+    const centerY = Math.max(0, (window.innerHeight - windowSize.height) / 2);
+    setWindowPosition({ x: centerX, y: centerY });
   }, []);
 
-  // 超时检查
-  useEffect(() => {
-    const checkTimeout = () => {
-      const now = Date.now();
-      const inactiveTime = now - lastActivityTime;
-      
-      if (inactiveTime >= TIMEOUT_DURATION) {
-        // 超时断开
-        handleTimeoutDisconnect();
-      } else if (inactiveTime >= TIMEOUT_DURATION - WARNING_DURATION) {
-        // 显示警告
-        setShowTimeoutWarning(true);
-      }
-    };
+  // Path segments
+  const pathSegments = useMemo(() => {
+    if (sftp.currentPath === '/') return [];
+    const parts = sftp.currentPath.split('/').filter(Boolean);
+    return parts.map((name, index) => ({
+      name,
+      path: '/' + parts.slice(0, index + 1).join('/')
+    }));
+  }, [sftp.currentPath]);
 
-    timeoutRef.current = setInterval(checkTimeout, 60000); // 每分钟检查一次
-    
-    return () => {
-      if (timeoutRef.current) clearInterval(timeoutRef.current);
-      if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
-    };
-  }, [lastActivityTime]);
+  // Filtered files
+  const filteredFiles = useMemo(() => {
+    if (!searchQuery.trim()) return sftp.files;
+    return sftp.files.filter(file => 
+      file.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [sftp.files, searchQuery]);
 
-  // 超时断开处理
-  const handleTimeoutDisconnect = useCallback(async () => {
-    try {
-      await sftpApi.disconnect(host.id);
-      showError('连接超时', '由于长时间未操作，连接已自动断开');
-      onClose();
-    } catch (err) {
-      console.error('断开连接失败:', err);
-      onClose();
+  // Window controls - 与终端保持一致
+  const handleMinimize = () => {
+    setWindowState(prev => ({ ...prev, isMinimized: !prev.isMinimized }));
+    if (!windowState.isMinimized) {
+      // 最小化时保持宽度，只显示标题栏
+      setWindowSize(prev => ({ width: prev.width, height: 40 }));
+    } else {
+      // Restore
+      setWindowSize({ width: 1200, height: 700 });
+      const centerX = Math.max(0, (window.innerWidth - 1200) / 2);
+      const centerY = Math.max(0, (window.innerHeight - 700) / 2);
+      setWindowPosition({ x: centerX, y: centerY });
     }
-  }, [host.id, onClose, showError]);
+  };
 
-  // 监听用户活动
-  useEffect(() => {
-    const handleActivity = () => updateActivityTime();
-    
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('click', handleActivity);
-    
-    return () => {
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('click', handleActivity);
-    };
-  }, [updateActivityTime]);
-
-  const handlePathSubmit = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      const newPath = pathInputValue.trim();
-      if (newPath && newPath !== sftp.currentPath) sftp.navigateTo(newPath);
-      setIsPathEditing(false);
-    } else if (e.key === 'Escape') {
-      setPathInputValue(sftp.currentPath);
-      setIsPathEditing(false);
+  const handleMaximize = () => {
+    setWindowState(prev => ({ ...prev, isMaximized: !prev.isMaximized }));
+    if (!windowState.isMaximized) {
+      // 全屏模式 - 与终端一致，使用 inset-4 的边距
+      setWindowSize({
+        width: window.innerWidth - 32,
+        height: window.innerHeight - 32
+      });
+      setWindowPosition({ x: 16, y: 16 });
+    } else {
+      // Restore
+      setWindowSize({ width: 1200, height: 700 });
+      const centerX = Math.max(0, (window.innerWidth - 1200) / 2);
+      const centerY = Math.max(0, (window.innerHeight - 700) / 2);
+      setWindowPosition({ x: centerX, y: centerY });
     }
-  }, [pathInputValue, sftp.currentPath, sftp.navigateTo]);
+  };
 
-  const copyPathToClipboard = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(sftp.currentPath);
-      success('已复制', `路径已复制到剪贴板: ${sftp.currentPath}`);
-      transfer.addTransferLog('info', `复制路径: ${sftp.currentPath}`, sftp.currentPath, 'success');
-    } catch { showError('复制失败', '无法复制路径到剪贴板'); }
-  }, [sftp.currentPath, success, showError, transfer.addTransferLog]);
+  // Drag handling
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.target === modalRef.current || (e.target as HTMLElement).closest('.window-header')) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - windowPosition.x,
+        y: e.clientY - windowPosition.y
+      });
+    }
+  };
 
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      setWindowPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  }, [isDragging, dragStart]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  // Path editing
+  const handlePathEdit = () => {
+    setPathInputValue(sftp.currentPath);
+    setIsPathEditing(true);
+    setTimeout(() => pathInputRef.current?.focus(), 0);
+  };
+
+  const handlePathConfirm = () => {
+    const newPath = pathInputValue.trim();
+    if (newPath && newPath !== sftp.currentPath) {
+      sftp.navigateTo(newPath);
+    }
+    setIsPathEditing(false);
+  };
+
+  const handlePathKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handlePathConfirm();
+    else if (e.key === 'Escape') setIsPathEditing(false);
+  };
+
+  // File click handling
   const handleFileClick = useCallback(async (file: SFTPFile) => {
-    updateActivityTime();
-    if (file.is_dir) { sftp.navigateTo(file.path); }
-    else { const content = await fileOps.readFile(file); if (content !== null) setShowFileEditor(true); }
-  }, [sftp.navigateTo, fileOps.readFile, updateActivityTime]);
+    if (file.is_dir) {
+      sftp.navigateTo(file.path);
+    } else {
+      const content = await fileOps.readFile(file);
+      if (content !== null) setShowFileEditor(true);
+    }
+  }, [sftp.navigateTo, fileOps.readFile]);
 
+  // File selection
   const toggleFileSelection = useCallback((path: string) => {
-    updateActivityTime();
     const newSelected = new Set(selectedFiles);
-    if (newSelected.has(path)) newSelected.delete(path); else newSelected.add(path);
+    if (newSelected.has(path)) newSelected.delete(path);
+    else newSelected.add(path);
     setSelectedFiles(newSelected);
-  }, [selectedFiles, updateActivityTime]);
-
-  const filteredFiles = useMemo(() => 
-    sftp.files.filter(file => file.name.toLowerCase().includes(searchQuery.toLowerCase())),
-    [sftp.files, searchQuery]
-  );
+  }, [selectedFiles]);
 
   const handleSelectAll = useCallback((selected: boolean) => {
-    updateActivityTime();
     setSelectedFiles(selected ? new Set(filteredFiles.map(f => f.path)) : new Set());
-  }, [filteredFiles, updateActivityTime]);
+  }, [filteredFiles]);
 
-  const handleUpload = () => {
-    updateActivityTime();
-    fileInputRef.current?.click();
-  };
-
-  const handleUploadFolder = () => {
-    updateActivityTime();
-    folderInputRef.current?.click();
-  };
+  // Upload handling with progress notification
+  const handleUpload = () => fileInputRef.current?.click();
+  const handleUploadFolder = () => folderInputRef.current?.click();
 
   const handleUploadFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateActivityTime();
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // 处理所有选中的文件
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const taskId = transfer.createTransferTask('upload', file.name, `${sftp.currentPath}/${file.name}`, file.size);
-      transfer.updateTransferTask(taskId, { status: 'transferring' });
-      const stopProgress = transfer.simulateTransferProgress(taskId, file.size);
-      try {
-        const response = await sftpApi.uploadFile(host.id, sftp.currentPath, file);
-        stopProgress();
-        if (response.success) {
-          transfer.completeTransferTask(taskId, true);
-          success('上传成功', `${file.name} 已上传`);
-          transfer.addTransferLog('upload', `上传文件: ${file.name}`, `${sftp.currentPath}/${file.name}`, 'success', formatFileSize(file.size));
-        } else {
-          transfer.completeTransferTask(taskId, false, response.message);
-          showError('上传失败', response.message || '无法上传文件');
+    // 检查是否是文件夹上传（通过 webkitRelativePath 判断）
+    const isFolderUpload = files[0].webkitRelativePath && files[0].webkitRelativePath.includes('/');
+    
+    if (isFolderUpload) {
+      // 处理文件夹上传 - 使用后端的目录创建功能
+      const rootFolderName = files[0].webkitRelativePath?.split('/')[0] || 'upload';
+      
+      // 显示开始上传的通知
+      success('Upload Started', `Uploading folder "${rootFolderName}"...`, 2000);
+      
+      let successCount = 0;
+      let failCount = 0;
+      
+      // 遍历所有文件并上传
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const relativePath = file.webkitRelativePath;
+        
+        if (!relativePath) continue;
+        
+        const taskId = transfer.createTransferTask('upload', file.name, `${sftp.currentPath}/${relativePath}`, file.size);
+        transfer.updateTransferTask(taskId, { status: 'transferring' });
+        const stopProgress = transfer.simulateTransferProgress(taskId, file.size);
+        
+        try {
+          // 传递相对路径给后端，后端会自动创建目录
+          const response = await sftpApi.uploadFile(host.id, sftp.currentPath, file, relativePath);
+          stopProgress();
+          if (response.success) {
+            transfer.completeTransferTask(taskId, true);
+            transfer.addTransferLog('upload', `Uploaded: ${relativePath}`, `${sftp.currentPath}/${relativePath}`, 'success', formatFileSize(file.size));
+            successCount++;
+          } else {
+            transfer.completeTransferTask(taskId, false, response.message);
+            transfer.addTransferLog('error', `Failed: ${relativePath}`, response.message || 'Upload failed', 'error');
+            failCount++;
+          }
+        } catch (err) {
+          stopProgress();
+          transfer.completeTransferTask(taskId, false, (err as Error).message);
+          transfer.addTransferLog('error', `Failed: ${relativePath}`, (err as Error).message, 'error');
+          failCount++;
         }
-      } catch (err) {
-        transfer.completeTransferTask(taskId, false, (err as Error).message);
-        showError('上传失败', (err as Error).message);
+      }
+      
+      if (failCount === 0) {
+        success('Upload Complete', `Folder "${rootFolderName}" uploaded successfully (${successCount} files)`);
+      } else {
+        showError('Upload Partially Failed', `${successCount} files uploaded, ${failCount} failed`);
+      }
+    } else {
+      // 处理普通文件上传
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const taskId = transfer.createTransferTask('upload', file.name, `${sftp.currentPath}/${file.name}`, file.size);
+        transfer.updateTransferTask(taskId, { status: 'transferring' });
+        const stopProgress = transfer.simulateTransferProgress(taskId, file.size);
+        
+        // Show upload start notification
+        success('Upload Started', `${file.name} (${formatFileSize(file.size)})`, 2000);
+        
+        try {
+          const response = await sftpApi.uploadFile(host.id, sftp.currentPath, file);
+          stopProgress();
+          if (response.success) {
+            transfer.completeTransferTask(taskId, true);
+            success('Upload Complete', `${file.name} uploaded successfully`);
+            transfer.addTransferLog('upload', `Uploaded: ${file.name}`, `${sftp.currentPath}/${file.name}`, 'success', formatFileSize(file.size));
+          } else {
+            transfer.completeTransferTask(taskId, false, response.message);
+            showError('Upload Failed', response.message || 'Failed to upload file');
+          }
+        } catch (err) {
+          transfer.completeTransferTask(taskId, false, (err as Error).message);
+          showError('Upload Failed', (err as Error).message);
+        }
       }
     }
+    
     sftp.refresh();
     if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handleUploadFolderSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateActivityTime();
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    // 获取文件夹名称（从第一个文件的路径推断）
-    const firstFile = files[0];
-    const relativePath = firstFile.webkitRelativePath || '';
-    const folderName = relativePath.split('/')[0] || 'folder';
-
-    // 创建目标文件夹路径
-    const targetFolderPath = `${sftp.currentPath}/${folderName}`;
-
-    // 先创建文件夹
-    try {
-      await sftpApi.createDirectory(host.id, targetFolderPath);
-      transfer.addTransferLog('mkdir', `创建文件夹: ${folderName}`, targetFolderPath, 'success');
-    } catch (err) {
-      // 文件夹可能已存在，继续上传
-    }
-
-    // 处理文件夹中的所有文件
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const relativePath = file.webkitRelativePath || file.name;
-      const targetPath = `${sftp.currentPath}/${relativePath}`;
-      const targetDir = targetPath.substring(0, targetPath.lastIndexOf('/'));
-
-      const taskId = transfer.createTransferTask('upload', file.name, targetPath, file.size);
-      transfer.updateTransferTask(taskId, { status: 'transferring' });
-      const stopProgress = transfer.simulateTransferProgress(taskId, file.size);
-      try {
-        const response = await sftpApi.uploadFile(host.id, targetDir, file);
-        stopProgress();
-        if (response.success) {
-          transfer.completeTransferTask(taskId, true);
-          transfer.addTransferLog('upload', `上传文件: ${relativePath}`, targetPath, 'success', formatFileSize(file.size));
-        } else {
-          transfer.completeTransferTask(taskId, false, response.message);
-        }
-      } catch (err) {
-        transfer.completeTransferTask(taskId, false, (err as Error).message);
-      }
-    }
-
-    success('上传完成', `文件夹 "${folderName}" 已上传`);
-    sftp.refresh();
     if (folderInputRef.current) folderInputRef.current.value = '';
   };
 
+  // 处理拖拽上传的目录
+  const handleDropUpload = async (items: DataTransferItemList) => {
+    const entries: FileSystemEntry[] = [];
+    
+    // 收集所有条目
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === 'file') {
+        const entry = item.webkitGetAsEntry();
+        if (entry) {
+          entries.push(entry);
+        }
+      }
+    }
+    
+    if (entries.length === 0) return;
+    
+    // 收集所有文件（包括目录中的文件）
+    const collectFiles = async (entry: FileSystemEntry, basePath: string = ''): Promise<{ file: File; relativePath: string }[]> => {
+      const files: { file: File; relativePath: string }[] = [];
+      
+      if (entry.isFile) {
+        const fileEntry = entry as FileSystemFileEntry;
+        const file = await new Promise<File>((resolve) => {
+          fileEntry.file(resolve);
+        });
+        const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+        files.push({ file, relativePath });
+      } else if (entry.isDirectory) {
+        const dirEntry = entry as FileSystemDirectoryEntry;
+        const reader = dirEntry.createReader();
+        
+        const readAllEntries = async (): Promise<FileSystemEntry[]> => {
+          const allEntries: FileSystemEntry[] = [];
+          const readBatch = (): Promise<FileSystemEntry[]> => {
+            return new Promise((resolve) => {
+              reader.readEntries(resolve);
+            });
+          };
+          
+          let batch = await readBatch();
+          while (batch.length > 0) {
+            allEntries.push(...batch);
+            batch = await readBatch();
+          }
+          return allEntries;
+        };
+        
+        const subEntries = await readAllEntries();
+        const newBasePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+        
+        for (const subEntry of subEntries) {
+          const subFiles = await collectFiles(subEntry, newBasePath);
+          files.push(...subFiles);
+        }
+      }
+      
+      return files;
+    };
+    
+    // 收集所有文件
+    const allFiles: { file: File; relativePath: string }[] = [];
+    for (const entry of entries) {
+      const files = await collectFiles(entry);
+      allFiles.push(...files);
+    }
+    
+    if (allFiles.length === 0) {
+      showError('No Files', 'No files found to upload');
+      return;
+    }
+    
+    // 显示开始上传通知
+    success('Upload Started', `Uploading ${allFiles.length} file(s)...`, 2000);
+    
+    let successCount = 0;
+    let failCount = 0;
+    
+    // 上传所有文件
+    for (const { file, relativePath } of allFiles) {
+      const taskId = transfer.createTransferTask('upload', file.name, `${sftp.currentPath}/${relativePath}`, file.size);
+      transfer.updateTransferTask(taskId, { status: 'transferring' });
+      const stopProgress = transfer.simulateTransferProgress(taskId, file.size);
+      
+      try {
+        // 传递相对路径给后端
+        const response = await sftpApi.uploadFile(host.id, sftp.currentPath, file, relativePath);
+        stopProgress();
+        if (response.success) {
+          transfer.completeTransferTask(taskId, true);
+          transfer.addTransferLog('upload', `Uploaded: ${relativePath}`, `${sftp.currentPath}/${relativePath}`, 'success', formatFileSize(file.size));
+          successCount++;
+        } else {
+          transfer.completeTransferTask(taskId, false, response.message);
+          transfer.addTransferLog('error', `Failed: ${relativePath}`, response.message || 'Upload failed', 'error');
+          failCount++;
+        }
+      } catch (err) {
+        stopProgress();
+        transfer.completeTransferTask(taskId, false, (err as Error).message);
+        transfer.addTransferLog('error', `Failed: ${relativePath}`, (err as Error).message, 'error');
+        failCount++;
+      }
+    }
+    
+    if (failCount === 0) {
+      success('Upload Complete', `${successCount} file(s) uploaded successfully`);
+    } else {
+      showError('Upload Partially Failed', `${successCount} files uploaded, ${failCount} failed`);
+    }
+    
+    sftp.refresh();
+  };
+
+  // Drag and drop upload
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const items = e.dataTransfer.items;
+    if (!items) return;
+
+    await handleDropUpload(items);
+  };
+
+  // Download handling
   const handleDownload = async (file: SFTPFile) => {
-    updateActivityTime();
+    if (file.is_dir) {
+      await downloadFolder(file);
+      return;
+    }
+    
     const taskId = transfer.createTransferTask('download', file.name, file.path, file.size);
     transfer.updateTransferTask(taskId, { status: 'transferring' });
     const stopProgress = transfer.simulateTransferProgress(taskId, file.size);
+    
+    success('Download Started', `${file.name} (${file.size_formatted})`, 2000);
+    
     try {
       const blob = await sftpApi.downloadFile(host.id, file.path);
       stopProgress();
@@ -298,67 +440,117 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
       document.body.appendChild(a); a.click();
       document.body.removeChild(a); window.URL.revokeObjectURL(url);
       transfer.completeTransferTask(taskId, true);
-      success('下载成功', `${file.name} 已下载`);
-      transfer.addTransferLog('download', `下载文件: ${file.name}`, file.path, 'success', file.size_formatted);
+      success('Download Complete', `${file.name} downloaded successfully`);
+      transfer.addTransferLog('download', `Downloaded: ${file.name}`, file.path, 'success', file.size_formatted);
     } catch (err) {
       transfer.completeTransferTask(taskId, false, (err as Error).message);
-      showError('下载失败', (err as Error).message);
+      showError('Download Failed', (err as Error).message);
     }
   };
 
-  const handleCreateFolder = async () => {
-    updateActivityTime();
-    if (await fileOps.createFolder(newFolderName)) { setShowNewFolderDialog(false); setNewFolderName(''); }
+  const downloadFolder = async (_folder: SFTPFile) => {
+    showError('Not Supported', 'Folder download is not supported yet');
   };
 
+  // Folder creation
+  const handleCreateFolder = async () => {
+    if (await fileOps.createFolder(newFolderName)) {
+      setShowNewFolderDialog(false);
+      setNewFolderName('');
+    }
+  };
+
+  // Rename
   const handleRename = async () => {
-    updateActivityTime();
     if (!renameTarget) return;
     if (await fileOps.renameFile(renameTarget, newFileName)) {
-      setShowRenameDialog(false); setRenameTarget(null); setNewFileName('');
+      setShowRenameDialog(false);
+      setRenameTarget(null);
+      setNewFileName('');
     }
   };
 
+  // Save file
   const handleSaveAndClose = async () => {
-    updateActivityTime();
-    if (await fileOps.saveFile()) { setShowFileEditor(false); fileOps.closeEditor(); }
+    if (await fileOps.saveFile()) {
+      setShowFileEditor(false);
+      fileOps.closeEditor();
+    }
   };
 
-  // 窗口控制
-  const handleMinimize = () => {
-    setIsMinimized(!isMinimized);
-    updateActivityTime();
-  };
-
-  const handleMaximize = () => {
-    setIsMaximized(!isMaximized);
-    updateActivityTime();
-  };
-
-  const handleClose = () => {
-    updateActivityTime();
-    onClose();
+  // Clear filter
+  const clearFilter = () => {
+    setSearchQuery('');
+    setShowFilter(false);
   };
 
   const activeTransfers = transfer.transferTasks.filter(t => t.status === 'transferring').length;
 
-  // 如果最小化，显示浮动按钮
-  if (isMinimized) {
+  // Don't render if minimized (Mac style - show only title bar)
+  if (windowState.isMinimized) {
     return (
-      <div className="fixed bottom-4 right-4 z-50">
-        <button
-          onClick={() => setIsMinimized(false)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] text-white rounded-lg shadow-lg hover:bg-[#2a2a2a] transition-all border border-white/10"
-        >
-          <div className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span className="text-sm font-medium">SFTP: {host.address}</span>
-          {activeTransfers > 0 && (
-            <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">
-              {activeTransfers}
-            </span>
-          )}
-        </button>
-      </div>
+      <>
+        <LoadingOverlay isOpen={sftp.connecting} hostName={host.name} />
+        <ErrorOverlay isOpen={!!sftp.error && !sftp.files.length} error={sftp.error} onClose={onClose} />
+        
+        {!sftp.connecting && (!sftp.error || sftp.files.length > 0) && (
+          <div 
+            className="fixed z-50 animate-fade-in"
+            style={{ 
+              left: windowPosition.x, 
+              top: windowPosition.y,
+              width: windowSize.width
+            }}
+            onMouseDown={handleMouseDown}
+          >
+            {/* Minimized Title Bar - Mac Style - 与终端一致 */}
+            <div className="window-header bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] rounded-lg shadow-2xl border border-white/10 overflow-hidden">
+              <div className="flex items-center px-3 py-2">
+                {/* Mac Window Controls - 与终端一致 */}
+                <div className="flex items-center gap-2 mr-4">
+                  <button
+                    onClick={onClose}
+                    className="w-3 h-3 rounded-full bg-[#ff5f57] hover:bg-[#ff5f57]/80 transition-colors flex items-center justify-center group"
+                  >
+                    <svg className="w-2 h-2 text-[#990000] opacity-0 group-hover:opacity-100" viewBox="0 0 12 12">
+                      <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleMinimize}
+                    className="w-3 h-3 rounded-full bg-[#febc2e] hover:bg-[#febc2e]/80 transition-colors flex items-center justify-center group"
+                  >
+                    <svg className="w-2 h-2 text-[#985700] opacity-0 group-hover:opacity-100" viewBox="0 0 12 12">
+                      <path d="M3 6h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleMaximize}
+                    className="w-3 h-3 rounded-full bg-[#28c840] hover:bg-[#28c840]/80 transition-colors flex items-center justify-center group"
+                  >
+                    <svg className="w-2 h-2 text-[#006500] opacity-0 group-hover:opacity-100" viewBox="0 0 12 12">
+                      <path d="M2 5l4-4 4 4M2 7l4 4 4-4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+                
+                <span className="text-xs text-gray-400 font-medium">SFTP - {host.name}</span>
+                
+                <div className="flex-1" />
+                
+                <button
+                  onClick={handleMinimize}
+                  className="p-1 text-gray-400 hover:text-white"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -367,129 +559,292 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
       <LoadingOverlay isOpen={sftp.connecting} hostName={host.name} />
       <ErrorOverlay isOpen={!!sftp.error && !sftp.files.length} error={sftp.error} onClose={onClose} />
 
-      {/* 超时警告 */}
-      {showTimeoutWarning && (
-        <div className="fixed top-4 right-4 z-[60] bg-amber-50 border border-amber-200 rounded-lg p-4 shadow-lg max-w-sm">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-              <span className="text-amber-600 text-lg">⏰</span>
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-medium text-amber-900">连接即将超时</h4>
-              <p className="text-xs text-amber-700 mt-1">
-                由于长时间未操作，连接将在5分钟后自动断开。请进行操作以保持连接。
-              </p>
-              <button
-                onClick={() => {
-                  updateActivityTime();
-                  setShowTimeoutWarning(false);
-                }}
-                className="mt-2 px-3 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 transition-colors"
-              >
-                保持连接
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {!sftp.connecting && (!sftp.error || sftp.files.length > 0) && (
-        <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in ${isMaximized ? 'p-0' : 'p-4'}`}>
-          {/* Mac Terminal 风格窗口 - 暗色主题 */}
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
           <div
-            className={`bg-[#1a1a1a] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-white/10 transition-all duration-300 ${
-              isMaximized ? 'fixed inset-4 w-auto h-auto max-w-none rounded-2xl' : 'w-full max-w-5xl h-[600px]'
-            }`}
+            ref={modalRef}
+            className="bg-[#1e1e1e]/95 backdrop-blur-xl rounded-xl shadow-2xl flex flex-col overflow-hidden border border-white/10 sftp-font"
             style={{
-              boxShadow: isMaximized
-                ? '0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 100px -20px rgba(0,0,0,0.3)'
-                : '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.1)'
+              width: windowSize.width,
+              height: windowSize.height,
+              position: 'absolute',
+              left: windowPosition.x,
+              top: windowPosition.y,
+              fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
             }}
+            onMouseDown={handleMouseDown}
           >
-            {/* Mac 风格标题栏 - 暗色 */}
-            <div className="h-10 bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] border-b border-white/5 flex items-center px-4 gap-4 select-none">
-              {/* 窗口控制按钮 */}
-              <WindowControls
-                onClose={handleClose}
-                onMinimize={handleMinimize}
-                onMaximize={handleMaximize}
-                isMaximized={isMaximized}
-              />
-
-              {/* 标题 */}
-              <div className="flex-1 text-center">
-                <span className="text-sm font-medium text-gray-200">{host.address}</span>
+            
+            {/* Mac Style Title Bar - 与终端一致 */}
+            <div className="window-header flex items-center px-4 py-3 bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] border-b border-white/5">
+              {/* Mac Window Controls - 与终端一致 */}
+              <div className="flex items-center gap-2 mr-4">
+                <button
+                  onClick={onClose}
+                  className="w-3 h-3 rounded-full bg-[#ff5f57] hover:bg-[#ff5f57]/80 transition-colors flex items-center justify-center group"
+                  title="Close"
+                >
+                  <svg className="w-2 h-2 text-[#990000] opacity-0 group-hover:opacity-100" viewBox="0 0 12 12">
+                    <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </button>
+                <button
+                  onClick={handleMinimize}
+                  className="w-3 h-3 rounded-full bg-[#febc2e] hover:bg-[#febc2e]/80 transition-colors flex items-center justify-center group"
+                  title="Minimize"
+                >
+                  <svg className="w-2 h-2 text-[#985700] opacity-0 group-hover:opacity-100" viewBox="0 0 12 12">
+                    <path d="M3 6h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </button>
+                <button
+                  onClick={handleMaximize}
+                  className="w-3 h-3 rounded-full bg-[#28c840] hover:bg-[#28c840]/80 transition-colors flex items-center justify-center group"
+                  title={windowState.isMaximized ? "Restore" : "Maximize"}
+                >
+                  <svg className="w-2 h-2 text-[#006500] opacity-0 group-hover:opacity-100" viewBox="0 0 12 12">
+                    <path d="M2 5l4-4 4 4M2 7l4 4 4-4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
               </div>
 
-              {/* 状态指示器 */}
-              <div className="flex items-center gap-2">
-                {activeTransfers > 0 && (
-                  <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 rounded-full">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                    <span className="text-xs text-blue-300">{activeTransfers}</span>
+              {/* Path Navigation */}
+              {isPathEditing ? (
+                <input
+                  ref={pathInputRef}
+                  type="text"
+                  value={pathInputValue}
+                  onChange={(e) => setPathInputValue(e.target.value)}
+                  onKeyDown={handlePathKeyDown}
+                  onBlur={() => setIsPathEditing(false)}
+                  className="flex-1 bg-[#1e1e1e] border border-white/20 rounded px-3 py-1 text-[13px] text-gray-200 font-mono focus:outline-none focus:border-blue-500"
+                  autoFocus
+                />
+              ) : (
+                <div 
+                  className="flex items-center flex-1 overflow-hidden"
+                  onDoubleClick={handlePathEdit}
+                >
+                  <button
+                    onClick={() => sftp.navigateTo('/')}
+                    className="text-blue-400 hover:text-blue-300 text-[13px] font-medium mr-2"
+                  >
+                    SFTP
+                  </button>
+                  {pathSegments.map((segment) => (
+                    <span key={segment.path} className="flex items-center text-[13px]">
+                      <span className="text-gray-500 mx-1">/</span>
+                      <button
+                        onClick={() => sftp.navigateTo(segment.path)}
+                        className="text-gray-300 hover:text-white hover:bg-white/5 px-1.5 py-0.5 rounded transition-colors"
+                      >
+                        {segment.name}
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex-1" onDoubleClick={handlePathEdit} />
+
+              {/* Toolbar Buttons */}
+              <div className="flex items-center gap-1">
+                {!showFilter && (
+                  <button
+                    onClick={() => setShowFilter(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    Filter
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setShowNewFolderDialog(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  New Folder
+                </button>
+
+                <button
+                  onClick={handleUpload}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Upload
+                </button>
+
+                <button
+                  onClick={handleUploadFolder}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
+                  title="Upload folder contents (subdirectories will be flattened)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Upload Folder
+                </button>
+
+                <button
+                  onClick={() => setShowTransferPanel(!showTransferPanel)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded transition-colors ${
+                    showTransferPanel ? 'text-blue-400 bg-blue-500/10' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  {activeTransfers > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            {showFilter && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-[#1e1e1e] border-b border-white/5">
+                <div className="flex items-center flex-1 bg-[#2a2a2a] rounded-lg px-3 py-1.5 border border-white/10">
+                  <svg className="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Filter files..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 bg-transparent border-none outline-none text-[13px] text-gray-200 placeholder-gray-500"
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="p-1 text-gray-500 hover:text-gray-300"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={clearFilter}
+                  className="px-3 py-1.5 text-[13px] text-gray-400 hover:text-gray-200 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+
+            {/* Main Content */}
+            <div className="flex-1 flex overflow-hidden">
+              <div 
+                className={`flex-1 overflow-auto bg-[#0d0d0d]/50 ${isDragOver ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                {isDragOver && (
+                  <div className="absolute inset-0 bg-blue-500/10 flex items-center justify-center z-10 pointer-events-none">
+                    <div className="bg-[#1e1e1e] px-6 py-4 rounded-lg shadow-lg border border-blue-500/30">
+                      <div className="flex items-center gap-3 text-blue-400">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span className="text-base font-medium">Drop to upload</span>
+                      </div>
+                    </div>
                   </div>
                 )}
-                <div className="w-2 h-2 rounded-full bg-emerald-400" />
+
+                <FileList
+                  files={filteredFiles}
+                  loading={sftp.loading}
+                  currentPath={sftp.currentPath}
+                  selectedFiles={selectedFiles}
+                  searchQuery={searchQuery}
+                  onFileClick={handleFileClick}
+                  onFileSelect={toggleFileSelection}
+                  onSelectAll={handleSelectAll}
+                  onDownload={handleDownload}
+                  onRename={(file) => { setRenameTarget(file); setNewFileName(file.name); setShowRenameDialog(true); }}
+                  onDelete={fileOps.deleteFile}
+                  onNavigate={sftp.navigateTo}
+                  onGoUp={sftp.goUp}
+                />
               </div>
+
+              {/* Transfer Panel */}
+              {showTransferPanel && (
+                <TransferPanel
+                  transferTasks={transfer.transferTasks}
+                  transferLogs={transfer.transferLogs}
+                  activeLogFilter={activeLogFilter}
+                  onFilterChange={setActiveLogFilter}
+                  onClearLogs={transfer.clearLogs}
+                  onClearLogsByFilter={transfer.clearLogsByFilter}
+                  onPauseTask={transfer.pauseTransferTask}
+                  onResumeTask={(taskId) => {
+                    const task = transfer.transferTasks.find(t => t.id === taskId);
+                    if (task) transfer.resumeTransferTask(taskId, task.size);
+                  }}
+                  onCancelTask={transfer.cancelTransferTask}
+                />
+              )}
             </div>
 
-            {/* 工具栏 - 暗色 */}
-            <div className="h-12 bg-[#252525] border-b border-white/5 flex items-center px-4 gap-3">
-              <SFTPHeader
-                currentPath={sftp.currentPath} pathInputValue={isPathEditing ? pathInputValue : sftp.currentPath}
-                isPathEditing={isPathEditing} historyIndex={sftp.historyIndex} pathHistory={sftp.pathHistory}
-                viewMode={viewMode} searchQuery={searchQuery} isSearchFocused={isSearchFocused}
-                showTransferPanel={showTransferPanel} activeTransfers={activeTransfers} diskUsage={sftp.diskUsage}
-                onNavigate={sftp.navigateTo} onGoBack={sftp.goBack} onGoForward={sftp.goForward} onGoUp={sftp.goUp}
-                onPathInputChange={setPathInputValue} onPathSubmit={handlePathSubmit}
-                onPathEditStart={() => setIsPathEditing(true)} onPathEditCancel={() => setIsPathEditing(false)}
-                onCopyPath={copyPathToClipboard} onViewModeChange={setViewMode} onSearchChange={setSearchQuery}
-                onSearchFocus={setIsSearchFocused} onToggleTransferPanel={() => setShowTransferPanel(!showTransferPanel)}
-              />
-            </div>
-            
-            <SFTPToolbar showSidebar={showSidebar} onRefresh={sftp.refresh} onToggleSidebar={() => setShowSidebar(!showSidebar)}
-              onNewFolder={() => setShowNewFolderDialog(true)} onUpload={handleUpload} onUploadFolder={handleUploadFolder} />
-            
-            <div className="flex-1 overflow-hidden flex">
-              {showSidebar && <Sidebar currentPath={sftp.currentPath} hostAddress={host.address}
-                fileCount={filteredFiles.length} onNavigate={sftp.navigateTo} />}
-              <div className="flex-1 overflow-auto bg-[#0d0d0d]">
-                <FileList files={filteredFiles} loading={sftp.loading} viewMode={viewMode} selectedFiles={selectedFiles}
-                  onFileClick={handleFileClick} onFileSelect={toggleFileSelection} onSelectAll={handleSelectAll}
-                  onDownload={handleDownload} onRename={(file) => { setRenameTarget(file); setNewFileName(file.name); setShowRenameDialog(true); }}
-                  onDelete={fileOps.deleteFile} />
-              </div>
-              {showTransferPanel && <TransferPanel transferTasks={transfer.transferTasks} transferLogs={transfer.transferLogs}
-                activeLogFilter={activeLogFilter} onFilterChange={setActiveLogFilter} onClearLogs={transfer.clearLogs}
-                onClearLogsByFilter={transfer.clearLogsByFilter}
-                onPauseTask={transfer.pauseTransferTask} onResumeTask={(taskId) => {
-                  const task = transfer.transferTasks.find(t => t.id === taskId);
-                  if (task) transfer.resumeTransferTask(taskId, task.size);
-                }} onCancelTask={transfer.cancelTransferTask} />}
-            </div>
-            
+            {/* Status Bar */}
             <StatusBar
               fileCount={filteredFiles.length}
               selectedCount={selectedFiles.size}
               searchQuery={searchQuery}
               activeTransfers={activeTransfers}
               hostAddress={host.address}
+              currentPath={sftp.currentPath}
             />
           </div>
         </div>
       )}
-      
-      {/* 文件上传输入 */}
-      <input ref={fileInputRef} type="file" multiple onChange={handleUploadFileSelect} className="hidden" id="file-upload-input" />
-      {/* 文件夹上传输入 */}
-      <input ref={folderInputRef} type="file" {...{ webkitdirectory: "", directory: "" }} multiple onChange={handleUploadFolderSelect} className="hidden" id="folder-upload-input" />
-      <NewFolderDialog isOpen={showNewFolderDialog} folderName={newFolderName} onNameChange={setNewFolderName}
-        onCreate={handleCreateFolder} onCancel={() => { setShowNewFolderDialog(false); setNewFolderName(''); }} />
-      <RenameDialog isOpen={showRenameDialog} target={renameTarget} newName={newFileName} onNameChange={setNewFileName}
-        onRename={handleRename} onCancel={() => { setShowRenameDialog(false); setRenameTarget(null); setNewFileName(''); }} />
-      <FileEditor isOpen={showFileEditor} file={fileOps.editingFile} content={fileOps.fileContent} saving={fileOps.saving}
-        onContentChange={fileOps.setFileContent} onSave={handleSaveAndClose} onClose={() => { setShowFileEditor(false); fileOps.closeEditor(); }} />
+
+      {/* Hidden file inputs */}
+      <input ref={fileInputRef} type="file" multiple onChange={handleUploadFileSelect} className="hidden" />
+      <input ref={folderInputRef} type="file" {...{ webkitdirectory: '', directory: '' }} multiple onChange={handleUploadFileSelect} className="hidden" />
+
+      {/* Dialogs */}
+      <NewFolderDialog
+        isOpen={showNewFolderDialog}
+        folderName={newFolderName}
+        onNameChange={setNewFolderName}
+        onCreate={handleCreateFolder}
+        onCancel={() => { setShowNewFolderDialog(false); setNewFolderName(''); }}
+      />
+      <RenameDialog
+        isOpen={showRenameDialog}
+        target={renameTarget}
+        newName={newFileName}
+        onNameChange={setNewFileName}
+        onRename={handleRename}
+        onCancel={() => { setShowRenameDialog(false); setRenameTarget(null); setNewFileName(''); }}
+      />
+      <FileEditor
+        isOpen={showFileEditor}
+        file={fileOps.editingFile}
+        content={fileOps.fileContent}
+        saving={fileOps.saving}
+        onContentChange={fileOps.setFileContent}
+        onSave={handleSaveAndClose}
+        onClose={() => { setShowFileEditor(false); fileOps.closeEditor(); }}
+      />
     </>
   );
 };
