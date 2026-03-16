@@ -233,6 +233,46 @@ code, pre, .font-mono {
 }
 
 /* ============================================
+   Custom Scrollbar for SFTP File List
+   ============================================ */
+.scrollbar-custom {
+  scrollbar-width: 10px;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  min-height: 60px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.scrollbar-custom::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ============================================
    Selection Styles
    ============================================ */
 ::selection {
@@ -307,8 +347,8 @@ code, pre, .font-mono {
 }
 
 /* ============================================
-   Tooltip Styles
-   ============================================ */
+    Tooltip Styles
+    ============================================ */
 .tooltip-macos {
   @apply absolute px-2 py-1 bg-gray-800 text-white text-xs rounded-macos-sm
          opacity-0 invisible
@@ -333,3 +373,6 @@ code, pre, .font-mono {
   visibility: visible;
   transform: translateY(-8px);
 }
+
+
+

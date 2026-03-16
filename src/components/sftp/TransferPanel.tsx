@@ -1,4 +1,3 @@
-import { Upload, Download, Check, X, AlertCircle, Clock, Trash2, Folder, FileText, Terminal } from 'lucide-react';
 import type { TransferTask, TransferLog, LogFilter } from './types';
 import { formatFileSize } from './utils';
 
@@ -26,11 +25,11 @@ const getStatusColor = (status: TransferTask['status']) => {
 
 const getStatusIcon = (status: TransferTask['status']) => {
   switch (status) {
-    case 'completed': return <Check className="w-3.5 h-3.5" />;
-    case 'failed': return <AlertCircle className="w-3.5 h-3.5" />;
-    case 'transferring': return <div className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />;
-    case 'paused': return <Clock className="w-3.5 h-3.5" />;
-    default: return <Clock className="w-3.5 h-3.5" />;
+    case 'completed': return <i className="fa-solid fa-check text-[11px]" />;
+    case 'failed': return <i className="fa-solid fa-circle-exclamation text-[11px]" />;
+    case 'transferring': return <i className="fa-solid fa-spinner animate-spin text-[11px]" />;
+    case 'paused': return <i className="fa-solid fa-clock text-[11px]" />;
+    default: return <i className="fa-solid fa-clock text-[11px]" />;
   }
 };
 
@@ -50,7 +49,6 @@ const TransferPanel = ({
   // 根据当前筛选过滤已完成的任务和日志
   const filteredTasks = transferTasks.filter(t => {
     if (t.status !== 'completed' && t.status !== 'failed') return false;
-    if (activeLogFilter === 'all') return true;
     if (activeLogFilter === 'upload') return t.type === 'upload';
     if (activeLogFilter === 'download') return t.type === 'download';
     return true;
@@ -58,24 +56,21 @@ const TransferPanel = ({
 
   // 获取计数
   const getCount = (filter: LogFilter) => {
-    if (filter === 'all') return transferTasks.filter(t => t.status === 'completed' || t.status === 'failed').length;
     if (filter === 'upload') return transferTasks.filter(t => (t.status === 'completed' || t.status === 'failed') && t.type === 'upload').length;
     if (filter === 'download') return transferTasks.filter(t => (t.status === 'completed' || t.status === 'failed') && t.type === 'download').length;
     return 0;
   };
 
-  const currentCount = activeLogFilter === 'all' 
-    ? filteredTasks.length 
-    : getCount(activeLogFilter);
+  const currentCount = getCount(activeLogFilter);
 
   return (
     <div
       className="w-80 bg-[#1e1e1e] border-l border-white/5 flex flex-col"
       style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif' }}
     >
-      {/* Tabs - 只显示 All, Upload, Download */}
+      {/* Tabs - 只显示 Upload, Download */}
       <div className="flex border-b border-white/5">
-        {(['all', 'upload', 'download'] as LogFilter[]).map((filter) => (
+        {(['upload', 'download'] as LogFilter[]).map((filter) => (
           <button
             key={filter}
             onClick={() => onFilterChange(filter)}
@@ -86,14 +81,12 @@ const TransferPanel = ({
             }`}
           >
             <span className="flex items-center justify-center gap-1">
-              {filter === 'all' && 'All'}
               {filter === 'upload' && 'Upload'}
               {filter === 'download' && 'Download'}
               {getCount(filter) > 0 && (
                 <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
                   filter === 'upload' ? 'bg-blue-500/20 text-blue-400' :
-                  filter === 'download' ? 'bg-emerald-500/20 text-emerald-400' :
-                  'bg-gray-500/20 text-gray-400'
+                  'bg-emerald-500/20 text-emerald-400'
                 }`}>
                   {getCount(filter)}
                 </span>
@@ -121,9 +114,9 @@ const TransferPanel = ({
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       {task.type === 'upload' ? (
-                        <Upload className="w-3.5 h-3.5 text-blue-500" />
+                        <i className="fa-solid fa-upload text-[11px] text-blue-500" />
                       ) : (
-                        <Download className="w-3.5 h-3.5 text-emerald-500" />
+                        <i className="fa-solid fa-circle-down text-[11px] text-emerald-500" />
                       )}
                       <span className="text-[12px] font-medium text-gray-300 truncate max-w-[120px]">
                         {task.filename}
@@ -134,12 +127,12 @@ const TransferPanel = ({
                         {getStatusIcon(task.status)}
                       </span>
                       {onCancelTask && (
-                        <button 
+                        <button
                           onClick={() => onCancelTask(task.id)}
                           className="p-0.5 text-gray-500 hover:text-red-400 transition-colors"
                           title="Cancel"
                         >
-                          <X className="w-3 h-3" />
+                          <i className="fa-solid fa-xmark text-[10px]" />
                         </button>
                       )}
                     </div>
@@ -185,23 +178,23 @@ const TransferPanel = ({
         {filteredTasks.length > 0 && (
           <div>
             <h5 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <Check className="w-3 h-3" />
-              {activeLogFilter === 'all' ? 'Completed' : activeLogFilter === 'upload' ? 'Uploads' : 'Downloads'} ({filteredTasks.length})
+              <i className="fa-solid fa-check text-[10px]" />
+              {activeLogFilter === 'upload' ? 'Uploads' : 'Downloads'} ({filteredTasks.length})
             </h5>
             <div className="space-y-1">
               {filteredTasks.slice(0, 10).map(task => (
                 <div
                   key={task.id}
                   className={`flex items-center gap-2 p-2 rounded-lg text-[12px] ${
-                    task.status === 'failed' 
-                      ? 'bg-red-500/10 border border-red-500/20' 
+                    task.status === 'failed'
+                      ? 'bg-red-500/10 border border-red-500/20'
                       : 'bg-emerald-500/10 border border-emerald-500/20'
                   }`}
                 >
                   {task.type === 'upload' ? (
-                    <Upload className={`w-3 h-3 ${task.status === 'failed' ? 'text-red-400' : 'text-emerald-400'}`} />
+                    <i className={`fa-solid fa-upload text-[10px] ${task.status === 'failed' ? 'text-red-400' : 'text-emerald-400'}`} />
                   ) : (
-                    <Download className={`w-3 h-3 ${task.status === 'failed' ? 'text-red-400' : 'text-emerald-400'}`} />
+                    <i className={`fa-solid fa-circle-down text-[10px] ${task.status === 'failed' ? 'text-red-400' : 'text-emerald-400'}`} />
                   )}
                   <span className="flex-1 truncate text-gray-300">{task.filename}</span>
                   <span className="text-[11px] text-gray-500">{formatFileSize(task.size)}</span>
@@ -214,8 +207,7 @@ const TransferPanel = ({
         {/* Empty State */}
         {activeTasks.length === 0 && filteredTasks.length === 0 && (
           <div className="text-center py-8 text-gray-500 text-[12px]">
-            {activeLogFilter === 'all' ? 'No transfer tasks' : 
-             activeLogFilter === 'upload' ? 'No upload tasks' : 'No download tasks'}
+            {activeLogFilter === 'upload' ? 'No upload tasks' : 'No download tasks'}
           </div>
         )}
       </div>
@@ -224,7 +216,6 @@ const TransferPanel = ({
       <div className="p-3 border-t border-white/5 bg-[#1a1a1a]">
         <div className="flex items-center justify-between text-[12px] text-gray-500">
           <span>
-            {activeLogFilter === 'all' && `Total: ${currentCount}`}
             {activeLogFilter === 'upload' && `Upload: ${currentCount}`}
             {activeLogFilter === 'download' && `Download: ${currentCount}`}
           </span>
@@ -238,7 +229,7 @@ const TransferPanel = ({
             }}
             className="text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"
           >
-            <Trash2 className="w-3 h-3" />
+            <i className="fa-solid fa-trash-can text-[10px]" />
             Clear
           </button>
         </div>

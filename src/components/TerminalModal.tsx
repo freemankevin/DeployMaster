@@ -43,6 +43,8 @@ const TerminalModal = ({ host, onClose }: TerminalModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
   // 建立 WebSocket 连接和 xterm
   useEffect(() => {
@@ -77,7 +79,9 @@ const TerminalModal = ({ host, onClose }: TerminalModalProps) => {
         cursorBlink: true,
         cursorStyle: 'bar',
         fontSize: 14,
-        fontFamily: '"SF Mono", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "PingFang SC", "Microsoft YaHei", "Noto Sans Mono CJK SC", "WenQuanYi Micro Hei Mono", monospace',
+        // 字体优先级：优先使用支持中文的等宽字体，确保中文字符宽度正确计算
+        // 使用支持双宽字符的字体，避免中文显示重叠问题
+        fontFamily: '"Noto Sans Mono CJK SC", "WenQuanYi Micro Hei Mono", "Source Han Sans CN", "Microsoft YaHei", "SimHei", "SF Mono", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", monospace',
         theme: {
           // macOS Terminal 风格配色
           background: '#0d0d0d',
@@ -120,10 +124,14 @@ const TerminalModal = ({ host, onClose }: TerminalModalProps) => {
         // 字体设置优化中文显示
         fontWeight: 'normal',
         fontWeightBold: 'bold',
+        // 增加字母间距避免字符重叠（对中文字符尤为重要）
         letterSpacing: 0,
+        // 增加行高避免行重叠
         lineHeight: 1.2,
         // 启用粗体和斜体文本
         drawBoldTextInBrightColors: true,
+        // 启用最小对比度，提高可读性
+        minimumContrastRatio: 1,
       });
 
       debug('xterm instance created, loading addons...');
@@ -154,34 +162,46 @@ const TerminalModal = ({ host, onClose }: TerminalModalProps) => {
       }
       
       // 自定义 fit 函数，预留底部空间给命令输入区域
+      // 使用防抖避免频繁 resize 导致字符重叠
       const fitWithReservedLine = () => {
         // 先计算可用尺寸
         const element = terminalRef.current;
         if (!element) return;
         
         const rect = element.getBoundingClientRect();
-        const paddingBottom = 32; // 底部预留空间 (pb-8 = 32px)
-        const availableHeight = rect.height - paddingBottom;
         
-        // 临时设置终端尺寸进行 fit
-        const originalHeight = element.style.height;
-        element.style.height = `${availableHeight}px`;
+        // 检查尺寸是否有效（避免小窗口时的异常）
+        if (rect.width < 100 || rect.height < 50) {
+          debug('Terminal container too small, skipping fit:', rect.width, 'x', rect.height);
+          return;
+        }
         
-        fitAddon.fit();
-        
-        // 恢复原始高度
-        element.style.height = originalHeight;
-        
-        // 额外减少一行确保完全可见
-        const currentRows = term.rows;
-        const currentCols = term.cols;
-        if (currentRows > 1) {
-          term.resize(currentCols, currentRows - 1);
-          debug('Adjusted terminal rows from', currentRows, 'to', currentRows - 1, 'for bottom padding');
+        try {
+          // 直接 fit
+          fitAddon.fit();
+          
+          // 获取当前尺寸
+          const currentRows = term.rows;
+          const currentCols = term.cols;
+          
+          // 额外减少一行确保底部留白，避免最后一行被截断
+          if (currentRows > 1) {
+            debug('Adjusting rows from', currentRows, 'to', currentRows - 1, 'for bottom padding');
+            term.resize(currentCols, currentRows - 1);
+          }
+        } catch (e) {
+          debug('Error during fit:', e);
+          // 降级处理：直接 fit
+          try {
+            fitAddon.fit();
+          } catch (e2) {
+            debug('Fallback fit also failed:', e2);
+          }
         }
       };
       
-      fitWithReservedLine();
+      // 初始 fit（延迟确保 DOM 渲染完成）
+      setTimeout(() => fitWithReservedLine(), 50);
       
       xtermRef.current = term;
       fitAddonRef.current = fitAddon;
@@ -281,35 +301,68 @@ const TerminalModal = ({ host, onClose }: TerminalModalProps) => {
         }
       });
 
-      // 窗口大小变化时调整终端（使用相同的预留空间逻辑）
-      const handleResize = () => {
-        const element = terminalRef.current;
-        if (!element) {
-          fitAddon.fit();
-          return;
+      // 防抖的 resize 处理函数
+      const debouncedResize = () => {
+        // 清除之前的定时器
+        if (resizeTimeoutRef.current) {
+          clearTimeout(resizeTimeoutRef.current);
         }
         
-        const rect = element.getBoundingClientRect();
-        const paddingBottom = 32; // 底部预留空间 (pb-8 = 32px)
-        const availableHeight = rect.height - paddingBottom;
-        
-        // 临时设置终端尺寸进行 fit
-        const originalHeight = element.style.height;
-        element.style.height = `${availableHeight}px`;
-        
-        fitAddon.fit();
-        
-        // 恢复原始高度
-        element.style.height = originalHeight;
-        
-        // 额外减少一行确保完全可见
-        const currentRows = term.rows;
-        const currentCols = term.cols;
-        if (currentRows > 1) {
-          term.resize(currentCols, currentRows - 1);
-        }
+        // 设置新的定时器，100ms 后执行
+        resizeTimeoutRef.current = setTimeout(() => {
+          const element = terminalRef.current;
+          if (!element) {
+            try {
+              fitAddon.fit();
+            } catch (e) {
+              debug('Error during resize fit:', e);
+            }
+            return;
+          }
+          
+          const rect = element.getBoundingClientRect();
+          
+          // 检查尺寸是否有效
+          if (rect.width < 100 || rect.height < 50) {
+            debug('Terminal container too small during resize:', rect.width, 'x', rect.height);
+            return;
+          }
+          
+          try {
+            // 直接 fit
+            fitAddon.fit();
+            
+            // 额外减少一行确保完全可见
+            const currentRows = term.rows;
+            const currentCols = term.cols;
+            if (currentRows > 1) {
+              debug('Resizing terminal from', currentRows, 'to', currentRows - 1, 'rows');
+              term.resize(currentCols, currentRows - 1);
+            }
+          } catch (e) {
+            debug('Error during resize:', e);
+          }
+        }, 100);
       };
-      window.addEventListener('resize', handleResize);
+      
+      // 使用 ResizeObserver 监听终端容器大小变化（比 window resize 更精确）
+      const resizeObserver = new ResizeObserver((entries) => {
+        // 检查尺寸是否有效
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect;
+          if (width > 0 && height > 0) {
+            debouncedResize();
+          }
+        }
+      });
+      
+      if (terminalRef.current) {
+        resizeObserver.observe(terminalRef.current);
+        resizeObserverRef.current = resizeObserver;
+      }
+      
+      // 同时监听 window resize 作为后备
+      window.addEventListener('resize', debouncedResize);
 
       // 处理右键点击（复制选中内容或粘贴）
       const handleContextMenu = (e: MouseEvent) => {
@@ -337,7 +390,18 @@ const TerminalModal = ({ host, onClose }: TerminalModalProps) => {
       // 保存清理函数
       cleanupRef.current = () => {
         debug('Cleaning up...');
-        window.removeEventListener('resize', handleResize);
+        
+        // 清理 resize 相关
+        window.removeEventListener('resize', debouncedResize);
+        if (resizeTimeoutRef.current) {
+          clearTimeout(resizeTimeoutRef.current);
+          resizeTimeoutRef.current = null;
+        }
+        if (resizeObserverRef.current) {
+          resizeObserverRef.current.disconnect();
+          resizeObserverRef.current = null;
+        }
+        
         terminalElement.removeEventListener('contextmenu', handleContextMenu);
         
         if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {

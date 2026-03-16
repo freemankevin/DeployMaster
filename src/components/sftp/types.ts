@@ -58,6 +58,6 @@ export interface ConnectionState {
 }
 
 export type ViewMode = 'list' | 'grid';
-export type LogFilter = 'all' | 'upload' | 'download';
+export type LogFilter = 'upload' | 'download';
 
 export { SFTPFile };

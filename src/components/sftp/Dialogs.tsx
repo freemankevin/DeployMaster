@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { X, AlertCircle, Loader2, Save, Folder, FileText } from 'lucide-react';
 import type { SFTPFile } from '@/services/api';
 
 // New Folder Dialog
@@ -31,13 +30,13 @@ export const NewFolderDialog = ({ isOpen, folderName, onNameChange, onCreate, on
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
           <h3 className="text-[13px] font-medium text-gray-200">New Folder</h3>
           <button onClick={onCancel} className="text-gray-500 hover:text-gray-300">
-            <X className="w-4 h-4" />
+            <i className="fa-solid fa-xmark text-sm" />
           </button>
         </div>
         <div className="p-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-[#5B9BD5]/20 flex items-center justify-center">
-              <Folder className="w-5 h-5 text-[#5B9BD5]" />
+            <div className="w-10 h-10 rounded-lg bg-[#378ADD]/20 flex items-center justify-center">
+              <i className="fa-solid fa-folder text-lg text-[#378ADD]" />
             </div>
             <div className="flex-1">
               <label className="block text-[12px] text-gray-500 mb-1">Folder Name</label>
@@ -103,16 +102,16 @@ export const RenameDialog = ({ isOpen, target, newName, onNameChange, onRename, 
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
           <h3 className="text-[13px] font-medium text-gray-200">Rename</h3>
           <button onClick={onCancel} className="text-gray-500 hover:text-gray-300">
-            <X className="w-4 h-4" />
+            <i className="fa-solid fa-xmark text-sm" />
           </button>
         </div>
         <div className="p-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-[#378ADD]/20 flex items-center justify-center">
               {target.is_dir ? (
-                <Folder className="w-5 h-5 text-[#5B9BD5]" />
+                <i className="fa-solid fa-folder text-lg text-[#378ADD]" />
               ) : (
-                <FileText className="w-5 h-5 text-blue-400" />
+                <i className="fa-solid fa-file-lines text-lg text-[#378ADD]" />
               )}
             </div>
             <div className="flex-1">
@@ -174,7 +173,7 @@ export const FileEditor = ({ isOpen, file, content, saving, onContentChange, onS
       <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full max-w-4xl h-[600px] flex flex-col border border-white/10">
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
           <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-blue-400" />
+            <i className="fa-solid fa-file-lines text-lg text-blue-400" />
             <h3 className="text-[13px] font-medium text-gray-200">{file.name}</h3>
             <span className="text-[12px] text-gray-500">{file.size_formatted}</span>
           </div>
@@ -185,14 +184,14 @@ export const FileEditor = ({ isOpen, file, content, saving, onContentChange, onS
               className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
             >
               {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <i className="fa-solid fa-spinner text-sm animate-spin" />
               ) : (
-                <Save className="w-4 h-4" />
+                <i className="fa-solid fa-floppy-disk text-sm" />
               )}
               Save
             </button>
             <button onClick={onClose} className="p-1.5 text-gray-500 hover:text-gray-300 hover:bg-white/5 rounded-lg">
-              <X className="w-5 h-5" />
+              <i className="fa-solid fa-xmark" />
             </button>
           </div>
         </div>
@@ -274,7 +273,7 @@ export const ErrorOverlay = ({ isOpen, error, onClose }: ErrorOverlayProps) => {
     >
       <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full max-w-md border border-white/10">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
-          <AlertCircle className="w-5 h-5 text-red-400" />
+          <i className="fa-solid fa-circle-exclamation text-lg text-red-400" />
           <h3 className="text-[13px] font-medium text-gray-200">Connection Failed</h3>
         </div>
         <div className="p-4">

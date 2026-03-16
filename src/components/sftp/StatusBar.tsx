@@ -1,5 +1,3 @@
-import { Folder, Activity } from 'lucide-react';
-
 interface StatusBarProps {
   fileCount: number;
   selectedCount: number;
@@ -23,7 +21,7 @@ const StatusBar = ({
       <div className="flex items-center gap-4">
         {/* File Count */}
         <div className="flex items-center gap-2 text-gray-400">
-          <Folder className="w-3.5 h-3.5" />
+          <i className="fa-regular fa-folder text-xs" />
           <span>{fileCount} items</span>
           {selectedCount > 0 && (
             <span className="text-blue-400 font-medium">
@@ -42,7 +40,7 @@ const StatusBar = ({
         {/* Transfer Status */}
         {activeTransfers > 0 && (
           <div className="flex items-center gap-1.5 text-blue-400">
-            <Activity className="w-3.5 h-3.5 animate-pulse" />
+            <i className="fa-solid fa-spinner animate-spin text-xs" />
             <span>{activeTransfers} transfer(s) active</span>
           </div>
         )}
@@ -53,7 +51,7 @@ const StatusBar = ({
         <div className="flex items-center gap-2 text-gray-400">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            <i className="fa-solid fa-circle text-[6px] text-green-500 relative" />
           </span>
           <span>{hostAddress}</span>
         </div>

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Download, Edit3, Trash2, Link2, Folder, ChevronUp } from 'lucide-react';
 import FileIcon from './FileIcon';
 import type { SFTPFile } from '@/services/api';
 
@@ -67,9 +66,11 @@ const FileList = ({
         {currentPath !== '/' && (!searchQuery || searchQuery.trim() === '') && (
           <button
             onClick={onGoUp}
-            className="w-full flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-all duration-150 text-left group"
+            className="w-full flex items-center gap-3 px-4 py-2 text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-all duration-150 text-left group"
           >
-            <ChevronUp className="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors" />
+            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+              <i className="fa-solid fa-arrow-turn-up text-sm" />
+            </div>
             <span className="text-[13px] text-gray-500 group-hover:text-gray-300 transition-colors">Go up</span>
           </button>
         )}
@@ -93,13 +94,8 @@ const FileList = ({
             </div>
 
             {/* Filename */}
-            <div className="flex-1 min-w-0 flex items-center gap-2">
+            <div className="flex-1 min-w-0">
               <span className="text-[13px] text-gray-200 truncate font-normal">{file.name}</span>
-              {file.is_link && (
-                <span className="text-purple-400 flex-shrink-0" aria-label="Symbolic Link">
-                  <Link2 className="w-3 h-3" />
-                </span>
-              )}
             </div>
 
             {/* Size */}
@@ -128,21 +124,21 @@ const FileList = ({
                 className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
                 title={file.is_dir ? "Download as ZIP" : "Download"}
               >
-                <Download className="w-3.5 h-3.5" />
+                <i className="fa-solid fa-circle-down text-[11px]" />
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onRename(file); }}
                 className="p-1.5 text-gray-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors"
                 title="Rename"
               >
-                <Edit3 className="w-3.5 h-3.5" />
+                <i className="fa-solid fa-pen text-[11px]" />
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(file); }}
                 className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                 title="Delete"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <i className="fa-solid fa-trash text-[11px]" />
               </button>
             </div>
           </div>
@@ -151,9 +147,7 @@ const FileList = ({
         {/* Empty State - Search */}
         {files.length === 0 && searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-            <svg className="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <i className="fa-solid fa-magnifying-glass text-2xl mb-3 opacity-50" />
             <p className="text-[13px]">No files matching "{searchQuery}"</p>
           </div>
         )}
@@ -161,7 +155,7 @@ const FileList = ({
         {/* Empty State - Folder */}
         {files.length === 0 && !searchQuery && !loading && (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-            <Folder className="w-12 h-12 mb-3 opacity-50" />
+            <i className="fa-regular fa-folder text-2xl mb-3 opacity-50" />
             <p className="text-[13px]">Folder is empty</p>
           </div>
         )}
@@ -182,7 +176,7 @@ const FileList = ({
               onClick={() => { onFileClick(contextMenu.file); closeContextMenu(); }}
               className="w-full px-3 py-2 text-left text-[13px] text-gray-300 hover:bg-white/5 flex items-center gap-2"
             >
-              <Folder className="w-4 h-4" />
+              <i className="fa-regular fa-folder text-xs" />
               {contextMenu.file.is_dir ? 'Open' : 'Edit'}
             </button>
             
@@ -190,7 +184,7 @@ const FileList = ({
               onClick={() => { onDownload(contextMenu.file); closeContextMenu(); }}
               className="w-full px-3 py-2 text-left text-[13px] text-gray-300 hover:bg-white/5 flex items-center gap-2"
             >
-              <Download className="w-4 h-4" />
+              <i className="fa-solid fa-circle-down text-xs" />
               {contextMenu.file.is_dir ? 'Download as ZIP' : 'Download'}
             </button>
             
@@ -200,7 +194,7 @@ const FileList = ({
               onClick={() => { onRename(contextMenu.file); closeContextMenu(); }}
               className="w-full px-3 py-2 text-left text-[13px] text-gray-300 hover:bg-white/5 flex items-center gap-2"
             >
-              <Edit3 className="w-4 h-4" />
+              <i className="fa-solid fa-pen text-xs" />
               Rename
             </button>
             
@@ -208,7 +202,7 @@ const FileList = ({
               onClick={() => { onDelete(contextMenu.file); closeContextMenu(); }}
               className="w-full px-3 py-2 text-left text-[13px] text-red-400 hover:bg-red-500/10 flex items-center gap-2"
             >
-              <Trash2 className="w-4 h-4" />
+              <i className="fa-solid fa-trash text-xs" />
               Delete
             </button>
           </div>

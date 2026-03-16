@@ -547,11 +547,13 @@ async def download_file(request: PathRequest):
             # 处理中文文件名编码
             from urllib.parse import quote
             encoded_filename = quote(filename, safe='')
+            file_size = len(file_content)
             return StreamingResponse(
                 io.BytesIO(file_content),
                 media_type="application/octet-stream",
                 headers={
-                    "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
+                    "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}",
+                    "Content-Length": str(file_size)
                 }
             )
         finally:

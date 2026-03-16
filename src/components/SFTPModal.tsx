@@ -22,7 +22,8 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilter, setShowFilter] = useState(false);
   const [showTransferPanel, setShowTransferPanel] = useState(false);
-  const [activeLogFilter, setActiveLogFilter] = useState<LogFilter>('all');
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
+  const [activeLogFilter, setActiveLogFilter] = useState<LogFilter>('upload');
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [showRenameDialog, setShowRenameDialog] = useState(false);
@@ -209,17 +210,17 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
   const handleUpload = () => fileInputRef.current?.click();
   const handleUploadFolder = () => folderInputRef.current?.click();
 
-  // 上传单个文件（带真实进度追踪）
+  // Upload single file with real progress tracking
   const uploadFileWithProgress = async (file: File, relativePath?: string): Promise<boolean> => {
     const uploadId = generateUploadId();
     const taskId = transfer.createTransferTask('upload', file.name, `${sftp.currentPath}/${relativePath || file.name}`, file.size);
     transfer.updateTransferTask(taskId, { status: 'transferring' });
-    transfer.addTransferLog('upload', `开始上传: ${relativePath || file.name}`, `${sftp.currentPath}/${relativePath || file.name}`, 'info', formatFileSize(file.size));
+    transfer.addTransferLog('upload', `Starting upload: ${relativePath || file.name}`, `${sftp.currentPath}/${relativePath || file.name}`, 'info', formatFileSize(file.size));
 
-    // 启动进度轮询
+    // Start progress polling
     let progressInterval: number | null = null;
     let lastStage = '';
-    let isCompleted = false; // 标记是否已完成
+    let isCompleted = false;
     
     const startProgressPolling = () => {
       progressInterval = window.setInterval(async () => {
@@ -228,35 +229,33 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
           if (result.success && result.progress) {
             const { progress, stage, message, speed, bytes_sent, total_bytes } = result.progress;
             
-            // 根据进度百分比计算已传输字节数
-            // 使用原始文件大小和进度百分比计算，避免阶段切换时的跳变
+            // Calculate transferred bytes based on progress percentage
             const transferred = file.size > 0 ? Math.round((progress / 100) * file.size) : (bytes_sent || 0);
             
-            // 更新任务进度
+            // Update task progress
             transfer.updateTransferTask(taskId, {
               progress,
               transferred,
               speed: speed || '',
-              // 根据阶段显示不同的状态
               status: stage === 'error' ? 'failed' : 'transferring'
             });
             
-            // 检测阶段变化，添加日志
+            // Detect stage changes and add logs
             if (stage !== lastStage) {
               if (stage === 'transferring' && lastStage === 'received') {
-                transfer.addTransferLog('upload', `接收完成，开始传输到服务器...`, `${sftp.currentPath}/${relativePath || file.name}`, 'info');
+                transfer.addTransferLog('upload', `Received, transferring to server...`, `${sftp.currentPath}/${relativePath || file.name}`, 'info');
               }
               lastStage = stage;
             }
             
-            // 如果完成或出错，停止轮询并更新最终状态
+            // If completed or error, stop polling and update final status
             if (stage === 'completed' || stage === 'error') {
               if (progressInterval) {
                 clearInterval(progressInterval);
                 progressInterval = null;
               }
               
-              // 如果轮询检测到完成，立即更新UI状态
+              // If polling detected completion, update UI immediately
               if (stage === 'completed' && !isCompleted) {
                 isCompleted = true;
                 transfer.updateTransferTask(taskId, {
@@ -265,67 +264,67 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
                   status: 'completed'
                 });
                 transfer.completeTransferTask(taskId, true);
-                transfer.addTransferLog('upload', `✓ 上传成功: ${relativePath || file.name}`, `${sftp.currentPath}/${relativePath || file.name}`, 'success', formatFileSize(file.size));
+                transfer.addTransferLog('upload', `✓ Upload success: ${relativePath || file.name}`, `${sftp.currentPath}/${relativePath || file.name}`, 'success', formatFileSize(file.size));
               } else if (stage === 'error' && !isCompleted) {
                 isCompleted = true;
                 transfer.completeTransferTask(taskId, false, message);
-                transfer.addTransferLog('error', `✗ 上传失败: ${relativePath || file.name}`, message || '上传失败', 'error');
+                transfer.addTransferLog('error', `✗ Upload failed: ${relativePath || file.name}`, message || 'Upload failed', 'error');
               }
             }
           }
         } catch (e) {
-          // 轮询错误时忽略
+          // Ignore polling errors
         }
-      }, 300); // 每300ms轮询一次，更频繁的更新
+      }, 300);
     };
 
     try {
-      // 启动进度轮询
+      // Start progress polling
       startProgressPolling();
       
-      // 发起上传请求
+      // Send upload request
       const response = await sftpApi.uploadFile(host.id, sftp.currentPath, file, relativePath, uploadId);
       
-      // 停止轮询
+      // Stop polling
       if (progressInterval) {
         clearInterval(progressInterval);
         progressInterval = null;
       }
       
-      // 如果轮询已经处理了完成状态，直接返回
+      // If polling already handled completion, return immediately
       if (isCompleted) {
         return true;
       }
       
       if (response.success) {
-        // 确保进度显示为100%，传输量显示完整
+        // Ensure progress shows 100% and transferred bytes are complete
         transfer.updateTransferTask(taskId, {
           progress: 100,
           transferred: file.size,
           status: 'completed'
         });
         transfer.completeTransferTask(taskId, true);
-        transfer.addTransferLog('upload', `✓ 上传成功: ${relativePath || file.name}`, `${sftp.currentPath}/${relativePath || file.name}`, 'success', formatFileSize(file.size));
+        transfer.addTransferLog('upload', `✓ Upload success: ${relativePath || file.name}`, `${sftp.currentPath}/${relativePath || file.name}`, 'success', formatFileSize(file.size));
         return true;
       } else {
         transfer.completeTransferTask(taskId, false, response.message);
-        transfer.addTransferLog('error', `✗ 上传失败: ${relativePath || file.name}`, response.message || '上传失败', 'error');
+        transfer.addTransferLog('error', `✗ Upload failed: ${relativePath || file.name}`, response.message || 'Upload failed', 'error');
         return false;
       }
     } catch (err) {
-      // 停止轮询
+      // Stop polling
       if (progressInterval) {
         clearInterval(progressInterval);
         progressInterval = null;
       }
       
-      // 如果轮询已经处理了完成状态，直接返回
+      // If polling already handled completion, return immediately
       if (isCompleted) {
         return true;
       }
       
       transfer.completeTransferTask(taskId, false, (err as Error).message);
-      transfer.addTransferLog('error', `✗ 上传失败: ${relativePath || file.name}`, (err as Error).message, 'error');
+      transfer.addTransferLog('error', `✗ Upload failed: ${relativePath || file.name}`, (err as Error).message, 'error');
       return false;
     }
   };
@@ -334,13 +333,13 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // 检查是否是文件夹上传（通过 webkitRelativePath 判断）
+    // Check if it's a folder upload (via webkitRelativePath)
     const isFolderUpload = files[0].webkitRelativePath && files[0].webkitRelativePath.includes('/');
     
     if (isFolderUpload) {
-      // 处理文件夹上传
+      // Handle folder upload
       const rootFolderName = files[0].webkitRelativePath?.split('/')[0] || 'upload';
-      success('开始上传', `正在上传文件夹 "${rootFolderName}"...`, 3000);
+      success('Upload Started', `Uploading folder "${rootFolderName}"...`, 3000);
       
       let successCount = 0;
       let failCount = 0;
@@ -356,19 +355,19 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
       }
       
       if (failCount === 0) {
-        success('上传完成', `文件夹 "${rootFolderName}" 上传成功 (${successCount} 个文件)`);
+        success('Upload Complete', `Folder "${rootFolderName}" uploaded (${successCount} files)`);
       } else {
-        showError('部分上传失败', `${successCount} 个文件上传成功，${failCount} 个失败`);
+        showError('Partial Upload Failed', `${successCount} files uploaded, ${failCount} failed`);
       }
     } else {
-      // 处理普通文件上传
+      // Handle regular file upload
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const result = await uploadFileWithProgress(file);
         if (result) {
-          success('上传完成', `${file.name} 上传成功`);
+          success('Upload Complete', `${file.name} uploaded successfully`);
         } else {
-          showError('上传失败', `${file.name} 上传失败`);
+          showError('Upload Failed', `${file.name} upload failed`);
         }
       }
     }
@@ -378,11 +377,11 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     if (folderInputRef.current) folderInputRef.current.value = '';
   };
 
-  // 处理拖拽上传的目录
+  // Handle drag and drop upload
   const handleDropUpload = async (items: DataTransferItemList) => {
     const entries: FileSystemEntry[] = [];
     
-    // 收集所有条目
+    // Collect all entries
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (item.kind === 'file') {
@@ -395,7 +394,7 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     
     if (entries.length === 0) return;
     
-    // 收集所有文件（包括目录中的文件）
+    // Collect all files (including files in directories)
     const collectFiles = async (entry: FileSystemEntry, basePath: string = ''): Promise<{ file: File; relativePath: string }[]> => {
       const files: { file: File; relativePath: string }[] = [];
       
@@ -438,7 +437,7 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
       return files;
     };
     
-    // 收集所有文件
+    // Collect all files
     const allFiles: { file: File; relativePath: string }[] = [];
     for (const entry of entries) {
       const files = await collectFiles(entry);
@@ -446,17 +445,17 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     }
     
     if (allFiles.length === 0) {
-      showError('无文件', '未找到可上传的文件');
+      showError('No Files', 'No files found to upload');
       return;
     }
     
-    // 显示开始上传通知
-    success('开始上传', `正在上传 ${allFiles.length} 个文件...`, 3000);
+    // Show upload start notification
+    success('Upload Started', `Uploading ${allFiles.length} files...`, 3000);
     
     let successCount = 0;
     let failCount = 0;
     
-    // 上传所有文件（使用真实进度追踪）
+    // Upload all files (with real progress tracking)
     for (const { file, relativePath } of allFiles) {
       const result = await uploadFileWithProgress(file, relativePath);
       if (result) successCount++;
@@ -464,9 +463,9 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     }
     
     if (failCount === 0) {
-      success('上传完成', `${successCount} 个文件上传成功`);
+      success('Upload Complete', `${successCount} files uploaded successfully`);
     } else {
-      showError('部分上传失败', `${successCount} 个文件上传成功，${failCount} 个失败`);
+      showError('Partial Upload Failed', `${successCount} files uploaded, ${failCount} failed`);
     }
     
     sftp.refresh();
@@ -502,13 +501,24 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     
     const taskId = transfer.createTransferTask('download', file.name, file.path, file.size);
     transfer.updateTransferTask(taskId, { status: 'transferring' });
-    const stopProgress = transfer.simulateTransferProgress(taskId, file.size);
     
     success('Download Started', `${file.name} (${file.size_formatted})`, 2000);
     
     try {
-      const blob = await sftpApi.downloadFile(host.id, file.path);
-      stopProgress();
+      const blob = await sftpApi.downloadFile(
+        host.id, 
+        file.path,
+        (progress, transferred, total) => {
+          transfer.updateTransferTask(taskId, {
+            progress,
+            transferred,
+            size: total,
+            speed: '' // 速度计算可以在这里添加
+          });
+        },
+        file.size
+      );
+      
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = file.name;
@@ -519,7 +529,7 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
       transfer.addTransferLog('download', `Downloaded: ${file.name}`, file.path, 'success', file.size_formatted);
     } catch (err) {
       transfer.completeTransferTask(taskId, false, (err as Error).message);
-      transfer.addTransferLog('error', `Download failed: ${file.name}`, (err as Error).message, 'error');
+      transfer.addTransferLog('download', `Download failed: ${file.name}`, (err as Error).message, 'error');
       showError('Download Failed', (err as Error).message);
     }
   };
@@ -531,10 +541,18 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     success('Download Started', `Preparing ${folder.name}.zip...`, 2000);
     
     try {
-      const blob = await sftpApi.downloadFolder(host.id, folder.path);
-      transfer.updateTransferTask(taskId, { size: blob.size });
-      const stopProgress = transfer.simulateTransferProgress(taskId, blob.size);
-      stopProgress();
+      const blob = await sftpApi.downloadFolder(
+        host.id, 
+        folder.path,
+        (progress, transferred, total) => {
+          transfer.updateTransferTask(taskId, {
+            progress,
+            transferred,
+            size: total,
+            speed: ''
+          });
+        }
+      );
       
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -550,7 +568,7 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
       transfer.addTransferLog('download', `Downloaded folder: ${folder.name}.zip`, folder.path, 'success', formatFileSize(blob.size));
     } catch (err) {
       transfer.completeTransferTask(taskId, false, (err as Error).message);
-      transfer.addTransferLog('error', `Download failed: ${folder.name}`, (err as Error).message, 'error');
+      transfer.addTransferLog('download', `Download failed: ${folder.name}`, (err as Error).message, 'error');
       showError('Download Failed', (err as Error).message);
     }
   };
@@ -731,26 +749,13 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
                   className="flex items-center flex-1 overflow-hidden"
                   onDoubleClick={handlePathEdit}
                 >
-                  {/* 硬盘图标 - 跳转到根目录 */}
+                  {/* Home icon - Navigate to root */}
                   <button
                     onClick={() => sftp.navigateTo('/')}
                     className="text-blue-400 hover:text-blue-300 mr-2 flex items-center"
-                    title="跳转到根目录"
+                    title="Go to root directory"
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V9c0-2-1-3-3-3h-5l-2-3H7c-2 0-3 1-3 3z" />
-                    </svg>
-                  </button>
-                  {/* 刷新按钮 */}
-                  <button
-                    onClick={sftp.refresh}
-                    className="text-gray-400 hover:text-gray-200 mr-2 flex items-center transition-colors"
-                    title="刷新当前目录"
-                    disabled={sftp.loading}
-                  >
-                    <svg className={`w-3.5 h-3.5 ${sftp.loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
+                    <i className="fa-solid fa-house text-xs" />
                   </button>
                   {pathSegments.map((segment) => (
                     <span key={segment.path} className="flex items-center text-xs">
@@ -768,65 +773,79 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
 
               <div className="flex-1" onDoubleClick={handlePathEdit} />
 
-              {/* Toolbar Buttons - 缩小尺寸与左侧一致 */}
+              {/* Toolbar Buttons */}
               <div className="flex items-center gap-0.5">
                 {!showFilter && (
                   <button
                     onClick={() => setShowFilter(true)}
                     className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
-                    title="筛选文件"
+                    title="Filter files"
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    <span>筛选</span>
+                    <i className="fa-solid fa-filter text-[11px]" />
+                    <span>Filter</span>
                   </button>
                 )}
 
                 <button
                   onClick={() => setShowNewFolderDialog(true)}
                   className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
-                  title="新建文件夹"
+                  title="Create new folder"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span>新建</span>
+                  <i className="fa-solid fa-folder-plus text-[11px]" />
+                  <span>New</span>
                 </button>
 
-                <button
-                  onClick={handleUpload}
-                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
-                  title="上传文件"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  <span>上传</span>
-                </button>
-
-                <button
-                  onClick={handleUploadFolder}
-                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
-                  title="上传文件夹"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <span>文件夹</span>
-                </button>
+                {/* Upload with dropdown menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUploadMenu(!showUploadMenu)}
+                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
+                    title="Upload files or folder"
+                  >
+                    <i className="fa-solid fa-upload text-[11px]" />
+                    <span>Upload</span>
+                    <i className="fa-solid fa-chevron-down text-[8px] ml-0.5" />
+                  </button>
+                  
+                  {showUploadMenu && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setShowUploadMenu(false)}
+                      />
+                      <div className="absolute top-full left-0 mt-1 bg-[#2a2a2a] border border-white/10 rounded-md shadow-xl z-20 min-w-[140px] py-1">
+                        <button
+                          onClick={() => { handleUpload(); setShowUploadMenu(false); }}
+                          className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                        >
+                          <span className="w-4 h-4 flex items-center justify-center">
+                            <i className="ti ti-file-upload text-base" />
+                          </span>
+                          <span>Upload Files</span>
+                        </button>
+                        <button
+                          onClick={() => { handleUploadFolder(); setShowUploadMenu(false); }}
+                          className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                        >
+                          <span className="w-4 h-4 flex items-center justify-center">
+                            <i className="ti ti-folder-up text-sm" />
+                          </span>
+                          <span>Upload Folder</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
 
                 <button
                   onClick={() => setShowTransferPanel(!showTransferPanel)}
                   className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
                     showTransferPanel ? 'text-blue-400 bg-blue-500/10' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                   }`}
-                  title="传输历史"
+                  title="Transfer history"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>传输</span>
+                  <i className="fa-solid fa-right-left text-[11px]" />
+                  <span>Transfer</span>
                   {activeTransfers > 0 && (
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                   )}
@@ -836,43 +855,33 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
 
             {/* Filter Bar */}
             {showFilter && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-[#1e1e1e] border-b border-white/5">
-                <div className="flex items-center flex-1 bg-[#2a2a2a] rounded-lg px-3 py-1.5 border border-white/10">
-                  <svg className="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Filter files..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-1 bg-transparent border-none outline-none text-[13px] text-gray-200 placeholder-gray-500"
-                    autoFocus
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="p-1 text-gray-500 hover:text-gray-300"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
+              <div className="flex items-center px-4 py-2 bg-[#1e1e1e] border-b border-white/5">
+                <div className="flex items-center w-full">
+                  <div className="flex-1 min-w-0 border border-[#3a3a3a] rounded-l overflow-hidden focus-within:border-[#00d4aa] transition-colors">
+                    <input
+                      type="text"
+                      placeholder="Filter..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-transparent text-[13px] text-gray-200 placeholder-gray-500 px-3 py-1.5 focus:outline-none"
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    onClick={clearFilter}
+                    className="shrink-0 px-2 text-gray-400 hover:text-gray-200 bg-[#2a2a2a] hover:bg-[#3a3a3a] rounded-r border border-l-0 border-[#3a3a3a] transition-colors flex items-center justify-center self-stretch"
+                    title="Close filter"
+                  >
+                    <i className="fa-solid fa-xmark text-[10px]" />
+                  </button>
                 </div>
-                <button
-                  onClick={clearFilter}
-                  className="px-3 py-1.5 text-[13px] text-gray-400 hover:text-gray-200 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
-                >
-                  Clear
-                </button>
               </div>
             )}
 
             {/* Main Content */}
             <div className="flex-1 flex overflow-hidden">
               <div 
-                className={`flex-1 overflow-auto bg-[#0d0d0d]/50 ${isDragOver ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
+                className={`flex-1 overflow-auto bg-[#0d0d0d]/50 scrollbar-custom ${isDragOver ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -881,9 +890,7 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
                   <div className="absolute inset-0 bg-blue-500/10 flex items-center justify-center z-10 pointer-events-none">
                     <div className="bg-[#1e1e1e] px-6 py-4 rounded-lg shadow-lg border border-blue-500/30">
                       <div className="flex items-center gap-3 text-blue-400">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
+                        <i className="fa-solid fa-cloud-arrow-up text-2xl" />
                         <span className="text-base font-medium">Drop to upload</span>
                       </div>
                     </div>

@@ -1,5 +1,7 @@
 // 格式化文件大小
-export const formatFileSize = (bytes: number): string => {
+export const formatFileSize = (bytes: number | undefined | null): string => {
+  // 处理 undefined、null、NaN 或非数字的情况
+  if (bytes === undefined || bytes === null || isNaN(bytes) || bytes < 0) return '0 B';
   if (bytes === 0) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];

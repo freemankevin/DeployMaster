@@ -36,6 +36,10 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
+    // 对于 blob 类型的响应，直接返回 data
+    if (response.config.responseType === 'blob') {
+      return response.data;
+    }
     console.log('API Response:', response.config.url, response.status, response.data);
     return response.data;
   },
@@ -230,17 +234,128 @@ export const sftpApi = {
   getUploadProgress: (uploadId: string) =>
     api.get<unknown, { success: boolean; progress: UploadProgress }>(`/sftp/upload-progress/${uploadId}`),
 
-  // 下载文件
-  downloadFile: (hostId: number, remotePath: string) =>
-    api.post<unknown, Blob>('/sftp/download', { host_id: hostId, path: remotePath }, {
-      responseType: 'blob',
-    }),
+  // 下载文件（带进度回调）
+  downloadFile: async (
+    hostId: number, 
+    remotePath: string, 
+    onProgress?: (progress: number, transferred: number, total: number) => void,
+    fileSize?: number
+  ) => {
+    // 根据文件大小动态计算超时时间（默认30分钟最大，每MB增加5秒）
+    const timeout = fileSize 
+      ? Math.min(30 * 60 * 1000, Math.max(60000, (fileSize / 1024 / 1024) * 5000))
+      : 30 * 60 * 1000; // 默认30分钟
+    
+    console.log('[SFTP] Starting download:', remotePath, 'timeout:', timeout, 'fileSize:', fileSize);
+    
+    try {
+      const response = await api.post<unknown, Blob>('/sftp/download', { host_id: hostId, path: remotePath }, {
+        responseType: 'blob',
+        timeout: timeout,
+        onDownloadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+            onProgress(progress, progressEvent.loaded, progressEvent.total);
+          }
+        },
+      });
+      
+      console.log('[SFTP] Download response received:', typeof response, response instanceof Blob ? `Blob(${response.size}, ${response.type})` : response);
+      
+      // 检查是否返回了错误 JSON（而不是文件内容）
+      if (response && typeof response === 'object' && response.type === 'application/json') {
+        const text = await (response as Blob).text();
+        console.log('[SFTP] Error response text:', text);
+        try {
+          const errorData = JSON.parse(text);
+          throw new Error(errorData.detail || errorData.message || '下载失败');
+        } catch (e) {
+          if (e instanceof Error) throw e;
+          throw new Error(text || '下载失败');
+        }
+      }
+      
+      console.log('[SFTP] Download successful');
+      return response;
+    } catch (error) {
+      console.error('[SFTP] Download error:', error);
+      // 处理 axios 错误（HTTP 状态码错误）
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: Blob; status?: number } };
+        if (axiosError.response?.data instanceof Blob) {
+          const text = await axiosError.response.data.text();
+          try {
+            const errorData = JSON.parse(text);
+            throw new Error(errorData.detail || errorData.message || '下载失败');
+          } catch (e) {
+            if (e instanceof Error) throw e;
+            throw new Error(text || '下载失败');
+          }
+        }
+      }
+      throw error;
+    }
+  },
 
-  // 下载目录为ZIP
-  downloadFolder: (hostId: number, remotePath: string) =>
-    api.post<unknown, Blob>('/sftp/download-folder', { host_id: hostId, path: remotePath }, {
-      responseType: 'blob',
-    }),
+  // 下载目录为ZIP（带进度回调）
+  downloadFolder: async (
+    hostId: number, 
+    remotePath: string,
+    onProgress?: (progress: number, transferred: number, total: number) => void
+  ) => {
+    // 目录下载超时设为30分钟
+    const timeout = 30 * 60 * 1000;
+    
+    console.log('[SFTP] Starting folder download:', remotePath);
+    
+    try {
+      const response = await api.post<unknown, Blob>('/sftp/download-folder', { host_id: hostId, path: remotePath }, {
+        responseType: 'blob',
+        timeout: timeout,
+        onDownloadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+            onProgress(progress, progressEvent.loaded, progressEvent.total);
+          }
+        },
+      });
+      
+      console.log('[SFTP] Folder download response received:', typeof response, response instanceof Blob ? `Blob(${response.size}, ${response.type})` : response);
+      
+      // 检查是否返回了错误 JSON（而不是文件内容）
+      if (response && typeof response === 'object' && response.type === 'application/json') {
+        const text = await (response as Blob).text();
+        console.log('[SFTP] Error response text:', text);
+        try {
+          const errorData = JSON.parse(text);
+          throw new Error(errorData.detail || errorData.message || '下载失败');
+        } catch (e) {
+          if (e instanceof Error) throw e;
+          throw new Error(text || '下载失败');
+        }
+      }
+      
+      console.log('[SFTP] Folder download successful');
+      return response;
+    } catch (error) {
+      console.error('[SFTP] Folder download error:', error);
+      // 处理 axios 错误（HTTP 状态码错误）
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: Blob; status?: number } };
+        if (axiosError.response?.data instanceof Blob) {
+          const text = await axiosError.response.data.text();
+          try {
+            const errorData = JSON.parse(text);
+            throw new Error(errorData.detail || errorData.message || '下载失败');
+          } catch (e) {
+            if (e instanceof Error) throw e;
+            throw new Error(text || '下载失败');
+          }
+        }
+      }
+      throw error;
+    }
+  },
 
   // 读取文件内容
   readFile: (hostId: number, remotePath: string) =>
