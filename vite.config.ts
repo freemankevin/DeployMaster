@@ -16,14 +16,14 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       // WebSocket 代理 - 必须放在普通 API 代理之前
-      '/api/terminal/ws': {
-        target: 'ws://localhost:5001',
+      '/api/terminal': {
+        target: 'ws://localhost:8000',
         ws: true,
         changeOrigin: true,
       },
       // API 代理
       '/api': {
-        target: 'http://localhost:5001',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         // 大文件上传配置
         timeout: 30 * 60 * 1000, // 30 分钟超时

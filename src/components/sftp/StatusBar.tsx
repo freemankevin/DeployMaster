@@ -21,7 +21,7 @@ const StatusBar = ({
       <div className="flex items-center gap-4">
         {/* File Count */}
         <div className="flex items-center gap-2 text-gray-400">
-          <i className="fa-regular fa-folder text-xs" />
+          <i className="fa-solid fa-folder text-xs" />
           <span>{fileCount} items</span>
           {selectedCount > 0 && (
             <span className="text-blue-400 font-medium">

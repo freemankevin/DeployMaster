@@ -46,7 +46,7 @@ dist/
 build/
 *.tsbuildinfo
 
-# Python
+# Python (已移除，保留规则以防万一)
 __pycache__/
 *.py[cod]
 *$py.class
@@ -84,3 +84,22 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
+# ============ Go 后端 ============
+# Go 编译产物
+app/deploy-master
+app/deploy-master.exe
+app/*.exe
+
+# Go 模块缓存
+go.sum
+
+# Go 测试和覆盖率
+*.out
+coverage.txt
+
+# Go 数据目录
+app/data/
+
+# ============ Rust (已移除，保留规则以防万一) ============
+sftp-transfer/target/
+Cargo.lock

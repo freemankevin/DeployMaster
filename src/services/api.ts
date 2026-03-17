@@ -182,6 +182,15 @@ export interface UploadProgress {
   message: string;
 }
 
+export interface DownloadProgress {
+  stage: 'init' | 'downloading' | 'completed' | 'error' | 'not_found';
+  progress: number;  // 0-100
+  bytes_received: number;
+  total_bytes: number;
+  speed: string;
+  message: string;
+}
+
 export const sftpApi = {
   // 连接 SFTP
   connect: (hostId: number) =>
@@ -234,38 +243,79 @@ export const sftpApi = {
   getUploadProgress: (uploadId: string) =>
     api.get<unknown, { success: boolean; progress: UploadProgress }>(`/sftp/upload-progress/${uploadId}`),
 
-  // 下载文件（带进度回调）
-  downloadFile: async (
-    hostId: number, 
-    remotePath: string, 
-    onProgress?: (progress: number, transferred: number, total: number) => void,
+  // 下载文件（带进度ID）- 使用轮询方式获取进度
+  downloadFileWithProgress: async (
+    hostId: number,
+    remotePath: string,
+    onProgress?: (progress: DownloadProgress) => void,
     fileSize?: number
-  ) => {
+  ): Promise<{ blob: Blob; downloadId: string }> => {
     // 根据文件大小动态计算超时时间（默认30分钟最大，每MB增加5秒）
-    const timeout = fileSize 
+    const timeout = fileSize
       ? Math.min(30 * 60 * 1000, Math.max(60000, (fileSize / 1024 / 1024) * 5000))
       : 30 * 60 * 1000; // 默认30分钟
     
-    console.log('[SFTP] Starting download:', remotePath, 'timeout:', timeout, 'fileSize:', fileSize);
+    console.log('[SFTP API] downloadFileWithProgress called:', { hostId, remotePath, timeout, fileSize });
+    
+    // 生成下载ID
+    const downloadId = Math.random().toString(36).substring(2, 10);
+    
+    // 启动进度轮询
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
+    let lastProgress: DownloadProgress = {
+      stage: 'init',
+      progress: 0,
+      bytes_received: 0,
+      total_bytes: fileSize || 0,
+      speed: '0 B/s',
+      message: '准备下载...'
+    };
+    
+    if (onProgress) {
+      progressInterval = setInterval(async () => {
+        try {
+          const response = await sftpApi.getDownloadProgress(downloadId);
+          if (response.success && response.progress) {
+            lastProgress = response.progress;
+            onProgress(lastProgress);
+            
+            // 如果下载完成或出错，停止轮询
+            if (lastProgress.stage === 'completed' || lastProgress.stage === 'error') {
+              if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[SFTP API] Progress polling error:', e);
+        }
+      }, 300); // 每300ms轮询一次
+      
+      // 立即通知开始
+      onProgress(lastProgress);
+    }
     
     try {
-      const response = await api.post<unknown, Blob>('/sftp/download', { host_id: hostId, path: remotePath }, {
+      console.log('[SFTP API] Sending POST request to /sftp/download');
+      // 通过查询参数传递 download_id，确保前后端使用相同的 ID
+      const response = await api.post<unknown, Blob>(`/sftp/download?download_id=${downloadId}`, { host_id: hostId, path: remotePath }, {
         responseType: 'blob',
         timeout: timeout,
-        onDownloadProgress: (progressEvent) => {
-          if (onProgress && progressEvent.total) {
-            const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-            onProgress(progress, progressEvent.loaded, progressEvent.total);
-          }
-        },
       });
       
-      console.log('[SFTP] Download response received:', typeof response, response instanceof Blob ? `Blob(${response.size}, ${response.type})` : response);
+      console.log('[SFTP API] Download response received:', typeof response, response instanceof Blob ? `Blob(${response.size}, ${response.type})` : response);
+      
+      // 停止进度轮询
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
       
       // 检查是否返回了错误 JSON（而不是文件内容）
       if (response && typeof response === 'object' && response.type === 'application/json') {
         const text = await (response as Blob).text();
-        console.log('[SFTP] Error response text:', text);
+        console.log('[SFTP API] Error response text:', text);
         try {
           const errorData = JSON.parse(text);
           throw new Error(errorData.detail || errorData.message || '下载失败');
@@ -275,10 +325,98 @@ export const sftpApi = {
         }
       }
       
-      console.log('[SFTP] Download successful');
+      console.log('[SFTP API] Download successful, returning blob');
+      
+      // 通知完成
+      if (onProgress) {
+        onProgress({
+          stage: 'completed',
+          progress: 100,
+          bytes_received: response.size,
+          total_bytes: response.size,
+          speed: '',
+          message: '下载完成'
+        });
+      }
+      
+      return { blob: response, downloadId };
+    } catch (error) {
+      // 停止进度轮询
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+      
+      console.error('[SFTP API] Download error:', error);
+      // 处理 axios 错误（HTTP 状态码错误）
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: Blob; status?: number } };
+        if (axiosError.response?.data instanceof Blob) {
+          const text = await axiosError.response.data.text();
+          try {
+            const errorData = JSON.parse(text);
+            throw new Error(errorData.detail || errorData.message || '下载失败');
+          } catch (e) {
+            if (e instanceof Error) throw e;
+            throw new Error(text || '下载失败');
+          }
+        }
+      }
+      throw error;
+    }
+  },
+
+  // 获取下载进度
+  getDownloadProgress: (downloadId: string) =>
+    api.get<unknown, { success: boolean; progress: DownloadProgress }>(`/sftp/download-progress/${downloadId}`),
+
+  // 下载文件（传统方式，带进度回调）
+  downloadFile: async (
+    hostId: number,
+    remotePath: string,
+    onProgress?: (progress: number, transferred: number, total: number) => void,
+    fileSize?: number
+  ) => {
+    // 根据文件大小动态计算超时时间（默认30分钟最大，每MB增加5秒）
+    const timeout = fileSize
+      ? Math.min(30 * 60 * 1000, Math.max(60000, (fileSize / 1024 / 1024) * 5000))
+      : 30 * 60 * 1000; // 默认30分钟
+    
+    console.log('[SFTP API] downloadFile called:', { hostId, remotePath, timeout, fileSize });
+    
+    try {
+      console.log('[SFTP API] Sending POST request to /sftp/download');
+      const response = await api.post<unknown, Blob>('/sftp/download', { host_id: hostId, path: remotePath }, {
+        responseType: 'blob',
+        timeout: timeout,
+        onDownloadProgress: (progressEvent) => {
+          console.log('[SFTP API] Download progress:', progressEvent.loaded, '/', progressEvent.total);
+          if (onProgress && progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+            onProgress(progress, progressEvent.loaded, progressEvent.total);
+          }
+        },
+      });
+      
+      console.log('[SFTP API] Download response received:', typeof response, response instanceof Blob ? `Blob(${response.size}, ${response.type})` : response);
+      
+      // 检查是否返回了错误 JSON（而不是文件内容）
+      if (response && typeof response === 'object' && response.type === 'application/json') {
+        const text = await (response as Blob).text();
+        console.log('[SFTP API] Error response text:', text);
+        try {
+          const errorData = JSON.parse(text);
+          throw new Error(errorData.detail || errorData.message || '下载失败');
+        } catch (e) {
+          if (e instanceof Error) throw e;
+          throw new Error(text || '下载失败');
+        }
+      }
+      
+      console.log('[SFTP API] Download successful, returning blob');
       return response;
     } catch (error) {
-      console.error('[SFTP] Download error:', error);
+      console.error('[SFTP API] Download error:', error);
       // 处理 axios 错误（HTTP 状态码错误）
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: Blob; status?: number } };

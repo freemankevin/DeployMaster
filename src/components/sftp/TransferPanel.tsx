@@ -11,6 +11,11 @@ interface TransferPanelProps {
   onPauseTask?: (taskId: string) => void;
   onResumeTask?: (taskId: string) => void;
   onCancelTask?: (taskId: string) => void;
+  onRestoreDownload?: () => void;  // 还原下载弹窗
+  hasBackgroundDownload?: boolean;  // 是否有后台下载任务
+  backgroundDownloadProgress?: number;  // 后台下载进度
+  backgroundDownloadSpeed?: string;  // 后台下载速度
+  backgroundDownloadFilename?: string;  // 后台下载文件名
 }
 
 const getStatusColor = (status: TransferTask['status']) => {
@@ -39,7 +44,12 @@ const TransferPanel = ({
   onFilterChange,
   onClearLogs,
   onClearLogsByFilter,
-  onCancelTask
+  onCancelTask,
+  onRestoreDownload,
+  hasBackgroundDownload,
+  backgroundDownloadProgress = 0,
+  backgroundDownloadSpeed = '',
+  backgroundDownloadFilename = ''
 }: TransferPanelProps) => {
   // 活跃任务
   const activeTasks = transferTasks.filter(t =>
@@ -91,6 +101,10 @@ const TransferPanel = ({
                   {getCount(filter)}
                 </span>
               )}
+              {/* 后台下载指示器 */}
+              {filter === 'download' && hasBackgroundDownload && (
+                <span className="ml-1 w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+              )}
             </span>
             {activeLogFilter === filter && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400" />
@@ -101,6 +115,48 @@ const TransferPanel = ({
 
       {/* Content Area */}
       <div className="flex-1 overflow-auto p-3 space-y-3 bg-[#0d0d0d]">
+        {/* Background Download Restore Button - 只在 Download 标签显示 */}
+        {activeLogFilter === 'download' && hasBackgroundDownload && onRestoreDownload && (
+          <div 
+            onClick={onRestoreDownload}
+            className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg p-3 border border-blue-500/30 cursor-pointer hover:from-blue-500/30 hover:to-cyan-500/30 transition-all group"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-blue-500/30 flex items-center justify-center">
+                  <i className="fa-solid fa-cloud-arrow-down text-[10px] text-blue-400" />
+                </div>
+                <span className="text-[11px] font-medium text-blue-400">正在后台下载</span>
+              </div>
+              <button className="px-2 py-1 bg-blue-500/20 hover:bg-blue-500/30 rounded text-[10px] text-blue-400 transition-colors group-hover:bg-blue-500/40">
+                <i className="fa-solid fa-expand text-[9px] mr-1" />
+                还原
+              </button>
+            </div>
+            
+            {/* 文件名 */}
+            <div className="text-[12px] text-gray-300 truncate mb-2">
+              {backgroundDownloadFilename}
+            </div>
+            
+            {/* 进度条 */}
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-2">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-300"
+                style={{ width: `${backgroundDownloadProgress}%` }}
+              />
+            </div>
+            
+            {/* 进度信息 */}
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-gray-400">{Math.round(backgroundDownloadProgress)}%</span>
+              {backgroundDownloadSpeed && (
+                <span className="text-blue-400">{backgroundDownloadSpeed}</span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Active Tasks */}
         {activeTasks.length > 0 && (
           <div>
@@ -205,7 +261,7 @@ const TransferPanel = ({
         )}
 
         {/* Empty State */}
-        {activeTasks.length === 0 && filteredTasks.length === 0 && (
+        {activeTasks.length === 0 && filteredTasks.length === 0 && !hasBackgroundDownload && (
           <div className="text-center py-8 text-gray-500 text-[12px]">
             {activeLogFilter === 'upload' ? 'No upload tasks' : 'No download tasks'}
           </div>

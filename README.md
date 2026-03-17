@@ -19,17 +19,7 @@ npm run preview
 npm run init-db
 ```
 
-## 环境配置
 
-### 后端环境变量
-
-创建 `backend/.env` 文件：
-
-```env
-DATABASE_URL=sqlite:///./data/deploymaster.db
-SECRET_KEY=your-secret-key
-DEBUG=false
-```
 
 ## 许可证
 

@@ -327,7 +327,7 @@ function getFileIconConfig(
       icon: dirIcon,
       color: isHidden ? colors.gray : colors.blue,
       opacity: isHidden ? 0.5 : 0.9,
-      style: 'regular',
+      style: 'solid',
     };
   }
 

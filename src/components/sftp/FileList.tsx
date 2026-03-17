@@ -120,7 +120,11 @@ const FileList = ({
             {/* Action Buttons - Show on hover */}
             <div className="w-24 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
               <button
-                onClick={(e) => { e.stopPropagation(); onDownload(file); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDownload(file);
+                }}
                 className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
                 title={file.is_dir ? "Download as ZIP" : "Download"}
               >
@@ -155,7 +159,7 @@ const FileList = ({
         {/* Empty State - Folder */}
         {files.length === 0 && !searchQuery && !loading && (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-            <i className="fa-regular fa-folder text-2xl mb-3 opacity-50" />
+            <i className="fa-solid fa-folder text-2xl mb-3 opacity-50" />
             <p className="text-[13px]">Folder is empty</p>
           </div>
         )}
@@ -176,7 +180,7 @@ const FileList = ({
               onClick={() => { onFileClick(contextMenu.file); closeContextMenu(); }}
               className="w-full px-3 py-2 text-left text-[13px] text-gray-300 hover:bg-white/5 flex items-center gap-2"
             >
-              <i className="fa-regular fa-folder text-xs" />
+              <i className="fa-solid fa-folder text-xs" />
               {contextMenu.file.is_dir ? 'Open' : 'Edit'}
             </button>
             

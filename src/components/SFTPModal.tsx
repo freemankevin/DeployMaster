@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import type { SFTPFile } from '@/services/api';
+import type { SFTPFile, DownloadProgress } from '@/services/api';
 import { sftpApi } from '@/services/api';
 import { useToast } from '@/hooks/useToast';
 
@@ -13,6 +13,7 @@ import FileList from './sftp/FileList';
 import TransferPanel from './sftp/TransferPanel';
 import StatusBar from './sftp/StatusBar';
 import { NewFolderDialog, RenameDialog, FileEditor, LoadingOverlay, ErrorOverlay } from './sftp/Dialogs';
+import DownloadProgressDialog from './sftp/DownloadProgressDialog';
 
 // Mac Terminal Style SFTP Modal
 const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
@@ -31,6 +32,24 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
   const [newFileName, setNewFileName] = useState('');
   const [showFileEditor, setShowFileEditor] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  
+  // Download progress dialog state
+  const [showDownloadProgress, setShowDownloadProgress] = useState(false);
+  const [downloadingFile, setDownloadingFile] = useState<SFTPFile | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress>({
+    progress: 0,
+    bytes_received: 0,
+    total_bytes: 0,
+    speed: '',
+    stage: 'init',
+    message: ''
+  });
+  
+  // 后台下载状态 - 用于最小化后重新打开
+  const [backgroundDownload, setBackgroundDownload] = useState<{
+    file: SFTPFile;
+    progress: DownloadProgress;
+  } | null>(null);
   
   // Window state for Mac-style controls
   const [windowState, setWindowState] = useState<WindowState>({
@@ -492,42 +511,87 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     await handleDropUpload(items);
   };
 
-  // Download handling
+  // Download handling with game-style progress dialog
   const handleDownload = async (file: SFTPFile) => {
     if (file.is_dir) {
       await downloadFolder(file);
       return;
     }
     
+    // 初始化下载进度弹窗
+    setDownloadingFile(file);
+    const initialProgress: DownloadProgress = {
+      progress: 0,
+      bytes_received: 0,
+      total_bytes: file.size,
+      speed: '',
+      stage: 'init',
+      message: '准备下载...'
+    };
+    setDownloadProgress(initialProgress);
+    setBackgroundDownload({ file, progress: initialProgress });
+    setShowDownloadProgress(true);
+    
     const taskId = transfer.createTransferTask('download', file.name, file.path, file.size);
     transfer.updateTransferTask(taskId, { status: 'transferring' });
     
-    success('Download Started', `${file.name} (${file.size_formatted})`, 2000);
-    
     try {
-      const blob = await sftpApi.downloadFile(
-        host.id, 
+      // 使用带进度轮询的下载方法
+      const { blob } = await sftpApi.downloadFileWithProgress(
+        host.id,
         file.path,
-        (progress, transferred, total) => {
+        (progressInfo) => {
+          // 更新游戏风格进度弹窗
+          setDownloadProgress(progressInfo);
+          setBackgroundDownload(prev => prev ? { ...prev, progress: progressInfo } : null);
+          
+          // 更新任务进度
           transfer.updateTransferTask(taskId, {
-            progress,
-            transferred,
-            size: total,
-            speed: '' // 速度计算可以在这里添加
+            progress: progressInfo.progress,
+            transferred: progressInfo.bytes_received,
+            size: progressInfo.total_bytes,
+            speed: progressInfo.speed || '',
+            status: progressInfo.stage === 'error' ? 'failed' :
+                    progressInfo.stage === 'completed' ? 'completed' : 'transferring'
           });
+          
+          // 如果下载完成
+          if (progressInfo.stage === 'completed') {
+            transfer.addTransferLog('download', `✓ Download complete: ${file.name}`, file.path, 'success', file.size_formatted);
+          } else if (progressInfo.stage === 'error') {
+            transfer.addTransferLog('download', `✗ Download failed: ${file.name}`, progressInfo.message || 'Unknown error', 'error');
+          }
         },
         file.size
       );
       
+      // 创建下载链接
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = file.name;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a); window.URL.revokeObjectURL(url);
+      a.href = url;
+      a.download = file.name;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      
+      // 延迟清理，确保下载已开始
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
       transfer.completeTransferTask(taskId, true);
+      setBackgroundDownload(null); // 清理后台下载状态
       success('Download Complete', `${file.name} downloaded successfully`);
       transfer.addTransferLog('download', `Downloaded: ${file.name}`, file.path, 'success', file.size_formatted);
     } catch (err) {
+      const errorProgress: DownloadProgress = {
+        ...downloadProgress,
+        stage: 'error',
+        message: (err as Error).message
+      };
+      setDownloadProgress(errorProgress);
+      setBackgroundDownload(prev => prev ? { ...prev, progress: errorProgress } : null);
       transfer.completeTransferTask(taskId, false, (err as Error).message);
       transfer.addTransferLog('download', `Download failed: ${file.name}`, (err as Error).message, 'error');
       showError('Download Failed', (err as Error).message);
@@ -929,6 +993,18 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
                     if (task) transfer.resumeTransferTask(taskId, task.size);
                   }}
                   onCancelTask={transfer.cancelTransferTask}
+                  onRestoreDownload={() => {
+                    if (backgroundDownload) {
+                      setDownloadingFile(backgroundDownload.file);
+                      setDownloadProgress(backgroundDownload.progress);
+                      setShowDownloadProgress(true);
+                    }
+                  }}
+                  hasBackgroundDownload={!!backgroundDownload && !showDownloadProgress &&
+                    (backgroundDownload.progress.stage === 'downloading' || backgroundDownload.progress.stage === 'init')}
+                  backgroundDownloadProgress={backgroundDownload?.progress.progress || 0}
+                  backgroundDownloadSpeed={backgroundDownload?.progress.speed || ''}
+                  backgroundDownloadFilename={backgroundDownload?.file.name || ''}
                 />
               )}
             </div>
@@ -974,6 +1050,74 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
         onSave={handleSaveAndClose}
         onClose={() => { setShowFileEditor(false); fileOps.closeEditor(); }}
       />
+      
+      {/* Game-style Download Progress Dialog */}
+      <DownloadProgressDialog
+        isOpen={showDownloadProgress}
+        filename={downloadingFile?.name || ''}
+        fileSize={downloadingFile?.size || 0}
+        progress={downloadProgress}
+        onClose={() => {
+          setShowDownloadProgress(false);
+          setDownloadingFile(null);
+          setBackgroundDownload(null);
+        }}
+        onMinimize={() => {
+          setShowDownloadProgress(false);
+          // 下载会在后台继续进行，保留 backgroundDownload 状态
+        }}
+      />
+      
+      {/* 后台下载指示器 - 最小化后显示 */}
+      {backgroundDownload && !showDownloadProgress &&
+       (backgroundDownload.progress.stage === 'downloading' || backgroundDownload.progress.stage === 'init') && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-slide-up cursor-pointer"
+          onClick={() => {
+            setDownloadingFile(backgroundDownload.file);
+            setDownloadProgress(backgroundDownload.progress);
+            setShowDownloadProgress(true);
+          }}
+        >
+          <div className="bg-gradient-to-r from-blue-600/90 to-cyan-600/90 backdrop-blur-xl rounded-full px-5 py-2.5 shadow-lg border border-white/20 flex items-center gap-3 hover:scale-105 transition-transform">
+            {/* 下载图标 */}
+            <div className="relative">
+              <i className="fa-solid fa-cloud-arrow-down text-white text-lg" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            </div>
+            
+            {/* 进度信息 */}
+            <div className="flex items-center gap-3 text-white">
+              <span className="text-sm font-medium max-w-[150px] truncate">
+                {backgroundDownload.file.name}
+              </span>
+              <span className="text-sm font-bold">
+                {Math.round(backgroundDownload.progress.progress)}%
+              </span>
+            </div>
+            
+            {/* 进度条 */}
+            <div className="w-24 h-1.5 bg-white/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white rounded-full transition-all duration-300"
+                style={{ width: `${backgroundDownload.progress.progress}%` }}
+              />
+            </div>
+            
+            {/* 速度 */}
+            {backgroundDownload.progress.speed && (
+              <span className="text-xs text-white/80">
+                {backgroundDownload.progress.speed}
+              </span>
+            )}
+            
+            {/* 点击提示 */}
+            <span className="text-xs text-white/60 ml-2">
+              点击查看
+            </span>
+          </div>
+        </div>
+      )}
     </>
   );
 };
