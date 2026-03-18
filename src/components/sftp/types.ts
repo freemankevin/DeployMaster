@@ -60,4 +60,21 @@ export interface ConnectionState {
 export type ViewMode = 'list' | 'grid';
 export type LogFilter = 'upload' | 'download';
 
+// TransferManager return type
+export interface TransferManager {
+  transferTasks: TransferTask[];
+  transferLogs: TransferLog[];
+  addTransferLog: (type: TransferLog['type'], message: string, path: string, status?: TransferLog['status'], size?: string) => void;
+  createTransferTask: (type: 'upload' | 'download', filename: string, remotePath: string, size: number) => string;
+  updateTransferTask: (taskId: string, updates: Partial<TransferTask>) => void;
+  completeTransferTask: (taskId: string, success: boolean, errorMsg?: string) => void;
+  pauseTransferTask: (taskId: string) => void;
+  resumeTransferTask: (taskId: string, fileSize: number) => void;
+  cancelTransferTask: (taskId: string) => void;
+  simulateTransferProgress: (taskId: string, fileSize: number, onProgress?: (progress: number) => void) => (() => void);
+  clearLogs: () => void;
+  clearLogsByFilter: (filter: 'all' | 'upload' | 'download') => void;
+  clearCompletedTasks: () => void;
+}
+
 export { SFTPFile };

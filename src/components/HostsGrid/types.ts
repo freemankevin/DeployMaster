@@ -86,3 +86,11 @@ export const getDiskTextColor = (usagePercent: number): string => {
   if (usagePercent >= 70) return 'text-amber-500';
   return 'text-emerald-500';
 };
+
+// Batch operation types
+export type BatchOperationType = 'delete' | 'shutdown' | 'restart';
+
+export interface BatchDialogState {
+  isOpen: boolean;
+  type: BatchOperationType | null;
+}

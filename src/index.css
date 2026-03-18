@@ -14,13 +14,21 @@ html {
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+  font-family: 'Inter', 'Noto Serif Khitan Small Script', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #F5F5F7;
   color: #1D1D1F;
   line-height: 1.47059;
   letter-spacing: -0.022em;
+  margin: 0;
+  padding: 0;
+}
+
+/* Reset default margins */
+html, body {
+  margin: 0;
+  padding: 0;
 }
 
 /* 数字使用苹果 SF Pro 风格字体，更有质感 */
@@ -29,9 +37,9 @@ input, textarea, .font-numeric {
   font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
-/* 代码字体 - 苹果风格等宽字体 */
+/* 代码字体 - JetBrains Mono */
 code, pre, .font-mono {
-  font-family: 'SF Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'PingFang SC', 'Microsoft YaHei', monospace;
+  font-family: 'JetBrains Mono', 'SF Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'PingFang SC', 'Microsoft YaHei', monospace;
   font-feature-settings: 'liga' 0, 'calt' 0;
 }
 

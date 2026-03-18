@@ -1,0 +1,30 @@
+/* ============================================
+   本地字体定义
+   ============================================ */
+
+/* Inter 可变字体 */
+@font-face {
+  font-family: 'Inter';
+  src: url('../fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* JetBrains Mono 可变字体 - 用于代码 */
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('../fonts/JetBrainsMono-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Noto Serif Khitan Small Script - 用于特殊字符 */
+@font-face {
+  font-family: 'Noto Serif Khitan Small Script';
+  src: url('../fonts/NotoSerifKhitanSmallScript-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

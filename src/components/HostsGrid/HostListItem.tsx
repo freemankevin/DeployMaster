@@ -79,7 +79,7 @@ export const HostListItem = ({
         </div>
         {/* Host ID */}
         <div className="w-36 px-4 py-3 shrink-0">
-          <div className="flex items-center gap-1.5 group/copy relative">
+          <div className="flex items-center gap-1.5 group/copy">
             <span className="text-xs text-gray-500 truncate">{host.host_id}</span>
             <button
               onClick={() => onCopy(host.host_id, `host-${host.id}-id`)}
@@ -91,20 +91,20 @@ export const HostListItem = ({
               ) : (
                 <i className="fa-regular fa-copy text-xs text-gray-400 hover:text-gray-600"></i>
               )}
-            </button>
-            {copiedField === `host-${host.id}-id` && (
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 flex flex-col items-center z-10 animate-fade-in">
-                <div className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-lg whitespace-nowrap">
-                  Copied!
+              {copiedField === `host-${host.id}-id` && (
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex flex-col items-center z-50 animate-fade-in">
+                  <div className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-lg whitespace-nowrap">
+                    Copied!
+                  </div>
+                  <div className="w-2 h-2 bg-emerald-500 rotate-45 -mt-1"></div>
                 </div>
-                <div className="w-2 h-2 bg-emerald-500 rotate-45 -mt-1"></div>
-              </div>
-            )}
+              )}
+            </button>
           </div>
         </div>
         {/* Host Name */}
         <div className="w-48 px-4 py-3 shrink-0">
-          <div className="flex items-center gap-1.5 group/copy min-w-0 relative">
+          <div className="flex items-center gap-1.5 group/copy min-w-0">
             <span className="font-medium text-sm text-gray-900 truncate">{host.name || host.address}</span>
             <button
               onClick={() => onCopy(host.name || host.address, `host-${host.id}-name`)}
@@ -116,15 +116,15 @@ export const HostListItem = ({
               ) : (
                 <i className="fa-regular fa-copy text-xs text-gray-400 hover:text-gray-600"></i>
               )}
-            </button>
-            {copiedField === `host-${host.id}-name` && (
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 flex flex-col items-center z-10 animate-fade-in">
-                <div className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-lg whitespace-nowrap">
-                  Copied!
+              {copiedField === `host-${host.id}-name` && (
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex flex-col items-center z-50 animate-fade-in">
+                  <div className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-lg whitespace-nowrap">
+                    Copied!
+                  </div>
+                  <div className="w-2 h-2 bg-emerald-500 rotate-45 -mt-1"></div>
                 </div>
-                <div className="w-2 h-2 bg-emerald-500 rotate-45 -mt-1"></div>
-              </div>
-            )}
+              )}
+            </button>
           </div>
         </div>
 
@@ -160,7 +160,7 @@ export const HostListItem = ({
 
         {/* Main IPv4 Address - auto-detect public/private */}
         <div className="w-40 px-4 py-3 shrink-0">
-          <div className="flex items-center gap-1.5 group/copy relative">
+          <div className="flex items-center gap-1.5 group/copy">
             <span className="text-xs text-gray-400 shrink-0">{ipTypeLabel}:</span>
             <span className="text-xs text-gray-600 truncate">{host.address}</span>
             <button
@@ -173,15 +173,15 @@ export const HostListItem = ({
               ) : (
                 <i className="fa-regular fa-copy text-xs text-gray-400 hover:text-gray-600"></i>
               )}
-            </button>
-            {copiedField === `host-${host.id}-ip` && (
-              <div className="absolute -top-9 left-1/2 -translate-x-1/2 flex flex-col items-center z-10 animate-fade-in">
-                <div className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-lg whitespace-nowrap">
-                  Copied!
+              {copiedField === `host-${host.id}-ip` && (
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex flex-col items-center z-50 animate-fade-in">
+                  <div className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-lg whitespace-nowrap">
+                    Copied!
+                  </div>
+                  <div className="w-2 h-2 bg-emerald-500 rotate-45 -mt-1"></div>
                 </div>
-                <div className="w-2 h-2 bg-emerald-500 rotate-45 -mt-1"></div>
-              </div>
-            )}
+              )}
+            </button>
           </div>
         </div>
 

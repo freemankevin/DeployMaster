@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { sftpApi } from '@/services/api';
 import type { SFTPFile } from '@/services/api';
 import type { TransferLog } from '../types';
@@ -24,6 +24,7 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
   const [diskUsage, setDiskUsage] = useState<DiskUsage | null>(null);
   const [pathHistory, setPathHistory] = useState<string[]>(['/']);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const isConnectedRef = useRef(false);
 
   const loadDirectory = useCallback(async (path: string) => {
     try {
@@ -63,12 +64,23 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
   }, [hostId]);
 
   const connect = useCallback(async () => {
+    // 防止重复连接
+    if (isConnectedRef.current) {
+      return true;
+    }
+    
     try {
       setConnecting(true);
+      setError(''); // 清除之前的错误状态
       const response = await sftpApi.connect(hostId);
       if (response.success) {
-        await loadDirectory('/');
+        const result = await loadDirectory('/');
+        if (result === null) {
+          // loadDirectory 失败，错误已被设置
+          return false;
+        }
         await loadDiskUsage();
+        isConnectedRef.current = true;
         // 连接成功不添加日志，改用界面展示
         return true;
       } else {
@@ -123,9 +135,14 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
   }, [hostId]);
 
   useEffect(() => {
+    // 重置连接状态
+    isConnectedRef.current = false;
     connect();
-    return () => disconnect();
-  }, [connect, disconnect]);
+    return () => {
+      isConnectedRef.current = false;
+      disconnect();
+    };
+  }, [hostId]); // 只在 hostId 改变时重新连接
 
   return {
     currentPath,

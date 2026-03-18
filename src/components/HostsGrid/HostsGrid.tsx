@@ -3,7 +3,9 @@ import type { SSHHost } from '@/types';
 import { hostApi } from '@/services/api';
 import HostListItem from './HostListItem';
 import Checkbox from '../Checkbox';
-import type { HostsGridProps } from './types';
+import MoreActionsMenu from './MoreActionsMenu';
+import BatchConfirmDialog from './BatchConfirmDialog';
+import type { HostsGridProps, BatchDialogState } from './types';
 
 // Pagination component
 interface PaginationProps {
@@ -273,6 +275,17 @@ const HostsGrid = ({
   // Selection state
   const [selectedHosts, setSelectedHosts] = useState<Set<number>>(new Set());
 
+  // More Actions dropdown state
+  const [isMoreActionsOpen, setIsMoreActionsOpen] = useState(false);
+
+  // Batch operation dialog state
+  const [batchDialog, setBatchDialog] = useState<BatchDialogState>({ isOpen: false, type: null });
+
+  // Get selected host objects
+  const selectedHostObjects = useMemo(() => {
+    return hosts.filter(host => selectedHosts.has(host.id));
+  }, [hosts, selectedHosts]);
+
   // Get unique filter options
   const statusOptions = useMemo(() => {
     const statuses = new Set<string>();
@@ -405,6 +418,94 @@ const HostsGrid = ({
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
+  // Batch operations
+  const handleBatchDelete = () => {
+    if (selectedHosts.size === 0) return;
+    setBatchDialog({ isOpen: true, type: 'delete' });
+    setIsMoreActionsOpen(false);
+  };
+
+  const handleBatchShutdown = () => {
+    if (selectedHosts.size === 0) return;
+    setBatchDialog({ isOpen: true, type: 'shutdown' });
+    setIsMoreActionsOpen(false);
+  };
+
+  const handleBatchRestart = () => {
+    if (selectedHosts.size === 0) return;
+    setBatchDialog({ isOpen: true, type: 'restart' });
+    setIsMoreActionsOpen(false);
+  };
+
+  const executeBatchDelete = async () => {
+    try {
+      // Directly use API to delete hosts without showing confirmation dialog
+      for (const hostId of selectedHosts) {
+        await hostApi.delete(hostId);
+      }
+      setSelectedHosts(new Set());
+      // Refresh data after batch delete
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (error) {
+      console.error('Batch delete failed:', error);
+    }
+    setBatchDialog({ isOpen: false, type: null });
+  };
+
+  const executeBatchShutdown = async () => {
+    try {
+      for (const hostId of selectedHosts) {
+        await hostApi.executeCommand(hostId, 'shutdown -h now');
+      }
+    } catch (error) {
+      console.error('Batch shutdown failed:', error);
+    }
+    setBatchDialog({ isOpen: false, type: null });
+  };
+
+  const executeBatchRestart = async () => {
+    try {
+      for (const hostId of selectedHosts) {
+        await hostApi.executeCommand(hostId, 'sync; reboot');
+      }
+    } catch (error) {
+      console.error('Batch restart failed:', error);
+    }
+    setBatchDialog({ isOpen: false, type: null });
+  };
+
+  const getBatchDialogConfig = () => {
+    switch (batchDialog.type) {
+      case 'delete':
+        return {
+          title: 'Confirm Delete',
+          message: `Are you sure you want to delete the following ${selectedHosts.size} host(s)? This action cannot be undone.`,
+          confirmText: 'Delete',
+          confirmButtonClass: 'bg-macos-red hover:bg-red-600'
+        };
+      case 'shutdown':
+        return {
+          title: 'Confirm Shutdown',
+          message: `Are you sure you want to shutdown the following ${selectedHosts.size} host(s) immediately?`,
+          confirmText: 'Shutdown',
+          confirmButtonClass: 'bg-orange-500 hover:bg-orange-600'
+        };
+      case 'restart':
+        return {
+          title: 'Confirm Restart',
+          message: `Are you sure you want to restart the following ${selectedHosts.size} host(s)? Data will be synced before restart.`,
+          confirmText: 'Restart',
+          confirmButtonClass: 'bg-blue-500 hover:bg-blue-600'
+        };
+      default:
+        return null;
+    }
+  };
+
+  const dialogConfig = getBatchDialogConfig();
+
   // Handle export to Excel
   const handleExport = () => {
     const headers = ['ID', 'Name', 'Address', 'Port', 'Username', 'Auth Type', 'Status', 'OS', 'CPU Cores', 'Memory(GB)', 'Description'];
@@ -473,41 +574,15 @@ const HostsGrid = ({
           </button>
 
           {/* More actions dropdown - macOS style secondary button */}
-          <div className="relative group">
-            <button
-              className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200
-                       hover:border-gray-300 hover:bg-gray-50/80
-                       text-gray-700 rounded-lg text-sm font-medium
-                       transition-all duration-200 ease-macos
-                       shadow-[0_0.5px_1px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.04)]
-                       active:shadow-[inset_0_0.5px_2px_rgba(0,0,0,0.08)] active:scale-[0.97]"
-            >
-              <span>More Actions</span>
-              <i className="fa-solid fa-ellipsis w-4 h-4 text-gray-500"></i>
-            </button>
-            {/* Dropdown menu - macOS style */}
-            <div className="absolute top-full left-0 mt-1.5 w-36 bg-white/95 backdrop-blur-xl rounded-lg shadow-macos-lg border border-gray-200/60 z-[70] py-1 hidden group-hover:block animate-slide-down">
-              <button
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50/80 transition-colors"
-              >
-                <i className="fa-solid fa-power-off w-4 h-4 text-gray-500"></i>
-                <span>Shutdown</span>
-              </button>
-              <button
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50/80 transition-colors"
-              >
-                <i className="fa-solid fa-rotate-right w-4 h-4 text-gray-500"></i>
-                <span>Restart</span>
-              </button>
-              <div className="h-px bg-gray-200/60 my-1" />
-              <button
-                className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-macos-red hover:bg-red-50/50 transition-colors"
-              >
-                <i className="fa-solid fa-trash w-4 h-4"></i>
-                <span>Delete</span>
-              </button>
-            </div>
-          </div>
+          <MoreActionsMenu
+            isOpen={isMoreActionsOpen}
+            selectedCount={selectedHosts.size}
+            onToggle={() => setIsMoreActionsOpen(!isMoreActionsOpen)}
+            onClose={() => setIsMoreActionsOpen(false)}
+            onShutdown={handleBatchShutdown}
+            onRestart={handleBatchRestart}
+            onDelete={handleBatchDelete}
+          />
         </div>
 
         {/* Search box - macOS style */}
@@ -658,6 +733,26 @@ const HostsGrid = ({
             onPageSizeChange={handlePageSizeChange}
           />
         </div>
+
+      {/* Batch Operation Confirmation Dialog */}
+      {dialogConfig && (
+        <BatchConfirmDialog
+          isOpen={batchDialog.isOpen}
+          title={dialogConfig.title}
+          message={dialogConfig.message}
+          hosts={selectedHostObjects}
+          confirmText={dialogConfig.confirmText}
+          confirmButtonClass={dialogConfig.confirmButtonClass}
+          onConfirm={
+            batchDialog.type === 'delete'
+              ? executeBatchDelete
+              : batchDialog.type === 'shutdown'
+              ? executeBatchShutdown
+              : executeBatchRestart
+          }
+          onCancel={() => setBatchDialog({ isOpen: false, type: null })}
+        />
+      )}
     </div>
   );
 };

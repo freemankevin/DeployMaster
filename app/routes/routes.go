@@ -3,6 +3,7 @@ package routes
 import (
 	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -371,14 +372,11 @@ func updateHost(c *gin.Context) {
 	if req.AuthType == "password" {
 		// 切换到密码认证模式
 		host.KeyID = nil // 清除密钥
-		// 只有在提供了新密码时才更新密码
+		// 只有在提供了新密码时才更新密码，否则保持原密码不变
 		if req.Password != "" {
 			host.Password = config.EncryptPassword(req.Password)
 		}
-		// 如果密码为空字符串，表示要清除密码（从key切换到password但没有提供密码）
-		if req.Password == "" {
-			host.Password = ""
-		}
+		// 注意：如果密码为空字符串，保持原有密码不变（编辑模式时留空表示不修改密码）
 	} else if req.AuthType == "key" {
 		// 切换到密钥认证模式
 		host.Password = "" // 清除密码
@@ -722,17 +720,53 @@ func sftpConnect(c *gin.Context) {
 		HostID uint `json:"host_id"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
+	}
+
+	// 首先检查 SSH 连接是否存在
+	if _, exists := config.Pool.Get(input.HostID); !exists {
+		// SSH 连接不存在，需要先建立 SSH 连接
+		var host models.Host
+		if err := database.DB.First(&host, input.HostID).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "Host not found"})
+			return
+		}
+
+		// 解密密码
+		password := ""
+		if host.Password != "" {
+			password = config.DecryptPassword(host.Password)
+		}
+
+		// 获取密钥
+		var key *models.SSHKey
+		if host.KeyID != nil {
+			key = &models.SSHKey{}
+			if err := database.DB.First(key, *host.KeyID).Error; err != nil {
+				log.Printf("[SFTP] Failed to load key (key_id=%d): %v", *host.KeyID, err)
+				key = nil
+			} else {
+				log.Printf("[SFTP] Loaded key (key_id=%d, name=%s)", *host.KeyID, key.Name)
+			}
+		}
+
+		// 建立 SSH 连接
+		_, err := config.Pool.Connect(input.HostID, host.Host, host.Port, host.User, password, key)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "SSH connection failed: " + err.Error()})
+			return
+		}
+		log.Printf("[SFTP] Auto-connected SSH for host %s (host_id=%d)", host.Name, input.HostID)
 	}
 
 	_, err := services.ConnectSFTP(input.HostID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "SFTP connected"})
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "SFTP connected"})
 }
 
 func sftpDisconnect(c *gin.Context) {
@@ -754,23 +788,27 @@ func sftpList(c *gin.Context) {
 		Path   string `json:"path"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
 	service, err := services.ConnectSFTP(input.HostID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
 	files, err := service.ListDirectory(input.Path)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, files)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"path":    input.Path,
+		"files":   files,
+	})
 }
 
 func sftpDownload(c *gin.Context) {
@@ -1197,23 +1235,44 @@ func sftpDiskUsage(c *gin.Context) {
 		Path   string `json:"path"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
 	service, err := services.ConnectSFTP(input.HostID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
 	usage, err := service.GetDiskUsage(input.Path)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, usage)
+	c.JSON(http.StatusOK, gin.H{
+		"success":        true,
+		"filesystem":     "",
+		"size":           formatSize(usage.Total),
+		"used":           formatSize(usage.Used),
+		"available":      formatSize(usage.Available),
+		"use_percentage": usage.Percent,
+	})
+}
+
+// formatSize 格式化字节大小
+func formatSize(bytes int64) string {
+	const unit = 1024
+	if bytes < unit {
+		return fmt.Sprintf("%d B", bytes)
+	}
+	div, exp := int64(unit), 0
+	for n := bytes / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }
 
 // sftpDownloadFolder 下载文件夹

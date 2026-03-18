@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import HostsGrid from './components/HostsGrid';
+import { HostsGrid } from './components/HostsGrid';
 import AddHostModal from './components/AddHostModal';
 import TerminalModal from './components/TerminalModal';
 import SFTPModal from './components/SFTPModal';
@@ -26,8 +26,12 @@ function App() {
     try {
       setLoading(true);
       const response = await hostApi.getAll();
+      console.log('loadHosts response:', response);
       if (response.success && response.data) {
+        console.log('Setting hosts:', response.data.length);
         setHosts(response.data);
+      } else {
+        console.error('loadHosts failed:', response.message);
       }
     } catch (err) {
       console.error('Failed to load hosts:', err);
@@ -90,9 +94,15 @@ function App() {
     }
     try {
       const response = await hostApi.delete(id);
+      console.log('Delete response:', response);
       if (response.success) {
+        console.log('Delete successful, refreshing hosts...');
         await loadHosts();
+        console.log('Hosts refreshed, current count:', hosts.length);
         success('Deleted Successfully', 'Host has been deleted');
+      } else {
+        console.error('Delete failed:', response.message);
+        error('Delete Failed', response.message || 'Unable to delete host');
       }
     } catch (err) {
       console.error('Failed to delete host:', err);
@@ -153,7 +163,7 @@ function App() {
   };
 
   return (
-    <div className="bg-[#F5F5F7] text-gray-900 h-screen overflow-hidden flex">
+    <div className="bg-[#F5F5F7] text-gray-900 h-screen overflow-hidden flex m-0 p-0">
       {/* Sidebar */}
       <Sidebar hostCount={hosts.length} />
 
