@@ -7,6 +7,7 @@ import TerminalModal from './components/TerminalModal';
 import SFTPModal from './components/SFTPModal';
 import { ToastContainer } from './components/Toast';
 import { useToast } from './hooks/useToast';
+import { useDialog } from './components/Dialog';
 import { hostApi } from './services/api';
 import type { SSHHost, CreateHostRequest, UpdateHostRequest } from './types';
 
@@ -20,6 +21,7 @@ function App() {
   const [editingHost, setEditingHost] = useState<SSHHost | null>(null);
   const [copyingHost, setCopyingHost] = useState<SSHHost | null>(null);
   const { toasts, removeToast, success, error } = useToast();
+  const { showDialog, dialogComponent } = useDialog();
 
   // Load host list
   const loadHosts = useCallback(async () => {
@@ -87,11 +89,15 @@ function App() {
   };
 
   // Delete host
-  const handleDeleteHost = async (id: number) => {
-    // Use custom confirmation dialog instead of browser default alert
-    if (!confirm('Are you sure you want to delete this host? This operation cannot be undone.')) {
-      return;
-    }
+  const handleDeleteHost = async (id: number, hostName: string) => {
+    const confirmed = await showDialog({
+      type: 'delete',
+      title: 'Delete Host',
+      message: 'Are you sure you want to delete this host? This operation cannot be undone.',
+      itemName: hostName,
+      confirmText: 'Delete',
+    });
+    if (!confirmed) return;
     try {
       const response = await hostApi.delete(id);
       console.log('Delete response:', response);
@@ -234,6 +240,9 @@ function App() {
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
+      
+      {/* Dialog Component */}
+      {dialogComponent}
     </div>
   );
 }

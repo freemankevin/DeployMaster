@@ -106,6 +106,31 @@ type TransferProgress struct {
 	EndTime          time.Time `json:"end_time,omitempty"`
 }
 
+// TransferRecord 传输记录（持久化存储）
+type TransferRecord struct {
+	ID            uint      `json:"id" gorm:"primaryKey"`
+	TransferID    string    `json:"transfer_id" gorm:"index;not null"`           // 传输任务ID
+	Type          string    `json:"type" gorm:"not null"`                        // upload, download
+	Filename      string    `json:"filename" gorm:"not null"`                    // 文件名
+	RemotePath    string    `json:"remote_path" gorm:"not null"`                 // 远程路径
+	Size          int64     `json:"size" gorm:"default:0"`                       // 文件大小
+	Transferred   int64     `json:"transferred" gorm:"default:0"`                // 已传输字节
+	Status        string    `json:"status" gorm:"not null"`                      // pending, transferring, completed, failed, cancelled
+	Progress      int       `json:"progress" gorm:"default:0"`                   // 进度 0-100
+	Speed         string    `json:"speed" gorm:"default:''"`                     // 传输速度
+	Error         string    `json:"error" gorm:"default:''"`                     // 错误信息
+	HostID        uint      `json:"host_id" gorm:"index"`                        // 主机ID
+	StartTime     time.Time `json:"start_time" gorm:"index"`                     // 开始时间
+	EndTime       *time.Time `json:"end_time"`                                     // 结束时间
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+// TableName 指定表名
+func (TransferRecord) TableName() string {
+	return "transfer_records"
+}
+
 // SystemInfo 系统信息
 type SystemInfo struct {
 	OS         string `json:"os"`

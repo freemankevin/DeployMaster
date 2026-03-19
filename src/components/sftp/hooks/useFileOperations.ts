@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { sftpApi } from '@/services/api';
 import type { SFTPFile } from '@/services/api';
 import type { TransferLog } from '../types';
+import type { DialogType } from '@/components/Dialog';
 
 interface UseFileOperationsProps {
   hostId: number;
@@ -10,6 +11,13 @@ interface UseFileOperationsProps {
   onSuccess: (title: string, message: string) => void;
   onError: (title: string, message: string) => void;
   onRefresh: () => void;
+  onShowDialog: (params: {
+    type: DialogType;
+    title: string;
+    message?: string;
+    itemName?: string;
+    confirmText?: string;
+  }) => Promise<boolean>;
 }
 
 export const useFileOperations = ({
@@ -18,7 +26,8 @@ export const useFileOperations = ({
   onLog,
   onSuccess,
   onError,
-  onRefresh
+  onRefresh,
+  onShowDialog
 }: UseFileOperationsProps) => {
   const [editingFile, setEditingFile] = useState<SFTPFile | null>(null);
   const [fileContent, setFileContent] = useState('');
@@ -47,9 +56,18 @@ export const useFileOperations = ({
   }, [hostId, currentPath, onLog, onSuccess, onError, onRefresh]);
 
   const deleteFile = useCallback(async (file: SFTPFile) => {
-    if (!confirm(`Are you sure you want to delete "${file.name}"?`)) return false;
+    const confirmed = await onShowDialog({
+      type: 'delete',
+      title: file.is_dir ? 'Delete Folder' : 'Delete File',
+      message: file.is_dir 
+        ? 'Are you sure you want to delete this folder and all its contents? This action cannot be undone.'
+        : 'Are you sure you want to delete this file? This action cannot be undone.',
+      itemName: file.name,
+      confirmText: 'Delete',
+    });
+    if (!confirmed) return false;
     try {
-      const response = await sftpApi.remove(hostId, file.path, file.is_dir);
+      const response = await sftpApi.remove(hostId, file.path, file.is_dir, false);
       if (response.success) {
         onSuccess('Deleted', `${file.name} has been deleted`);
         onLog('delete', `Deleted ${file.is_dir ? 'folder' : 'file'}: ${file.name}`, file.path, 'success', file.size_formatted);

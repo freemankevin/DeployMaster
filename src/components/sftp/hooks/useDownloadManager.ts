@@ -24,7 +24,7 @@ interface UseDownloadManagerReturn {
 
 const INITIAL_PROGRESS: DownloadProgress = {
   progress: 0,
-  bytes_received: 0,
+  bytes_transferred: 0,
   total_bytes: 0,
   speed: '',
   stage: 'init',
@@ -56,7 +56,7 @@ export function useDownloadManager({
     setDownloadingFile(file);
     const initialProgress: DownloadProgress = {
       progress: 0,
-      bytes_received: 0,
+      bytes_transferred: 0,
       total_bytes: file.size,
       speed: '',
       stage: 'init',
@@ -66,7 +66,7 @@ export function useDownloadManager({
     setBackgroundDownload({ file, progress: initialProgress });
     setShowDownloadProgress(true);
     
-    const taskId = transfer.createTransferTask('download', file.name, file.path, file.size);
+    const taskId = await transfer.createTransferTask('download', file.name, file.path, file.size);
     transfer.updateTransferTask(taskId, { status: 'transferring' });
     
     try {
@@ -82,7 +82,7 @@ export function useDownloadManager({
           // Update task progress
           transfer.updateTransferTask(taskId, {
             progress: progressInfo.progress,
-            transferred: progressInfo.bytes_received,
+            transferred: progressInfo.bytes_transferred,
             size: progressInfo.total_bytes,
             speed: progressInfo.speed || '',
             status: progressInfo.stage === 'error' ? 'failed' :
@@ -133,7 +133,7 @@ export function useDownloadManager({
   }, [hostId, transfer, onSuccess, onError, downloadProgress]);
 
   const downloadFolder = useCallback(async (folder: SFTPFile) => {
-    const taskId = transfer.createTransferTask('download', `${folder.name}.zip`, folder.path, 0);
+    const taskId = await transfer.createTransferTask('download', `${folder.name}.zip`, folder.path, 0);
     transfer.updateTransferTask(taskId, { status: 'transferring' });
     
     onSuccess('Download Started', `Preparing ${folder.name}.zip...`, 2000);

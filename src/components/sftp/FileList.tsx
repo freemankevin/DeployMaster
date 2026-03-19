@@ -76,7 +76,10 @@ const FileList = ({
         )}
 
         {/* File Items */}
-        {files.map((file) => (
+        {files?.map((file) => {
+          // 防御性检查：确保 file 和 file.path 存在
+          if (!file || !file.path) return null;
+          return (
           <div
             key={file.path}
             onClick={() => onFileClick(file)}
@@ -93,63 +96,74 @@ const FileList = ({
               <FileIcon file={file} size="sm" />
             </div>
 
-            {/* Filename */}
-            <div className="flex-1 min-w-0">
-              <span className="text-[13px] text-gray-200 truncate font-normal">{file.name}</span>
-            </div>
-
-            {/* Size */}
-            <div className="w-20 text-right flex-shrink-0">
-              {!file.is_dir && (
-                <span className="text-[12px] text-gray-500">{file.size_formatted}</span>
-              )}
-            </div>
-
-            {/* Modified Time */}
-            <div className="w-36 text-right flex-shrink-0">
-              <span className="text-[12px] text-gray-500">{file.modified_time_formatted}</span>
-            </div>
-
-            {/* Permissions - Single line display */}
-            <div className="w-24 text-right flex-shrink-0">
-              <span className="text-[12px] text-gray-500 whitespace-nowrap">
-                {file.permissions}
+            {/* Filename - 自适应宽度，过长时截断 */}
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <span 
+                className="text-[13px] text-gray-200 truncate font-normal block"
+                title={file.name}
+              >
+                {file.name}
               </span>
             </div>
 
-            {/* Action Buttons - Show on hover */}
-            <div className="w-24 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onDownload(file);
-                }}
-                className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
-                title={file.is_dir ? "Download as ZIP" : "Download"}
-              >
-                <i className="fa-solid fa-circle-down text-[11px]" />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onRename(file); }}
-                className="p-1.5 text-gray-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors"
-                title="Rename"
-              >
-                <i className="fa-solid fa-pen text-[11px]" />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onDelete(file); }}
-                className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                title="Delete"
-              >
-                <i className="fa-solid fa-trash text-[11px]" />
-              </button>
+            {/* Right side info container - 固定宽度，优先展示 */}
+            <div className="flex items-center gap-4 flex-shrink-0">
+              {/* Size */}
+              <div className="w-16 text-right flex-shrink-0">
+                {!file.is_dir && (
+                  <span className="text-[12px] text-gray-500">{file.size_formatted}</span>
+                )}
+              </div>
+
+              {/* Modified Time */}
+              <div className="w-24 text-right flex-shrink-0">
+                <span className="text-[12px] text-gray-500 whitespace-nowrap">{file.modified_time_formatted}</span>
+              </div>
+
+              {/* Permissions */}
+              <div className="w-16 text-right flex-shrink-0">
+                <span className="text-[12px] text-gray-500 whitespace-nowrap">
+                  {file.permissions}
+                </span>
+              </div>
+
+              {/* Action Buttons - 始终占据空间，hover时显示 */}
+              <div className="w-20 flex items-center justify-end gap-0.5 flex-shrink-0">
+                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onDownload(file);
+                    }}
+                    className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
+                    title={file.is_dir ? "Download as ZIP" : "Download"}
+                  >
+                    <i className="fa-solid fa-circle-down text-[11px]" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onRename(file); }}
+                    className="p-1.5 text-gray-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors"
+                    title="Rename"
+                  >
+                    <i className="fa-solid fa-pen text-[11px]" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDelete(file); }}
+                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                    title="Delete"
+                  >
+                    <i className="fa-solid fa-trash text-[11px]" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
+          );
+        })}
 
         {/* Empty State - Search */}
-        {files.length === 0 && searchQuery && (
+        {(!files || files.length === 0) && searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
             <i className="fa-solid fa-magnifying-glass text-2xl mb-3 opacity-50" />
             <p className="text-[13px]">No files matching "{searchQuery}"</p>
@@ -157,7 +171,7 @@ const FileList = ({
         )}
 
         {/* Empty State - Folder */}
-        {files.length === 0 && !searchQuery && !loading && (
+        {(!files || files.length === 0) && !searchQuery && !loading && (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
             <i className="fa-solid fa-folder text-2xl mb-3 opacity-50" />
             <p className="text-[13px]">Folder is empty</p>

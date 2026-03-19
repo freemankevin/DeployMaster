@@ -34,7 +34,7 @@ func InitDB() {
 	}
 
 	// 自动迁移
-	if err := DB.AutoMigrate(&models.Host{}, &models.SSHKey{}); err != nil {
+	if err := DB.AutoMigrate(&models.Host{}, &models.SSHKey{}, &models.TransferRecord{}); err != nil {
 		fmt.Printf("  \033[31m✗\033[0m Failed to migrate database: %v\n", err)
 		os.Exit(1)
 	}
@@ -108,4 +108,74 @@ func DeleteKey(id uint) error {
 func MigrateFromPython(pythonDbPath string) error {
 	// TODO: 实现从 Python SQLite 数据库迁移数据的逻辑
 	return nil
+}
+
+// ==================== 传输记录操作 ====================
+
+// CreateTransferRecord 创建传输记录
+func CreateTransferRecord(record *models.TransferRecord) error {
+	return DB.Create(record).Error
+}
+
+// UpdateTransferRecord 更新传输记录
+func UpdateTransferRecord(record *models.TransferRecord) error {
+	return DB.Save(record).Error
+}
+
+// GetTransferRecordByID 根据ID获取传输记录
+func GetTransferRecordByID(id uint) (*models.TransferRecord, error) {
+	var record models.TransferRecord
+	result := DB.First(&record, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &record, nil
+}
+
+// GetTransferRecordByTransferID 根据TransferID获取传输记录
+func GetTransferRecordByTransferID(transferID string) (*models.TransferRecord, error) {
+	var record models.TransferRecord
+	result := DB.Where("transfer_id = ?", transferID).First(&record)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &record, nil
+}
+
+// GetAllTransferRecords 获取所有传输记录
+func GetAllTransferRecords(limit int, offset int) ([]models.TransferRecord, int64, error) {
+	var records []models.TransferRecord
+	var total int64
+	
+	DB.Model(&models.TransferRecord{}).Count(&total)
+	
+	result := DB.Order("created_at DESC").Limit(limit).Offset(offset).Find(&records)
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+	return records, total, nil
+}
+
+// GetTransferRecordsByHostID 根据主机ID获取传输记录
+func GetTransferRecordsByHostID(hostID uint, limit int) ([]models.TransferRecord, error) {
+	var records []models.TransferRecord
+	result := DB.Where("host_id = ?", hostID).Order("created_at DESC").Limit(limit).Find(&records)
+	return records, result.Error
+}
+
+// GetActiveTransferRecords 获取活动的传输记录（未完成的）
+func GetActiveTransferRecords() ([]models.TransferRecord, error) {
+	var records []models.TransferRecord
+	result := DB.Where("status IN ?", []string{"pending", "transferring"}).Order("created_at DESC").Find(&records)
+	return records, result.Error
+}
+
+// DeleteTransferRecord 删除传输记录
+func DeleteTransferRecord(id uint) error {
+	return DB.Delete(&models.TransferRecord{}, id).Error
+}
+
+// ClearCompletedTransferRecords 清除已完成的传输记录
+func ClearCompletedTransferRecords() error {
+	return DB.Where("status IN ?", []string{"completed", "failed", "cancelled"}).Delete(&models.TransferRecord{}).Error
 }

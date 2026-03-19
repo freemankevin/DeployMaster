@@ -83,7 +83,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
               >
                 <span className="w-4 h-4 flex items-center justify-center">
-                  <i className="ti ti-file-upload text-base" />
+                  <i className="ti ti-file-upload-filled text-base" />
                 </span>
                 <span>Upload Files</span>
               </button>

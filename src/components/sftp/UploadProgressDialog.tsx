@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
-import type { DownloadProgress } from '@/services/api';
 
-interface DownloadProgressDialogProps {
+interface UploadProgressDialogProps {
   isOpen: boolean;
   filename: string;
   fileSize: number;
-  progress: DownloadProgress;
+  progress: number;
+  bytesTransferred: number;
+  speed: string;
+  stage: string;
+  message: string;
   onClose: () => void;
   onMinimize: () => void;
-  onCancel?: () => void;
+  onCancel: () => void;
 }
 
 // 格式化文件大小
@@ -43,28 +46,32 @@ const parseSpeed = (speedStr: string): number => {
   return value * (multipliers[unit] || 1);
 };
 
-const DownloadProgressDialog = ({
+const UploadProgressDialog = ({
   isOpen,
   filename,
   fileSize,
   progress,
+  bytesTransferred,
+  speed,
+  stage,
+  message,
   onClose,
   onMinimize,
   onCancel
-}: DownloadProgressDialogProps) => {
+}: UploadProgressDialogProps) => {
   const [displayProgress, setDisplayProgress] = useState(0);
   const [smoothSpeed, setSmoothSpeed] = useState('0 B/s');
-  
+
   // Smooth progress animation
   useEffect(() => {
-    const targetProgress = progress.progress || 0;
+    const targetProgress = progress || 0;
     const currentProgress = displayProgress;
-    
+
     if (Math.abs(targetProgress - currentProgress) < 0.5) {
       setDisplayProgress(targetProgress);
       return;
     }
-    
+
     // Smooth transition
     const step = (targetProgress - currentProgress) / 10;
     const timer = setInterval(() => {
@@ -77,42 +84,44 @@ const DownloadProgressDialog = ({
         return next;
       });
     }, 30);
-    
+
     return () => clearInterval(timer);
-  }, [progress.progress]);
-  
+  }, [progress]);
+
   // Smooth speed display
   useEffect(() => {
-    if (progress.speed) {
-      setSmoothSpeed(progress.speed);
+    if (speed) {
+      setSmoothSpeed(speed);
     }
-  }, [progress.speed]);
-  
+  }, [speed]);
+
   if (!isOpen) return null;
-  
-  const speed = parseSpeed(progress.speed || '0 B/s');
-  const remainingBytes = fileSize - (progress.bytes_transferred || 0);
-  const remainingTime = speed > 0 ? remainingBytes / speed : -1;
-  const isCompleted = progress.stage === 'completed';
-  const isError = progress.stage === 'error';
-  const isDownloading = progress.stage === 'downloading';
-  
+
+  const speedValue = parseSpeed(smoothSpeed);
+  const remainingBytes = fileSize - bytesTransferred;
+  const remainingTime = speedValue > 0 ? remainingBytes / speedValue : -1;
+  const isCompleted = stage === 'completed';
+  const isError = stage === 'error';
+  const isCancelled = stage === 'cancelled';
+  const isUploading = stage === 'uploading' || stage === 'init' || stage === 'received';
+
   // Calculate progress bar color
   const getProgressColor = () => {
     if (isError) return 'from-red-500 to-red-400';
+    if (isCancelled) return 'from-amber-500 to-amber-400';
     if (isCompleted) return 'from-emerald-500 to-emerald-400';
     return 'from-blue-500 via-blue-400 to-cyan-400';
   };
-  
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in">
       {/* Background mask */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onMinimize} />
-      
+
       {/* Dialog body */}
-      <div 
+      <div
         className="relative bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] rounded-2xl shadow-2xl border border-white/10 overflow-hidden"
-        style={{ 
+        style={{
           width: 420,
           fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
         }}
@@ -122,32 +131,35 @@ const DownloadProgressDialog = ({
           <div className="flex items-center gap-3">
             {/* Icon animation */}
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              isCompleted ? 'bg-emerald-500/20' : 
-              isError ? 'bg-red-500/20' : 
+              isCompleted ? 'bg-emerald-500/20' :
+              isError ? 'bg-red-500/20' :
+              isCancelled ? 'bg-amber-500/20' :
               'bg-blue-500/20'
             }`}>
               {isCompleted ? (
                 <i className="fa-solid fa-check text-lg text-emerald-400" />
               ) : isError ? (
                 <i className="fa-solid fa-circle-exclamation text-lg text-red-400" />
+              ) : isCancelled ? (
+                <i className="fa-solid fa-ban text-lg text-amber-400" />
               ) : (
-                <i className="fa-solid fa-cloud-arrow-down text-lg text-blue-400 animate-pulse" />
+                <i className="fa-solid fa-cloud-arrow-up text-lg text-blue-400 animate-pulse" />
               )}
             </div>
             <div>
               <h3 className="text-base font-semibold text-gray-100">
-                {isCompleted ? 'Download Complete' : isError ? 'Download Failed' : 'Downloading'}
+                {isCompleted ? 'Upload Complete' : isError ? 'Upload Failed' : isCancelled ? 'Upload Cancelled' : 'Uploading'}
               </h3>
               <p className="text-xs text-gray-500 mt-0.5 truncate max-w-[280px]">{filename}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-1">
-            {!isCompleted && !isError && onCancel && (
+            {!isCompleted && !isError && !isCancelled && (
               <button
                 onClick={onCancel}
                 className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                title="Cancel download"
+                title="Cancel upload"
               >
                 <i className="fa-solid fa-xmark text-sm" />
               </button>
@@ -159,7 +171,7 @@ const DownloadProgressDialog = ({
             >
               <i className="fa-solid fa-minus text-sm" />
             </button>
-            {isCompleted || isError ? (
+            {(isCompleted || isError || isCancelled) && (
               <button
                 onClick={onClose}
                 className="p-2 text-gray-500 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
@@ -167,10 +179,10 @@ const DownloadProgressDialog = ({
               >
                 <i className="fa-solid fa-xmark text-sm" />
               </button>
-            ) : null}
+            )}
           </div>
         </div>
-        
+
         {/* Progress area */}
         <div className="px-5 py-6">
           {/* Large percentage display */}
@@ -179,22 +191,22 @@ const DownloadProgressDialog = ({
               {Math.round(displayProgress)}%
             </span>
           </div>
-          
+
           {/* Progress bar - Game style */}
           <div className="relative mb-5">
             {/* Background track */}
             <div className="h-3 bg-white/5 rounded-full overflow-hidden">
               {/* Progress fill */}
-              <div 
+              <div
                 className={`h-full rounded-full bg-gradient-to-r ${getProgressColor()} transition-all duration-300 relative`}
                 style={{ width: `${displayProgress}%` }}
               >
                 {/* Light effect animation */}
-                {isDownloading && (
+                {isUploading && (
                   <div className="absolute inset-0 overflow-hidden rounded-full">
-                    <div 
+                    <div
                       className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"
-                      style={{ 
+                      style={{
                         animation: 'shimmer 1.5s infinite',
                         transform: 'skewX(-20deg)'
                       }}
@@ -203,12 +215,12 @@ const DownloadProgressDialog = ({
                 )}
               </div>
             </div>
-            
+
             {/* Light point on progress bar */}
-            {isDownloading && displayProgress > 0 && (
-              <div 
+            {isUploading && displayProgress > 0 && displayProgress < 100 && (
+              <div
                 className="absolute top-0 w-3 h-3 rounded-full bg-white shadow-lg shadow-blue-400/50"
-                style={{ 
+                style={{
                   left: `calc(${displayProgress}% - 6px)`,
                   top: '0px',
                   animation: 'pulse 1s infinite'
@@ -216,7 +228,7 @@ const DownloadProgressDialog = ({
               />
             )}
           </div>
-          
+
           {/* Details */}
           <div className="grid grid-cols-3 gap-4 text-center">
             {/* File size */}
@@ -224,51 +236,53 @@ const DownloadProgressDialog = ({
               <div className="text-xs text-gray-500 mb-1">File Size</div>
               <div className="text-sm font-medium text-gray-200">{formatFileSize(fileSize)}</div>
             </div>
-            
-            {/* Download speed */}
+
+            {/* Upload speed */}
             <div className="bg-white/5 rounded-xl p-3">
-              <div className="text-xs text-gray-500 mb-1">Download Speed</div>
-              <div className={`text-sm font-medium ${isDownloading ? 'text-blue-400' : 'text-gray-200'}`}>
+              <div className="text-xs text-gray-500 mb-1">Upload Speed</div>
+              <div className={`text-sm font-medium ${isUploading ? 'text-blue-400' : 'text-gray-200'}`}>
                 {smoothSpeed}
               </div>
             </div>
-            
+
             {/* Remaining time */}
             <div className="bg-white/5 rounded-xl p-3">
               <div className="text-xs text-gray-500 mb-1">Remaining Time</div>
               <div className="text-sm font-medium text-gray-200">
-                {isCompleted ? 'Completed' : formatTime(remainingTime)}
+                {isCompleted ? 'Completed' : isCancelled ? 'Cancelled' : formatTime(remainingTime)}
               </div>
             </div>
           </div>
-          
+
           {/* Transfer details */}
           <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
             <span>
-              Downloaded: {formatFileSize(progress.bytes_transferred || 0)}
+              Uploaded: {formatFileSize(bytesTransferred)}
             </span>
             <span>
-              {progress.message || 'Preparing...'}
+              {message || 'Preparing...'}
             </span>
           </div>
         </div>
-        
+
         {/* Bottom action area */}
-        {(isCompleted || isError) && (
+        {(isCompleted || isError || isCancelled) && (
           <div className="px-5 py-4 border-t border-white/5 bg-white/[0.02]">
             <button
-              onClick={isCompleted ? onClose : onMinimize}
+              onClick={onClose}
               className={`w-full py-2.5 rounded-xl font-medium text-sm transition-all ${
-                isCompleted 
+                isCompleted
                   ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-white hover:from-emerald-400 hover:to-emerald-300'
+                  : isCancelled
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-white hover:from-amber-400 hover:to-amber-300'
                   : 'bg-gradient-to-r from-red-500 to-red-400 text-white hover:from-red-400 hover:to-red-300'
               }`}
             >
-              {isCompleted ? 'Done' : 'Close'}
+              {isCompleted ? 'Done' : isCancelled ? 'Cancelled' : 'Close'}
             </button>
           </div>
         )}
-        
+
         {/* Decorative background */}
         <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -top-10 -left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
@@ -277,4 +291,4 @@ const DownloadProgressDialog = ({
   );
 };
 
-export default DownloadProgressDialog;
+export default UploadProgressDialog;

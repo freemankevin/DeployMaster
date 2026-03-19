@@ -96,25 +96,42 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
   }, [hostId, loadDirectory, loadDiskUsage]);
 
   const navigateTo = useCallback(async (path: string) => {
-    const newHistory = pathHistory.slice(0, historyIndex + 1);
-    newHistory.push(path);
-    setPathHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-    return await loadDirectory(path);
-  }, [pathHistory, historyIndex, loadDirectory]);
+    // 先尝试加载目录，成功后再更新历史记录
+    const result = await loadDirectory(path);
+    if (result !== null) {
+      // 只有在目录加载成功后才更新历史记录
+      setPathHistory(prev => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push(path);
+        return newHistory;
+      });
+      setHistoryIndex(prev => prev + 1);
+    }
+    return result;
+  }, [historyIndex, loadDirectory]);
 
   const goBack = useCallback(async () => {
     if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      return await loadDirectory(pathHistory[historyIndex - 1]);
+      const newIndex = historyIndex - 1;
+      const path = pathHistory[newIndex];
+      const result = await loadDirectory(path);
+      if (result !== null) {
+        setHistoryIndex(newIndex);
+      }
+      return result;
     }
     return null;
   }, [historyIndex, pathHistory, loadDirectory]);
 
   const goForward = useCallback(async () => {
     if (historyIndex < pathHistory.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      return await loadDirectory(pathHistory[historyIndex + 1]);
+      const newIndex = historyIndex + 1;
+      const path = pathHistory[newIndex];
+      const result = await loadDirectory(path);
+      if (result !== null) {
+        setHistoryIndex(newIndex);
+      }
+      return result;
     }
     return null;
   }, [historyIndex, pathHistory, loadDirectory]);

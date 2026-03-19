@@ -4,7 +4,7 @@ export interface HostsGridProps {
   hosts: SSHHost[];
   loading: boolean;
   onEdit: (host: SSHHost) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: number, hostName: string) => void;
   onTestConnection: (id: number) => void;
   onOpenTerminal: (host: SSHHost) => void;
   onOpenSFTP?: (host: SSHHost) => void;
@@ -93,4 +93,83 @@ export type BatchOperationType = 'delete' | 'shutdown' | 'restart';
 export interface BatchDialogState {
   isOpen: boolean;
   type: BatchOperationType | null;
+}
+
+// useHostsGrid hook types
+export interface UseHostsGridProps {
+  hosts: SSHHost[];
+  onRefresh?: () => Promise<void> | void;
+}
+
+export interface UseHostsGridReturn {
+  // Pagination
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  handlePageChange: (page: number) => void;
+  handlePageSizeChange: (size: number) => void;
+  
+  // Filter
+  statusFilter: string[];
+  osFilter: string[];
+  statusOptions: string[];
+  osOptions: string[];
+  setStatusFilter: (filter: string[]) => void;
+  setOsFilter: (filter: string[]) => void;
+  
+  // Search
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  
+  // Selection
+  selectedHosts: Set<number>;
+  selectedHostObjects: SSHHost[];
+  handleSelectHost: (hostId: number, checked: boolean) => void;
+  handleSelectAll: (checked: boolean) => void;
+  isAllSelected: boolean;
+  isPartialSelected: boolean;
+  
+  // Refresh
+  isRefreshing: boolean;
+  handleRefresh: () => Promise<void>;
+  
+  // Menu
+  activeMenu: number | null;
+  setActiveMenu: (id: number | null) => void;
+  expandedHost: number | null;
+  setExpandedHost: (id: number | null) => void;
+  refreshingHostId: number | null;
+  handleRefreshSystemInfo: (hostId: number) => Promise<void>;
+  handleClickOutside: () => void;
+  
+  // Copy
+  copiedField: string | null;
+  copyToClipboard: (text: string, field: string) => Promise<void>;
+  
+  // More actions
+  isMoreActionsOpen: boolean;
+  setIsMoreActionsOpen: (open: boolean) => void;
+  
+  // Batch dialog
+  batchDialog: BatchDialogState;
+  handleBatchDelete: () => void;
+  handleBatchShutdown: () => void;
+  handleBatchRestart: () => void;
+  executeBatchDelete: () => Promise<void>;
+  executeBatchShutdown: () => Promise<void>;
+  executeBatchRestart: () => Promise<void>;
+  closeBatchDialog: () => void;
+  getBatchDialogConfig: () => {
+    title: string;
+    message: string;
+    confirmText: string;
+    confirmButtonClass: string;
+  } | null;
+  
+  // Data
+  filteredHosts: SSHHost[];
+  paginatedHosts: SSHHost[];
+  
+  // Export
+  handleExport: () => void;
 }

@@ -21,8 +21,6 @@ export interface SSHHost {
   private_key?: string;
   key_passphrase?: string;
   key_id?: number;
-  tags?: string[];
-  status: 'connected' | 'disconnected' | 'warning';
   group?: string;
   description?: string;
   system_type?: string;
@@ -36,15 +34,19 @@ export interface SSHHost {
   last_seen?: string;
   created_at?: string;
   updated_at?: string;
+  // 后端返回的状态字段
+  status: 'connected' | 'disconnected' | 'warning';
 }
 
 // SSH 密钥类型
 export interface SSHKey {
   id: number;
   name: string;
-  key_type: 'rsa' | 'ed25519';
-  fingerprint?: string;
+  type: 'rsa' | 'ed25519';
+  public_key?: string;
+  comment?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 // 创建主机请求
@@ -57,8 +59,8 @@ export interface CreateHostRequest {
   password?: string;
   private_key?: string;
   key_passphrase?: string;
-  tags?: string[];
-  system_type?: string;
+  group?: string;
+  description?: string;
 }
 
 // 更新主机请求
@@ -71,10 +73,8 @@ export interface UpdateHostRequest {
   password?: string;
   private_key?: string;
   key_passphrase?: string;
-  tags?: string[];
-  status?: 'connected' | 'disconnected' | 'warning';
-  system_type?: string;
-  last_seen?: string;
+  group?: string;
+  description?: string;
 }
 
 // 统计信息

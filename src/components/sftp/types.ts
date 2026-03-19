@@ -25,12 +25,13 @@ export interface TransferTask {
   localPath?: string;
   size: number;
   transferred: number;
-  status: 'pending' | 'transferring' | 'completed' | 'failed' | 'paused';
+  status: 'pending' | 'transferring' | 'completed' | 'failed' | 'paused' | 'cancelled';
   speed: string;
   progress: number;
   startTime: Date;
   endTime?: Date;
   error?: string;
+  uploadId?: string;  // 用于取消上传
 }
 
 // 传输日志条目
@@ -65,7 +66,7 @@ export interface TransferManager {
   transferTasks: TransferTask[];
   transferLogs: TransferLog[];
   addTransferLog: (type: TransferLog['type'], message: string, path: string, status?: TransferLog['status'], size?: string) => void;
-  createTransferTask: (type: 'upload' | 'download', filename: string, remotePath: string, size: number) => string;
+  createTransferTask: (type: 'upload' | 'download', filename: string, remotePath: string, size: number) => Promise<string>;
   updateTransferTask: (taskId: string, updates: Partial<TransferTask>) => void;
   completeTransferTask: (taskId: string, success: boolean, errorMsg?: string) => void;
   pauseTransferTask: (taskId: string) => void;

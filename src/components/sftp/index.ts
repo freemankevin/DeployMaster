@@ -6,8 +6,8 @@ export { default as FileIcon } from './FileIcon';
 export { default as WindowHeader } from './WindowHeader';
 export { default as Toolbar } from './Toolbar';
 export { default as MinimizedView } from './MinimizedView';
-export { default as BackgroundDownloadIndicator } from './BackgroundDownloadIndicator';
 export { NewFolderDialog, RenameDialog, FileEditor, LoadingOverlay, ErrorOverlay } from './Dialogs';
+export { default as UploadProgressDialog } from './UploadProgressDialog';
 
 // Hooks
 export { useSFTP } from './hooks/useSFTP';

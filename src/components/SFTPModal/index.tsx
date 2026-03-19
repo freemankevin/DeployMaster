@@ -1,206 +1,41 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
-import type { SFTPFile } from '@/services/api';
-import { useToast } from '@/hooks/useToast';
-
-import type { SFTPModalProps, LogFilter } from './sftp/types';
-import { 
-  useTransferManager, 
-  useSFTP, 
-  useFileOperations,
-  useWindowState,
-  useUploadManager,
-  useDownloadManager
-} from './sftp';
-
-import { 
-  FileList, 
-  TransferPanel, 
+import type { SFTPModalProps } from '../sftp/types';
+import { useSFTPModal } from './useSFTPModal';
+import {
+  FileList,
+  TransferPanel,
   StatusBar,
   WindowHeader,
-  Toolbar,
   MinimizedView,
-  BackgroundDownloadIndicator,
-  NewFolderDialog, 
-  RenameDialog, 
-  FileEditor, 
-  LoadingOverlay, 
-  ErrorOverlay 
-} from './sftp';
-import DownloadProgressDialog from './sftp/DownloadProgressDialog';
+  NewFolderDialog,
+  RenameDialog,
+  FileEditor,
+  LoadingOverlay,
+  ErrorOverlay,
+  UploadProgressDialog
+} from '../sftp';
+import DownloadProgressDialog from '../sftp/DownloadProgressDialog';
 
 // Mac Terminal Style SFTP Modal
 const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
-  // UI State
-  const [pathInputValue, setPathInputValue] = useState('/');
-  const [isPathEditing, setIsPathEditing] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showFilter, setShowFilter] = useState(false);
-  const [showTransferPanel, setShowTransferPanel] = useState(false);
-  const [showUploadMenu, setShowUploadMenu] = useState(false);
-  const [activeLogFilter, setActiveLogFilter] = useState<LogFilter>('upload');
-  const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [showRenameDialog, setShowRenameDialog] = useState(false);
-  const [renameTarget, setRenameTarget] = useState<SFTPFile | null>(null);
-  const [newFileName, setNewFileName] = useState('');
-  const [showFileEditor, setShowFileEditor] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
-  
-  const pathInputRef = useRef<HTMLInputElement>(null);
-  const { success, error: showError } = useToast();
-  
-  // Custom hooks
-  const transfer = useTransferManager();
-  const sftp = useSFTP({ hostId: host.id, onLog: transfer.addTransferLog });
-  const fileOps = useFileOperations({
-    hostId: host.id, 
-    currentPath: sftp.currentPath,
-    onLog: transfer.addTransferLog, 
-    onSuccess: success, 
-    onError: showError, 
-    onRefresh: sftp.refresh
-  });
-  const window = useWindowState();
-  const upload = useUploadManager({
+  const {
+    sftp, transfer, fileOps, window, upload, download,
+    pathInputValue, setPathInputValue, isPathEditing, pathInputRef,
+    selectedFiles, searchQuery, showFilter, showTransferPanel, showUploadMenu,
+    activeLogFilter, showNewFolderDialog, newFolderName, showRenameDialog,
+    renameTarget, newFileName, showFileEditor, isDragOver,
+    pathSegments, filteredFiles, activeTransfers, dialogComponent,
+    handlePathEdit, handlePathConfirm, handlePathKeyDown, handleFileClick,
+    toggleFileSelection, handleSelectAll, handleDragOver, handleDragLeave,
+    handleDrop, handleCreateFolder, handleRename, handleSaveAndClose, clearFilter,
+    setIsPathEditing, setSelectedFiles, setSearchQuery, setShowFilter,
+    setShowTransferPanel, setShowUploadMenu, setActiveLogFilter,
+    setShowNewFolderDialog, setNewFolderName, setShowRenameDialog,
+    setRenameTarget, setNewFileName, setShowFileEditor,
+  } = useSFTPModal({
     hostId: host.id,
-    currentPath: sftp.currentPath,
-    transfer,
-    onSuccess: success,
-    onError: showError,
-    onRefresh: sftp.refresh
+    hostName: host.name,
+    hostAddress: host.address
   });
-  const download = useDownloadManager({
-    hostId: host.id,
-    transfer,
-    onSuccess: success,
-    onError: showError
-  });
-
-  // Path segments
-  const pathSegments = useMemo(() => {
-    if (sftp.currentPath === '/') return [];
-    const parts = sftp.currentPath.split('/').filter(Boolean);
-    return parts.map((name, index) => ({
-      name,
-      path: '/' + parts.slice(0, index + 1).join('/')
-    }));
-  }, [sftp.currentPath]);
-
-  // Filtered and sorted files
-  const filteredFiles = useMemo(() => {
-    let result = sftp.files;
-    
-    if (searchQuery.trim()) {
-      result = result.filter(file => 
-        file.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    // Sorting: directories > links > files
-    const directories = result.filter(f => f.is_dir && !f.is_link).sort((a, b) => a.name.localeCompare(b.name));
-    const links = result.filter(f => f.is_link).sort((a, b) => a.name.localeCompare(b.name));
-    const files = result.filter(f => !f.is_dir && !f.is_link).sort((a, b) => a.name.localeCompare(b.name));
-    
-    return [...directories, ...links, ...files];
-  }, [sftp.files, searchQuery]);
-
-  // Path editing handlers
-  const handlePathEdit = () => {
-    setPathInputValue(sftp.currentPath);
-    setIsPathEditing(true);
-    setTimeout(() => pathInputRef.current?.focus(), 0);
-  };
-
-  const handlePathConfirm = () => {
-    const newPath = pathInputValue.trim();
-    if (newPath && newPath !== sftp.currentPath) {
-      sftp.navigateTo(newPath);
-    }
-    setIsPathEditing(false);
-  };
-
-  const handlePathKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handlePathConfirm();
-    else if (e.key === 'Escape') setIsPathEditing(false);
-  };
-
-  // File click handling
-  const handleFileClick = useCallback(async (file: SFTPFile) => {
-    if (file.is_dir) {
-      sftp.navigateTo(file.path);
-    } else {
-      const content = await fileOps.readFile(file);
-      if (content !== null) setShowFileEditor(true);
-    }
-  }, [sftp.navigateTo, fileOps.readFile]);
-
-  // File selection
-  const toggleFileSelection = useCallback((path: string) => {
-    const newSelected = new Set(selectedFiles);
-    if (newSelected.has(path)) newSelected.delete(path);
-    else newSelected.add(path);
-    setSelectedFiles(newSelected);
-  }, [selectedFiles]);
-
-  const handleSelectAll = useCallback((selected: boolean) => {
-    setSelectedFiles(selected ? new Set(filteredFiles.map(f => f.path)) : new Set());
-  }, [filteredFiles]);
-
-  // Drag and drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    const items = e.dataTransfer.items;
-    if (!items) return;
-
-    await upload.handleDropUpload(items);
-  };
-
-  // Folder creation
-  const handleCreateFolder = async () => {
-    if (await fileOps.createFolder(newFolderName)) {
-      setShowNewFolderDialog(false);
-      setNewFolderName('');
-    }
-  };
-
-  // Rename
-  const handleRename = async () => {
-    if (!renameTarget) return;
-    if (await fileOps.renameFile(renameTarget, newFileName)) {
-      setShowRenameDialog(false);
-      setRenameTarget(null);
-      setNewFileName('');
-    }
-  };
-
-  // Save file
-  const handleSaveAndClose = async () => {
-    if (await fileOps.saveFile()) {
-      setShowFileEditor(false);
-      fileOps.closeEditor();
-    }
-  };
-
-  // Clear filter
-  const clearFilter = () => {
-    setSearchQuery('');
-    setShowFilter(false);
-  };
-
-  const activeTransfers = transfer.transferTasks.filter(t => t.status === 'transferring').length;
 
   // Minimized view
   if (window.windowState.isMinimized) {
@@ -249,6 +84,11 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
               pathInputValue={pathInputValue}
               pathInputRef={pathInputRef}
               pathSegments={pathSegments}
+              showFilter={showFilter}
+              showUploadMenu={showUploadMenu}
+              showTransferPanel={showTransferPanel}
+              activeTransfers={activeTransfers}
+              activeLogFilter={activeLogFilter}
               onPathChange={setPathInputValue}
               onPathConfirm={handlePathConfirm}
               onPathKeyDown={handlePathKeyDown}
@@ -258,30 +98,15 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
               onMinimize={window.handleMinimize}
               onMaximize={window.handleMaximize}
               isMaximized={window.windowState.isMaximized}
+              onShowFilter={() => setShowFilter(true)}
+              onHideFilter={() => setShowFilter(false)}
+              onNewFolder={() => setShowNewFolderDialog(true)}
+              onUpload={upload.handleUpload}
+              onUploadFolder={upload.handleUploadFolder}
+              onToggleUploadMenu={() => setShowUploadMenu(!showUploadMenu)}
+              onCloseUploadMenu={() => setShowUploadMenu(false)}
+              onToggleTransferPanel={() => setShowTransferPanel(!showTransferPanel)}
             />
-
-            {/* Toolbar */}
-            <div className="flex items-center px-4 py-2 bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] border-b border-white/5">
-              <div className="flex-1" />
-              <Toolbar
-                showFilter={showFilter}
-                showUploadMenu={showUploadMenu}
-                showTransferPanel={showTransferPanel}
-                searchQuery={searchQuery}
-                activeTransfers={activeTransfers}
-                activeLogFilter={activeLogFilter}
-                onShowFilter={() => setShowFilter(true)}
-                onHideFilter={() => setShowFilter(false)}
-                onSearchChange={setSearchQuery}
-                onClearFilter={clearFilter}
-                onNewFolder={() => setShowNewFolderDialog(true)}
-                onUpload={upload.handleUpload}
-                onUploadFolder={upload.handleUploadFolder}
-                onToggleUploadMenu={() => setShowUploadMenu(!showUploadMenu)}
-                onCloseUploadMenu={() => setShowUploadMenu(false)}
-                onToggleTransferPanel={() => setShowTransferPanel(!showTransferPanel)}
-              />
-            </div>
 
             {/* Filter Bar */}
             {showFilter && (
@@ -364,11 +189,21 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
                       download.setShowDownloadProgress(true);
                     }
                   }}
+                  onRestoreUpload={() => {
+                    if (upload.backgroundUpload) {
+                      upload.setShowUploadProgress(true);
+                    }
+                  }}
                   hasBackgroundDownload={!!download.backgroundDownload && !download.showDownloadProgress &&
                     (download.backgroundDownload.progress.stage === 'downloading' || download.backgroundDownload.progress.stage === 'init')}
                   backgroundDownloadProgress={download.backgroundDownload?.progress.progress || 0}
                   backgroundDownloadSpeed={download.backgroundDownload?.progress.speed || ''}
                   backgroundDownloadFilename={download.backgroundDownload?.file.name || ''}
+                  hasBackgroundUpload={!!upload.backgroundUpload && !upload.showUploadProgress &&
+                    (upload.backgroundUpload.progress.stage === 'uploading' || upload.backgroundUpload.progress.stage === 'init' || upload.backgroundUpload.progress.stage === 'received')}
+                  backgroundUploadProgress={upload.backgroundUpload?.progress.progress || 0}
+                  backgroundUploadSpeed={upload.backgroundUpload?.progress.speed || ''}
+                  backgroundUploadFilename={upload.backgroundUpload?.file.name || ''}
                 />
               )}
             </div>
@@ -443,16 +278,32 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
         }}
       />
       
-      {/* Background download indicator */}
-      <BackgroundDownloadIndicator
-        backgroundDownload={download.backgroundDownload}
-        showDownloadProgress={download.showDownloadProgress}
-        onRestore={() => {
-          if (download.backgroundDownload) {
-            download.setShowDownloadProgress(true);
+      {/* Upload Progress Dialog */}
+      <UploadProgressDialog
+        isOpen={upload.showUploadProgress}
+        filename={upload.uploadingFile?.name || ''}
+        fileSize={upload.uploadingFile?.size || 0}
+        progress={upload.uploadProgress.progress}
+        bytesTransferred={upload.uploadProgress.bytes_transferred}
+        speed={upload.uploadProgress.speed}
+        stage={upload.uploadProgress.stage}
+        message={upload.uploadProgress.message}
+        onClose={() => {
+          upload.setShowUploadProgress(false);
+          upload.setBackgroundUpload(null);
+        }}
+        onMinimize={() => {
+          upload.setShowUploadProgress(false);
+        }}
+        onCancel={() => {
+          if (upload.currentUploadId) {
+            upload.cancelUpload(upload.currentUploadId);
           }
         }}
       />
+      
+      {/* Dialog Component */}
+      {dialogComponent}
     </>
   );
 };
