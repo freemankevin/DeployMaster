@@ -14,6 +14,7 @@ import {
   UploadProgressDialog
 } from '../sftp';
 import DownloadProgressDialog from '../sftp/DownloadProgressDialog';
+import DiskSpaceErrorDialog from '../sftp/DiskSpaceErrorDialog';
 
 // Mac Terminal Style SFTP Modal
 const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
@@ -304,6 +305,15 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
       
       {/* Dialog Component */}
       {dialogComponent}
+      
+      {/* Disk Space Error Dialog */}
+      <DiskSpaceErrorDialog
+        isOpen={upload.showDiskSpaceError}
+        diskInfo={upload.diskSpaceInfo}
+        fileInfo={upload.diskSpaceFileInfo}
+        errorCode={upload.diskSpaceErrorCode || undefined}
+        onClose={upload.closeDiskSpaceError}
+      />
     </>
   );
 };

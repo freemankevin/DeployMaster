@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"time"
 
 	"deploy-master/models"
+	"deploy-master/pkg/logger"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -47,13 +47,13 @@ func (p *ConnectionPool) cleanupExpiredConnections() {
 		// 如果终端或SFTP窗口打开，延长保持时间
 		if conn.TerminalOpen || conn.SFTPOpen {
 			conn.KeepUntil = now.Add(DefaultKeepAliveDuration)
-			log.Printf("[ConnectionPool] Host %d has active terminal/SFTP, extending keep-alive", hostID)
+			logger.ConnectionPool.Debug("Host %d has active terminal/SFTP, extending keep-alive", hostID)
 			continue
 		}
 
 		// 检查是否超过保持时间
 		if now.After(conn.KeepUntil) {
-			log.Printf("[ConnectionPool] Connection expired for host %d, disconnecting", hostID)
+			logger.ConnectionPool.Info("Connection expired for host %d, disconnecting", hostID)
 			conn.Client.Close()
 			delete(p.connections, hostID)
 		}
@@ -69,11 +69,11 @@ func (p *ConnectionPool) SetTerminalOpen(hostID uint, open bool) {
 		conn.TerminalOpen = open
 		if open {
 			conn.KeepUntil = time.Now().Add(DefaultKeepAliveDuration)
-			log.Printf("[ConnectionPool] Terminal opened for host %d, keeping connection alive", hostID)
+			logger.ConnectionPool.Debug("Terminal opened for host %d, keeping connection alive", hostID)
 		} else {
 			// 终端关闭时，重新计算保持时间（从当前时间开始10分钟）
 			conn.KeepUntil = time.Now().Add(DefaultKeepAliveDuration)
-			log.Printf("[ConnectionPool] Terminal closed for host %d, keeping connection for 10 more minutes", hostID)
+			logger.ConnectionPool.Debug("Terminal closed for host %d, keeping connection for 10 more minutes", hostID)
 		}
 	}
 }
@@ -87,11 +87,11 @@ func (p *ConnectionPool) SetSFTPOpen(hostID uint, open bool) {
 		conn.SFTPOpen = open
 		if open {
 			conn.KeepUntil = time.Now().Add(DefaultKeepAliveDuration)
-			log.Printf("[ConnectionPool] SFTP opened for host %d, keeping connection alive", hostID)
+			logger.ConnectionPool.Debug("SFTP opened for host %d, keeping connection alive", hostID)
 		} else {
 			// SFTP关闭时，重新计算保持时间（从当前时间开始10分钟）
 			conn.KeepUntil = time.Now().Add(DefaultKeepAliveDuration)
-			log.Printf("[ConnectionPool] SFTP closed for host %d, keeping connection for 10 more minutes", hostID)
+			logger.ConnectionPool.Debug("SFTP closed for host %d, keeping connection for 10 more minutes", hostID)
 		}
 	}
 }
@@ -119,7 +119,7 @@ func (p *ConnectionPool) Connect(hostID uint, address string, port int, username
 	authMethods := []string{}
 
 	if key != nil && key.PrivateKey != "" {
-		log.Printf("[SSH] Using key authentication (key_name=%s, has_passphrase=%v)",
+		logger.SSH.Debug("Using key authentication (key_name=%s, has_passphrase=%v)",
 			key.Name, key.Passphrase != "")
 		var signer ssh.Signer
 		var err error
@@ -131,7 +131,7 @@ func (p *ConnectionPool) Connect(hostID uint, address string, port int, username
 		}
 
 		if err != nil {
-			log.Printf("[SSH] Failed to parse private key: %v", err)
+			logger.SSH.Error("Failed to parse private key: %v", err)
 			return nil, fmt.Errorf("failed to parse private key: %v", err)
 		}
 		config.Auth = append(config.Auth, ssh.PublicKeys(signer))
@@ -139,18 +139,18 @@ func (p *ConnectionPool) Connect(hostID uint, address string, port int, username
 	}
 
 	if password != "" {
-		log.Printf("[SSH] Using password authentication")
+		logger.SSH.Debug("Using password authentication")
 		config.Auth = append(config.Auth, ssh.Password(password))
 		authMethods = append(authMethods, "password")
 	}
 
-	log.Printf("[SSH] Attempting connection to %s:%d with auth methods: %v", address, port, authMethods)
+	logger.SSH.Info("Attempting connection to %s:%d with auth methods: %v", address, port, authMethods)
 
 	// 连接
 	addr := fmt.Sprintf("%s:%d", address, port)
 	client, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
-		log.Printf("[SSH] Connection failed: %v", err)
+		logger.SSH.Error("Connection failed: %v", err)
 		return nil, fmt.Errorf("failed to connect: %v", err)
 	}
 
@@ -165,7 +165,7 @@ func (p *ConnectionPool) Connect(hostID uint, address string, port int, username
 
 	p.connections[hostID] = conn
 
-	log.Printf("[SSH] Connected to %s:%d (host_id=%d)", address, port, hostID)
+	logger.SSH.Info("Connected to %s:%d (host_id=%d)", address, port, hostID)
 	return conn, nil
 }
 
@@ -189,7 +189,7 @@ func (p *ConnectionPool) Disconnect(hostID uint) {
 	if conn, exists := p.connections[hostID]; exists {
 		conn.Client.Close()
 		delete(p.connections, hostID)
-		log.Printf("[SSH] Disconnected (host_id=%d)", hostID)
+		logger.SSH.Info("Disconnected (host_id=%d)", hostID)
 	}
 }
 

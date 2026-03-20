@@ -155,3 +155,30 @@ func clearCompletedTransferRecords(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Completed transfer records cleared"})
 }
+
+// clearTransferRecordsByType 清除指定类型的传输记录
+func clearTransferRecordsByType(c *gin.Context) {
+	transferType := c.Param("type") // "upload" 或 "download"
+
+	if transferType != "upload" && transferType != "download" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid transfer type. Must be 'upload' or 'download'"})
+		return
+	}
+
+	if err := database.ClearTransferRecordsByType(transferType); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": transferType + " transfer records cleared"})
+}
+
+// clearAllTransferRecords 清除所有传输记录
+func clearAllTransferRecords(c *gin.Context) {
+	if err := database.ClearAllTransferRecords(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "All transfer records cleared"})
+}

@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"deploy-master/config"
 	"deploy-master/database"
 	"deploy-master/models"
+	"deploy-master/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -43,12 +43,12 @@ func terminalHandler(c *gin.Context) {
 	// 升级为 WebSocket
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Printf("[Terminal] WebSocket upgrade failed: %v", err)
+		logger.Terminal.Error("WebSocket upgrade failed: %v", err)
 		return
 	}
 	defer conn.Close()
 
-	log.Printf("[Terminal] WebSocket connected (host_id=%d)", hostID)
+	logger.Terminal.Info("WebSocket connected (host_id=%d)", hostID)
 
 	// 获取 SSH 连接
 	sshConn, exists := config.Pool.Get(hostID)
@@ -64,10 +64,10 @@ func terminalHandler(c *gin.Context) {
 		if host.KeyID != nil {
 			key = &models.SSHKey{}
 			if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-				log.Printf("[Terminal] Failed to load key (key_id=%d): %v", *host.KeyID, err)
+				logger.Terminal.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
 				key = nil
 			} else {
-				log.Printf("[Terminal] Loaded key (key_id=%d, name=%s, has_private_key=%v)",
+				logger.Terminal.Debug("Loaded key (key_id=%d, name=%s, has_private_key=%v)",
 					*host.KeyID, key.Name, key.PrivateKey != "")
 			}
 		}
@@ -146,7 +146,7 @@ func terminalHandler(c *gin.Context) {
 		terminalMu.Unlock()
 		// 标记终端为关闭状态，但保持连接10分钟
 		config.Pool.SetTerminalOpen(hostID, false)
-		log.Printf("[Terminal] Session closed (host_id=%d)", hostID)
+		logger.Terminal.Info("Session closed (host_id=%d)", hostID)
 	}()
 
 	// 发送欢迎消息

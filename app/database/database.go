@@ -179,3 +179,14 @@ func DeleteTransferRecord(id uint) error {
 func ClearCompletedTransferRecords() error {
 	return DB.Where("status IN ?", []string{"completed", "failed", "cancelled"}).Delete(&models.TransferRecord{}).Error
 }
+
+// ClearTransferRecordsByType 清除指定类型的已完成传输记录
+// transferType: "upload" 或 "download"
+func ClearTransferRecordsByType(transferType string) error {
+	return DB.Where("type = ? AND status IN ?", transferType, []string{"completed", "failed", "cancelled"}).Delete(&models.TransferRecord{}).Error
+}
+
+// ClearAllTransferRecords 清除所有传输记录（包括进行中的）
+func ClearAllTransferRecords() error {
+	return DB.Where("1 = 1").Delete(&models.TransferRecord{}).Error
+}

@@ -33,6 +33,7 @@ nb-configuration.xml
 *.orig
 *.rej
 
+.kilocode/
 screenshots/
 node_modules/
 logs/
@@ -104,3 +105,4 @@ app/data/
 # ============ Rust (已移除，保留规则以防万一) ============
 sftp-transfer/target/
 Cargo.lock
+.kilocode/mcp.json

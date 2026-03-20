@@ -154,19 +154,11 @@ const TransferPanel = ({
             </div>
             
             {/* Progress bar */}
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-2">
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-300"
                 style={{ width: `${backgroundUploadProgress}%` }}
               />
-            </div>
-            
-            {/* Progress info */}
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="text-gray-400">{Math.round(backgroundUploadProgress)}%</span>
-              {backgroundUploadSpeed && (
-                <span className="text-blue-400">{backgroundUploadSpeed}</span>
-              )}
             </div>
           </div>
         )}
@@ -196,19 +188,11 @@ const TransferPanel = ({
             </div>
             
             {/* Progress bar */}
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-2">
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-300"
                 style={{ width: `${backgroundDownloadProgress}%` }}
               />
-            </div>
-            
-            {/* Progress info */}
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="text-gray-400">{Math.round(backgroundDownloadProgress)}%</span>
-              {backgroundDownloadSpeed && (
-                <span className="text-blue-400">{backgroundDownloadSpeed}</span>
-              )}
             </div>
           </div>
         )}

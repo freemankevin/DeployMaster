@@ -1,5 +1,6 @@
 import React from 'react';
 import type { LogFilter } from './types';
+import { FileUploadIcon, FolderUploadIcon } from './Icons';
 
 interface ToolbarProps {
   showFilter: boolean;
@@ -83,7 +84,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
               >
                 <span className="w-4 h-4 flex items-center justify-center">
-                  <i className="ti ti-file-upload-filled text-base" />
+                  <FileUploadIcon className="w-4 h-4" />
                 </span>
                 <span>Upload Files</span>
               </button>
@@ -92,7 +93,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
               >
                 <span className="w-4 h-4 flex items-center justify-center">
-                  <i className="ti ti-folder-up text-sm" />
+                  <FolderUploadIcon className="w-4 h-4" />
                 </span>
                 <span>Upload Folder</span>
               </button>

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { sftpApi } from '@/services/api';
 import { formatFileSize } from '../utils';
 import type { TransferManager } from '../types';
+import type { DiskInfo, FileInfo } from '@/services/sftpApi';
 import {
   UploadProgress,
   ActiveUpload,
@@ -41,6 +42,12 @@ interface UseUploadManagerReturn {
   setBackgroundUpload: (upload: BackgroundUploadState | null) => void;
   currentUploadId: string | null;
   currentTaskId: string | null;
+  // Disk space error dialog
+  showDiskSpaceError: boolean;
+  diskSpaceInfo: DiskInfo | null;
+  diskSpaceFileInfo: FileInfo | null;
+  diskSpaceErrorCode: 'DISK_SPACE_THRESHOLD_EXCEEDED' | 'DISK_SPACE_INSUFFICIENT' | null;
+  closeDiskSpaceError: () => void;
 }
 
 export function useUploadManager({
@@ -61,6 +68,19 @@ export function useUploadManager({
   const [backgroundUpload, setBackgroundUpload] = useState<BackgroundUploadState | null>(null);
   const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
+  
+  // Disk space error dialog state
+  const [showDiskSpaceError, setShowDiskSpaceError] = useState(false);
+  const [diskSpaceInfo, setDiskSpaceInfo] = useState<DiskInfo | null>(null);
+  const [diskSpaceFileInfo, setDiskSpaceFileInfo] = useState<FileInfo | null>(null);
+  const [diskSpaceErrorCode, setDiskSpaceErrorCode] = useState<'DISK_SPACE_THRESHOLD_EXCEEDED' | 'DISK_SPACE_INSUFFICIENT' | null>(null);
+  
+  const closeDiskSpaceError = useCallback(() => {
+    setShowDiskSpaceError(false);
+    setDiskSpaceInfo(null);
+    setDiskSpaceFileInfo(null);
+    setDiskSpaceErrorCode(null);
+  }, []);
 
   // Upload single file with real progress tracking
   const uploadFileWithProgress = useCallback(async (
@@ -231,6 +251,32 @@ export function useUploadManager({
         return false;
       }
 
+      // 检查是否是磁盘空间不足错误
+      const uploadError = err?.uploadError;
+      if (uploadError?.disk_info) {
+        // 磁盘空间不足，显示专用对话框
+        setDiskSpaceInfo(uploadError.disk_info);
+        setDiskSpaceFileInfo(uploadError.file_info || null);
+        setDiskSpaceErrorCode(uploadError.error_code || 'DISK_SPACE_INSUFFICIENT');
+        setShowDiskSpaceError(true);
+        
+        // 更新传输状态
+        handleUploadComplete(
+          false,
+          fileName,
+          filePath,
+          file.size,
+          taskId,
+          transfer,
+          setUploadProgress,
+          setBackgroundUpload,
+          setCurrentUploadId,
+          setCurrentTaskId,
+          uploadError.error
+        );
+        return false;
+      }
+
       handleUploadComplete(
         false,
         fileName,
@@ -369,7 +415,13 @@ export function useUploadManager({
     setShowUploadProgress,
     setBackgroundUpload,
     currentUploadId,
-    currentTaskId
+    currentTaskId,
+    // Disk space error dialog
+    showDiskSpaceError,
+    diskSpaceInfo,
+    diskSpaceFileInfo,
+    diskSpaceErrorCode,
+    closeDiskSpaceError,
   };
 }
 

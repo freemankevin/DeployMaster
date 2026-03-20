@@ -2,15 +2,14 @@ package middleware
 
 import (
 	"fmt"
-	"io"
-	"os"
 	"strings"
 	"time"
 
+	"deploy-master/pkg/logger"
 	"github.com/gin-gonic/gin"
 )
 
-// 颜色定义
+// 颜色定义（用于启动横幅和表格打印）
 const (
 	colorReset   = "\033[0m"
 	colorRed     = "\033[31m"
@@ -26,7 +25,6 @@ const (
 
 // LoggerConfig 日志配置
 type LoggerConfig struct {
-	Output       io.Writer
 	SkipPaths    []string
 	SkipPrefixes []string
 }
@@ -34,14 +32,10 @@ type LoggerConfig struct {
 // Logger 专业的日志中间件
 func Logger(config ...LoggerConfig) gin.HandlerFunc {
 	// 默认配置
-	var output io.Writer = os.Stdout
 	skipPaths := []string{}
 	skipPrefixes := []string{}
 
 	if len(config) > 0 {
-		if config[0].Output != nil {
-			output = config[0].Output
-		}
 		if config[0].SkipPaths != nil {
 			skipPaths = config[0].SkipPaths
 		}
@@ -80,8 +74,6 @@ func Logger(config ...LoggerConfig) gin.HandlerFunc {
 
 		// 状态码
 		status := c.Writer.Status()
-		statusColor := getStatusColor(status)
-		methodColor := getMethodColor(method)
 
 		// 客户端 IP
 		clientIP := c.ClientIP()
@@ -89,104 +81,51 @@ func Logger(config ...LoggerConfig) gin.HandlerFunc {
 		// 响应大小
 		bodySize := c.Writer.Size()
 
-		// 格式化时间
-		timeStr := start.Format("15:04:05")
-
-		// 构建日志行
-		var logLine strings.Builder
-
-		// 时间
-		logLine.WriteString(colorGray)
-		logLine.WriteString(timeStr)
-		logLine.WriteString(colorReset)
-		logLine.WriteString(" ")
+		// 构建日志消息
+		var msgBuilder strings.Builder
 
 		// 方法
-		logLine.WriteString(methodColor)
-		logLine.WriteString(fmt.Sprintf("%-6s", method))
-		logLine.WriteString(colorReset)
+		msgBuilder.WriteString(fmt.Sprintf("%-6s", method))
 
 		// 路径
-		logLine.WriteString(path)
+		msgBuilder.WriteString(path)
 
 		// 查询参数
 		if query != "" {
-			logLine.WriteString(colorGray)
-			logLine.WriteString("?")
-			logLine.WriteString(query)
-			logLine.WriteString(colorReset)
+			msgBuilder.WriteString("?")
+			msgBuilder.WriteString(query)
 		}
 
 		// 状态码
-		logLine.WriteString(" ")
-		logLine.WriteString(statusColor)
-		logLine.WriteString(fmt.Sprintf("| %3d ", status))
-		logLine.WriteString(colorReset)
+		msgBuilder.WriteString(fmt.Sprintf(" | %d", status))
 
 		// 延迟
-		latencyStr := formatLatency(latency)
-		logLine.WriteString(colorCyan)
-		logLine.WriteString(latencyStr)
-		logLine.WriteString(colorReset)
+		msgBuilder.WriteString(" | ")
+		msgBuilder.WriteString(formatLatency(latency))
 
 		// 响应大小
-		logLine.WriteString(" ")
-		logLine.WriteString(colorGray)
-		logLine.WriteString(formatSize(int64(bodySize)))
-		logLine.WriteString(colorReset)
+		msgBuilder.WriteString(" | ")
+		msgBuilder.WriteString(formatSize(int64(bodySize)))
 
 		// 客户端 IP
-		logLine.WriteString(" ")
-		logLine.WriteString(colorGray)
-		logLine.WriteString(clientIP)
-		logLine.WriteString(colorReset)
+		msgBuilder.WriteString(" | ")
+		msgBuilder.WriteString(clientIP)
 
 		// 错误信息
 		if len(c.Errors) > 0 {
-			logLine.WriteString(" ")
-			logLine.WriteString(colorRed)
-			logLine.WriteString(c.Errors.String())
-			logLine.WriteString(colorReset)
+			msgBuilder.WriteString(" | ")
+			msgBuilder.WriteString(c.Errors.String())
 		}
 
-		// 输出日志
-		fmt.Fprintln(output, logLine.String())
-	}
-}
-
-// getStatusColor 获取状态码颜色
-func getStatusColor(status int) string {
-	switch {
-	case status >= 200 && status < 300:
-		return colorGreen
-	case status >= 300 && status < 400:
-		return colorCyan
-	case status >= 400 && status < 500:
-		return colorYellow
-	case status >= 500:
-		return colorRed
-	default:
-		return colorWhite
-	}
-}
-
-// getMethodColor 获取请求方法颜色
-func getMethodColor(method string) string {
-	switch method {
-	case "GET":
-		return colorGreen
-	case "POST":
-		return colorBlue
-	case "PUT":
-		return colorYellow
-	case "DELETE":
-		return colorRed
-	case "PATCH":
-		return colorPurple
-	case "OPTIONS":
-		return colorCyan
-	default:
-		return colorWhite
+		// 根据状态码选择日志级别
+		switch {
+		case status >= 500:
+			logger.HTTP.Error(msgBuilder.String())
+		case status >= 400:
+			logger.HTTP.Warn(msgBuilder.String())
+		default:
+			logger.HTTP.Info(msgBuilder.String())
+		}
 	}
 }
 

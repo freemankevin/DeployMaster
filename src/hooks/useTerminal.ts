@@ -50,14 +50,14 @@ export const useTerminal = ({
     fontSize: 13,
     fontWeight: 'normal' as const,
     fontWeightBold: 'bold' as const,
-    fontFamily: '"SF Mono", "Monaco", "Menlo", "Consolas", "Liberation Mono", "Courier New", monospace',
+    fontFamily: '"JetBrains Mono", "SF Mono", "Monaco", "Menlo", "Consolas", "Liberation Mono", "Courier New", monospace',
     theme: {
       background: '#1e1e1e',
       foreground: '#ffffff',
       cursor: '#28c840',
       cursorAccent: '#1e1e1e',
-      selectionBackground: 'rgba(255, 255, 255, 0.3)',
-      selectionForeground: '#000000',
+      selectionBackground: 'rgba(0, 122, 255, 0.3)',
+      selectionForeground: '#ffffff',
       black: '#000000',
       red: '#ff3b30',
       green: '#28c840',
@@ -83,6 +83,12 @@ export const useTerminal = ({
     lineHeight: 1.15,
     drawBoldTextInBrightColors: true,
     minimumContrastRatio: 1,
+    // Enable mouse events for selection and right-click
+    mouseEvents: true,
+    // Disable default right-click behavior, handle manually
+    rightClickSelectsWord: false,
+    // Disable default copy on selection, handle manually
+    copyOnSelect: false,
   });
 
   // Fit terminal to container
@@ -260,14 +266,175 @@ export const useTerminal = ({
       }
     });
 
-    term.onSelectionChange(() => {
-      const selection = term.getSelection();
-      if (selection) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(selection).catch(() => {});
-        }
+    // ========================================
+    // Copy/Paste functionality (Tabby-like)
+    // ========================================
+    
+    // Helper: paste text to terminal
+    const pasteText = (text: string) => {
+      if (!text) return;
+      const currentWs = wsRef.current;
+      if (currentWs && currentWs.readyState === WebSocket.OPEN) {
+        try {
+          currentWs.send(JSON.stringify({ type: 'data', data: text }));
+        } catch (e) {}
       }
+    };
+
+    // Helper: copy text to clipboard
+    const copyToClipboard = (text: string) => {
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {
+          // Fallback: try to use execCommand for older browsers
+          try {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+          } catch (e) {}
+        });
+      }
+    };
+
+    // Helper: read plain text from clipboard (removes formatting/background colors)
+    // This solves the "white background block" issue when pasting from rich text sources
+    const readPlainTextFromClipboard = async (): Promise<string> => {
+      try {
+        // Try to read as plain text first using Clipboard API
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          return await navigator.clipboard.readText();
+        }
+      } catch (e) {
+        // Clipboard API failed, try fallback method
+      }
+      
+      // Fallback: use execCommand to paste into a hidden textarea
+      // This ensures we get plain text only, stripping all formatting
+      return new Promise((resolve) => {
+        try {
+          const textarea = document.createElement('textarea');
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          textarea.style.left = '-9999px';
+          textarea.style.top = '-9999px';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          
+          // Try to execute paste command
+          const success = document.execCommand('paste');
+          if (success) {
+            const text = textarea.value;
+            document.body.removeChild(textarea);
+            resolve(text);
+          } else {
+            document.body.removeChild(textarea);
+            resolve('');
+          }
+        } catch (e) {
+          resolve('');
+        }
+      });
+    };
+
+    // 1. Auto-copy on selection - use mouseup event to detect selection complete
+    const handleMouseUp = () => {
+      // Small delay to ensure selection is complete
+      setTimeout(() => {
+        if (term.hasSelection()) {
+          const selection = term.getSelection();
+          if (selection) {
+            copyToClipboard(selection);
+          }
+        }
+      }, 10);
+    };
+
+    // 2. Use attachCustomKeyEventHandler for keyboard shortcuts
+    term.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+      // Shift+Insert for paste (plain text only - no background colors)
+      if (event.shiftKey && event.key === 'Insert') {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Focus terminal first
+        term.focus();
+        
+        // Read plain text from clipboard and paste
+        readPlainTextFromClipboard().then((text) => {
+          if (text) {
+            pasteText(text);
+          }
+        });
+        return false; // Prevent default handling
+      }
+      
+      // Ctrl+Shift+C for explicit copy
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'c') {
+        const selection = term.getSelection();
+        if (selection) {
+          copyToClipboard(selection);
+        }
+        return false;
+      }
+      
+      // Ctrl+Shift+V for paste (plain text only)
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'v') {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Focus terminal first
+        term.focus();
+        
+        // Read plain text from clipboard and paste
+        readPlainTextFromClipboard().then((text) => {
+          if (text) {
+            pasteText(text);
+          }
+        });
+        return false;
+      }
+      
+      return true; // Let xterm.js handle other keys normally
     });
+
+    // 3. Context menu (right-click) - paste directly with plain text
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Focus terminal before pasting
+      term.focus();
+      
+      // Read plain text from clipboard and paste (no formatting/background)
+      readPlainTextFromClipboard().then((text) => {
+        if (text) {
+          pasteText(text);
+        }
+      });
+    };
+
+    // Bind events to the terminal element and its children
+    const terminalElement = terminalRef.current;
+    
+    // Bind mouseup for auto-copy on selection
+    terminalElement.addEventListener('mouseup', handleMouseUp);
+    
+    // Bind contextmenu to all relevant elements
+    terminalElement.addEventListener('contextmenu', handleContextMenu as EventListener);
+    
+    // Also bind to xterm-screen (the main terminal display area)
+    const xtermScreen = terminalElement.querySelector('.xterm-screen') as HTMLElement | null;
+    if (xtermScreen) {
+      xtermScreen.addEventListener('contextmenu', handleContextMenu as EventListener);
+      xtermScreen.addEventListener('mouseup', handleMouseUp);
+    }
 
     // Resize handler
     const debouncedResize = () => {
@@ -293,27 +460,6 @@ export const useTerminal = ({
     
     window.addEventListener('resize', debouncedResize);
 
-    // Context menu
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      const selection = term.getSelection();
-      if (selection) {
-        navigator.clipboard.writeText(selection);
-      } else {
-        navigator.clipboard.readText().then((text) => {
-          const currentWs = wsRef.current;
-          if (text && currentWs && currentWs.readyState === WebSocket.OPEN) {
-            try {
-              currentWs.send(JSON.stringify({ type: 'data', data: text }));
-            } catch (e) {}
-          }
-        }).catch(() => {});
-      }
-    };
-    
-    const terminalElement = terminalRef.current;
-    terminalElement.addEventListener('contextmenu', handleContextMenu);
-
     return () => {
       stopHeartbeat();
       window.removeEventListener('resize', debouncedResize);
@@ -327,7 +473,16 @@ export const useTerminal = ({
         resizeObserverRef.current = null;
       }
       
-      terminalElement.removeEventListener('contextmenu', handleContextMenu);
+      // Remove all event listeners
+      terminalElement.removeEventListener('contextmenu', handleContextMenu as EventListener);
+      terminalElement.removeEventListener('mouseup', handleMouseUp);
+      
+      // Remove from xterm-screen
+      const xtermScreenCleanup = terminalElement.querySelector('.xterm-screen');
+      if (xtermScreenCleanup) {
+        xtermScreenCleanup.removeEventListener('contextmenu', handleContextMenu as EventListener);
+        xtermScreenCleanup.removeEventListener('mouseup', handleMouseUp);
+      }
       
       const currentWs = wsRef.current;
       if (currentWs) {

@@ -20,6 +20,7 @@ func UpdateProgress(id, stage string, progress int, transferred, total int64, me
 	if !exists {
 		p = &models.TransferProgress{
 			TransferID: id,
+			StartTime:  time.Now(),
 		}
 		progressStore[id] = p
 	}
@@ -30,9 +31,16 @@ func UpdateProgress(id, stage string, progress int, transferred, total int64, me
 	p.TotalBytes = total
 	p.Message = message
 
-	// 计算速度
-	if p.Stage == "completed" {
-		p.Speed = calculateSpeed(transferred, total, time.Since(time.Time{}))
+	// 计算速度（基于已传输字节数和经过的时间）
+	if !p.StartTime.IsZero() && time.Since(p.StartTime).Seconds() > 0 {
+		elapsed := time.Since(p.StartTime).Seconds()
+		speed := float64(transferred) / elapsed
+		p.Speed = formatSize(int64(speed)) + "/s"
+	}
+
+	// 如果完成，设置结束时间
+	if stage == "completed" {
+		p.EndTime = time.Now()
 	}
 }
 
@@ -52,14 +60,4 @@ func DeleteProgress(id string) {
 	progressMu.Lock()
 	defer progressMu.Unlock()
 	delete(progressStore, id)
-}
-
-// calculateSpeed 计算速度
-func calculateSpeed(transferred, total int64, elapsed time.Duration) string {
-	if elapsed.Seconds() == 0 {
-		return "0 B/s"
-	}
-	
-	speed := float64(transferred) / elapsed.Seconds()
-	return formatSize(int64(speed)) + "/s"
 }

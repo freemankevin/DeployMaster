@@ -99,20 +99,28 @@ export function useDownloadManager({
         file.size
       );
       
-      // Create download link
+      // Create download link with proper blob type handling
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = file.name;
       a.style.display = 'none';
       document.body.appendChild(a);
-      a.click();
       
-      // Delay cleanup to ensure download has started
+      // Trigger click and wait for next tick to ensure browser processes it
       setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 100);
+        a.click();
+        
+        // Delay cleanup to ensure download dialog has been triggered
+        // Use longer delay for larger files and special file types
+        const cleanupDelay = file.size > 10 * 1024 * 1024 ? 1000 : 500;
+        setTimeout(() => {
+          if (a.parentNode) {
+            document.body.removeChild(a);
+          }
+          window.URL.revokeObjectURL(url);
+        }, cleanupDelay);
+      }, 0);
       
       transfer.completeTransferTask(taskId, true);
       setBackgroundDownload(null); // Clear background download status
@@ -154,12 +162,23 @@ export function useDownloadManager({
       
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; 
+      a.href = url;
       a.download = `${folder.name}.zip`;
-      document.body.appendChild(a); 
-      a.click();
-      document.body.removeChild(a); 
-      window.URL.revokeObjectURL(url);
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      
+      // Trigger click and wait for next tick to ensure browser processes it
+      setTimeout(() => {
+        a.click();
+        
+        // Delay cleanup to ensure download dialog has been triggered
+        setTimeout(() => {
+          if (a.parentNode) {
+            document.body.removeChild(a);
+          }
+          window.URL.revokeObjectURL(url);
+        }, 500);
+      }, 0);
       
       transfer.completeTransferTask(taskId, true);
       onSuccess('Download Complete', `${folder.name}.zip downloaded successfully`);

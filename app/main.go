@@ -16,6 +16,17 @@ const (
 	APP_PORT    = 8000
 )
 
+// getServerAddr 获取服务器绑定地址
+// 默认只绑定 localhost 避免 Windows 防火墙弹窗
+// 如需外部访问，设置环境变量 SERVER_ADDR=0.0.0.0:8000
+func getServerAddr() string {
+	if addr := os.Getenv("SERVER_ADDR"); addr != "" {
+		return addr
+	}
+	// 默认只绑定 localhost，避免防火墙弹窗
+	return "127.0.0.1:8000"
+}
+
 func main() {
 	// 打印启动横幅
 	middleware.PrintBanner(APP_PORT, APP_VERSION)
@@ -36,8 +47,9 @@ func main() {
 	fmt.Println()
 
 	// 启动服务器 (在 goroutine 中)
+	serverAddr := getServerAddr()
 	go func() {
-		if err := router.Run(":8000"); err != nil {
+		if err := router.Run(serverAddr); err != nil {
 			middleware.PrintStartupInfo("Server failed: "+err.Error(), "error")
 			os.Exit(1)
 		}

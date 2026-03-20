@@ -59,6 +59,14 @@ export const transferApi = {
   // Clear completed transfer records
   clearCompleted: () =>
     getApi().delete<unknown, { success: boolean; message: string }>('/transfers/completed'),
+
+  // Clear transfer records by type (upload or download)
+  clearByType: (type: 'upload' | 'download') =>
+    getApi().delete<unknown, { success: boolean; message: string }>(`/transfers/type/${type}`),
+
+  // Clear all transfer records
+  clearAll: () =>
+    getApi().delete<unknown, { success: boolean; message: string }>('/transfers/all'),
 };
 
 export default transferApi;

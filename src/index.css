@@ -1,3 +1,9 @@
+/* Font Awesome - 本地引入 */
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+/* Tabler Icons - 本地引入 */
+@import '@tabler/icons-webfont/dist/tabler-icons.min.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

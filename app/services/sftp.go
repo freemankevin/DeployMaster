@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 
 	"deploy-master/config"
 	"deploy-master/models"
+	"deploy-master/pkg/logger"
 	"github.com/pkg/sftp"
 )
 
@@ -56,7 +56,7 @@ func ConnectSFTP(hostID uint) (*SFTPService, error) {
 	// 标记SFTP为打开状态，保持连接
 	config.Pool.SetSFTPOpen(hostID, true)
 
-	log.Printf("[SFTP] Connected (host_id=%d)", hostID)
+	logger.SFTP.Info("Connected (host_id=%d)", hostID)
 	return service, nil
 }
 
@@ -78,7 +78,7 @@ func DisconnectSFTP(hostID uint) {
 		delete(sftpConnections, hostID)
 		// 标记SFTP为关闭状态，但保持连接10分钟
 		config.Pool.SetSFTPOpen(hostID, false)
-		log.Printf("[SFTP] Disconnected (host_id=%d)", hostID)
+		logger.SFTP.Info("Disconnected (host_id=%d)", hostID)
 	}
 }
 
@@ -213,6 +213,11 @@ func (s *SFTPService) GetDiskUsage(path string) (*DiskUsage, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.getDiskUsageInternal(path)
+}
+
+// GetDiskUsageForPath 获取指定路径的磁盘使用情况（公开方法，用于上传前检查）
+func (s *SFTPService) GetDiskUsageForPath(path string) (*DiskUsage, error) {
+	return s.GetDiskUsage(path)
 }
 
 // getDiskUsageInternal 内部获取磁盘使用情况（不加锁）

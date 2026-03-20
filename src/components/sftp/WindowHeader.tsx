@@ -1,6 +1,7 @@
 import React from 'react';
 import type { SFTPFile } from '@/services/api';
 import type { LogFilter } from './types';
+import { FileUploadIcon, FolderUploadIcon } from './Icons';
 
 interface PathSegment {
   name: string;
@@ -171,23 +172,23 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               />
               <div className="absolute top-full right-0 mt-1 bg-[#2a2a2a] border border-white/10 rounded-md shadow-xl z-[60] min-w-[140px] py-1">
                 <button
-                  onClick={() => { onUpload(); onCloseUploadMenu(); }}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
-                >
-                  <span className="w-4 h-4 flex items-center justify-center">
-                    <i className="ti ti-file-upload-filled text-base" />
-                  </span>
-                  <span>Upload Files</span>
-                </button>
-                <button
-                  onClick={() => { onUploadFolder(); onCloseUploadMenu(); }}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
-                >
-                  <span className="w-4 h-4 flex items-center justify-center">
-                    <i className="ti ti-folder-up text-sm" />
-                  </span>
-                  <span>Upload Folder</span>
-                </button>
+                   onClick={() => { onUpload(); onCloseUploadMenu(); }}
+                   className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                 >
+                   <span className="w-4 h-4 flex items-center justify-center">
+                     <FileUploadIcon className="w-4 h-4" />
+                   </span>
+                   <span>Upload Files</span>
+                 </button>
+                 <button
+                   onClick={() => { onUploadFolder(); onCloseUploadMenu(); }}
+                   className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                 >
+                   <span className="w-4 h-4 flex items-center justify-center">
+                     <FolderUploadIcon className="w-4 h-4" />
+                   </span>
+                   <span>Upload Folder</span>
+                 </button>
               </div>
             </>
           )}

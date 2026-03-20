@@ -1,1 +1,10 @@
-{"mcpServers":{}}
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "mcp-sqlite-server",
+      "args": [
+        "C:\\Users\\Devops\\Desktop\\Coding\\Github\\DeployMaster\\data\\deploy_master.db"
+      ]
+    }
+  }
+}

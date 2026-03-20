@@ -89,6 +89,34 @@ async function handleBlobError(response: Blob): Promise<void> {
   }
 }
 
+// 磁盘空间信息接口
+export interface DiskInfo {
+  used_bytes: number;
+  available_bytes: number;
+  total_bytes: number;
+  usage_percent: string;
+  used_formatted: string;
+  available_formatted: string;
+  total_formatted: string;
+  threshold?: string;
+}
+
+// 文件信息接口
+export interface FileInfo {
+  name: string;
+  size_bytes: number;
+  size_formatted: string;
+}
+
+// 上传错误信息接口
+export interface UploadError {
+  success: boolean;
+  error: string;
+  error_code?: 'DISK_SPACE_THRESHOLD_EXCEEDED' | 'DISK_SPACE_INSUFFICIENT';
+  file_info?: FileInfo;
+  disk_info?: DiskInfo;
+}
+
 export const sftpApi = {
   // Connect SFTP
   connect: (hostId: number) =>
@@ -115,7 +143,7 @@ export const sftpApi = {
     getApi().post<unknown, ApiResponse<void>>('/sftp/rename', { host_id: hostId, old_path: oldPath, new_path: newPath }),
 
   // Upload file with progress ID and cancel support
-  uploadFile: (hostId: number, remotePath: string, file: File, relativePath?: string, uploadId?: string, abortSignal?: AbortSignal) => {
+  uploadFile: async (hostId: number, remotePath: string, file: File, relativePath?: string, uploadId?: string, abortSignal?: AbortSignal) => {
     const formData = new FormData();
     formData.append('host_id', hostId.toString());
     formData.append('path', remotePath);
@@ -127,10 +155,32 @@ export const sftpApi = {
     const timeout = Math.min(30 * 60 * 1000, Math.max(60000, sizeMB * 5000));
     const url = uploadId ? `/sftp/upload?upload_id=${uploadId}` : '/sftp/upload';
     
-    return getApi().post<unknown, ApiResponse<void>>(url, formData, {
-      timeout: timeout,
-      signal: abortSignal,
-    });
+    try {
+      return await getApi().post<unknown, ApiResponse<void>>(url, formData, {
+        timeout: timeout,
+        signal: abortSignal,
+      });
+    } catch (error: any) {
+      // 处理磁盘空间不足的错误
+      if (error?.response?.data) {
+        const errorData = error.response.data;
+        if (typeof errorData === 'object' && errorData.error) {
+          // 创建包含磁盘信息和文件信息的错误对象
+          const uploadError: UploadError = {
+            success: false,
+            error: errorData.error,
+            error_code: errorData.error_code,
+            file_info: errorData.file_info,
+            disk_info: errorData.disk_info
+          };
+          // 抛出自定义错误
+          const customError = new Error(errorData.error);
+          (customError as any).uploadError = uploadError;
+          throw customError;
+        }
+      }
+      throw error;
+    }
   },
 
   // Get upload progress
@@ -156,38 +206,50 @@ export const sftpApi = {
       bytes_transferred: 0,
       total_bytes: fileSize || 0,
       speed: '0 B/s',
-      message: '准备下载...'
+      message: 'Preparing download...'
     };
     
+    // 先通知初始状态
     if (onProgress) {
-      progressInterval = setInterval(async () => {
-        try {
-          const response = await sftpApi.getDownloadProgress(downloadId);
-          if (response.success && response.progress) {
-            lastProgress = response.progress;
-            onProgress(lastProgress);
-            
-            if (lastProgress.stage === 'completed' || lastProgress.stage === 'error') {
-              if (progressInterval) {
-                clearInterval(progressInterval);
-                progressInterval = null;
-              }
-            }
-          }
-        } catch (e) {
-          console.warn('[SFTP API] Progress polling error:', e);
-        }
-      }, 300);
-      
       onProgress(lastProgress);
     }
     
     try {
       const api = getApi();
-      const response = await api.post<unknown, Blob>(`/sftp/download?download_id=${downloadId}`, { host_id: hostId, path: remotePath }, {
+      
+      // 发送下载请求，后端会在收到请求时创建进度记录
+      const downloadPromise = api.post<unknown, Blob>(`/sftp/download?download_id=${downloadId}`, { host_id: hostId, path: remotePath }, {
         responseType: 'blob',
         timeout: timeout,
       });
+      
+      // 等待一小段时间让后端创建进度记录，然后开始轮询
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      if (onProgress) {
+        progressInterval = setInterval(async () => {
+          try {
+            const response = await sftpApi.getDownloadProgress(downloadId);
+            if (response.success && response.progress) {
+              lastProgress = response.progress;
+              onProgress(lastProgress);
+              
+              if (lastProgress.stage === 'completed' || lastProgress.stage === 'error') {
+                if (progressInterval) {
+                  clearInterval(progressInterval);
+                  progressInterval = null;
+                }
+              }
+            }
+          } catch (e) {
+            // 忽略 404 错误，后端可能还在创建进度记录
+            console.warn('[SFTP API] Progress polling error:', e);
+          }
+        }, 500);  // 增加轮询间隔到 500ms
+      }
+      
+      // 等待下载完成
+      const response = await downloadPromise;
       
       if (progressInterval) {
         clearInterval(progressInterval);
@@ -205,7 +267,7 @@ export const sftpApi = {
           bytes_transferred: response.size,
           total_bytes: response.size,
           speed: '',
-          message: '下载完成'
+          message: 'Download complete'
         });
       }
       

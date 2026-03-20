@@ -3,12 +3,12 @@ package services
 import (
 	"fmt"
 	"io"
-	"log"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"deploy-master/config"
+	"deploy-master/pkg/logger"
 )
 
 // DownloadFile 下载文件 - 高性能流式传输
@@ -74,7 +74,7 @@ func (s *SFTPService) DownloadFile(remotePath string, writer io.Writer, progress
 	UpdateProgress(progressID, "completed", 100, fileSize, fileSize,
 		fmt.Sprintf("Completed (%s/s)", formatSize(int64(avgSpeed))))
 
-	log.Printf("[SFTP] Download completed: %s (%s, %.2fs)", remotePath, formatSize(fileSize), elapsed)
+	logger.SFTP.Info("Download completed: %s (%s, %.2fs)", remotePath, formatSize(fileSize), elapsed)
 	return nil
 }
 
@@ -118,7 +118,7 @@ func (s *SFTPService) UploadFile(localReader io.Reader, remotePath string, fileS
 		err := s.pipedUpload(localReader, remotePath, fileSize, progressID, startTime)
 		if err != nil {
 			// 如果管道传输失败，回退到普通传输
-			log.Printf("[SFTP] Pipe upload failed, falling back to normal: %v", err)
+			logger.SFTP.Warn("Pipe upload failed, falling back to normal: %v", err)
 			return s.normalUpload(localReader, remotePath, fileSize, progressID, startTime)
 		}
 	} else {
@@ -181,7 +181,7 @@ func (s *SFTPService) normalUpload(localReader io.Reader, remotePath string, fil
 	UpdateProgress(progressID, "completed", 100, fileSize, fileSize,
 		fmt.Sprintf("Completed (%s/s)", formatSize(int64(avgSpeed))))
 
-	log.Printf("[SFTP] Upload completed: %s (%s, %.2fs)", remotePath, formatSize(fileSize), elapsed)
+	logger.SFTP.Info("Upload completed: %s (%s, %.2fs)", remotePath, formatSize(fileSize), elapsed)
 	return nil
 }
 
@@ -264,7 +264,7 @@ func (s *SFTPService) pipedUpload(localReader io.Reader, remotePath string, file
 	UpdateProgress(progressID, "completed", 100, fileSize, fileSize,
 		fmt.Sprintf("Completed (%s/s)", formatSize(int64(avgSpeed))))
 
-	log.Printf("[SFTP] Upload completed (pipe): %s (%s, %.2fs)", remotePath, formatSize(fileSize), elapsed)
+	logger.SFTP.Info("Upload completed (pipe): %s (%s, %.2fs)", remotePath, formatSize(fileSize), elapsed)
 	return nil
 }
 

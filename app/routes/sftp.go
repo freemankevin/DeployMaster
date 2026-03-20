@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"log"
 	"net/http"
 
 	"deploy-master/config"
 	"deploy-master/database"
 	"deploy-master/models"
+	"deploy-master/pkg/logger"
 	"deploy-master/services"
 
 	"github.com/gin-gonic/gin"
@@ -42,10 +42,10 @@ func sftpConnect(c *gin.Context) {
 		if host.KeyID != nil {
 			key = &models.SSHKey{}
 			if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-				log.Printf("[SFTP] Failed to load key (key_id=%d): %v", *host.KeyID, err)
+				logger.SFTP.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
 				key = nil
 			} else {
-				log.Printf("[SFTP] Loaded key (key_id=%d, name=%s)", *host.KeyID, key.Name)
+				logger.SFTP.Debug("Loaded key (key_id=%d, name=%s)", *host.KeyID, key.Name)
 			}
 		}
 
@@ -55,7 +55,7 @@ func sftpConnect(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "SSH connection failed: " + err.Error()})
 			return
 		}
-		log.Printf("[SFTP] Auto-connected SSH for host %s (host_id=%d)", host.Name, input.HostID)
+		logger.SFTP.Info("Auto-connected SSH for host %s (host_id=%d)", host.Name, input.HostID)
 	}
 
 	_, err := services.ConnectSFTP(input.HostID)

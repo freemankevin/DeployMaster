@@ -97,6 +97,8 @@ func SetupRouter() *gin.Engine {
 		api.PUT("/transfers/:id", updateTransferRecord)
 		api.DELETE("/transfers/:id", deleteTransferRecord)
 		api.DELETE("/transfers/completed", clearCompletedTransferRecords)
+		api.DELETE("/transfers/type/:type", clearTransferRecordsByType)  // 按类型清除 (upload/download)
+		api.DELETE("/transfers/all", clearAllTransferRecords)            // 清除所有记录
 
 		// WebSocket 终端
 		api.GET("/terminal/:id", terminalHandler)

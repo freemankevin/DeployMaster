@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface UploadProgressDialogProps {
   isOpen: boolean;
@@ -61,31 +61,70 @@ const UploadProgressDialog = ({
 }: UploadProgressDialogProps) => {
   const [displayProgress, setDisplayProgress] = useState(0);
   const [smoothSpeed, setSmoothSpeed] = useState('0 B/s');
+  // Track max progress to prevent rollback - progress should only increase
+  const maxProgressRef = useRef(0);
+  // Animation frame ref for smooth animation
+  const animationRef = useRef<number | null>(null);
 
-  // Smooth progress animation
+  // Smooth progress animation - only allows progress to increase
   useEffect(() => {
-    const targetProgress = progress || 0;
+    const rawProgress = progress || 0;
+    // Only update max progress if new value is higher
+    if (rawProgress > maxProgressRef.current) {
+      maxProgressRef.current = rawProgress;
+    }
+    
+    const targetProgress = maxProgressRef.current;
     const currentProgress = displayProgress;
-
-    if (Math.abs(targetProgress - currentProgress) < 0.5) {
+    
+    // Skip if already at target or very close
+    if (Math.abs(targetProgress - currentProgress) < 0.1) {
       setDisplayProgress(targetProgress);
       return;
     }
-
-    // Smooth transition
-    const step = (targetProgress - currentProgress) / 10;
-    const timer = setInterval(() => {
-      setDisplayProgress(prev => {
-        const next = prev + step;
-        if ((step > 0 && next >= targetProgress) || (step < 0 && next <= targetProgress)) {
-          clearInterval(timer);
-          return targetProgress;
-        }
-        return next;
-      });
-    }, 30);
-
-    return () => clearInterval(timer);
+    
+    // Only animate forward (target should always be >= current due to max tracking)
+    if (targetProgress <= currentProgress) {
+      return;
+    }
+    
+    // Cancel any existing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    
+    // Smooth animation using requestAnimationFrame
+    const startTime = performance.now();
+    const startProgress = currentProgress;
+    const progressDelta = targetProgress - startProgress;
+    const animationDuration = 200; // 200ms smooth transition
+    
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progressRatio = Math.min(elapsed / animationDuration, 1);
+      
+      // Ease-out cubic for smooth deceleration
+      const easeOut = 1 - Math.pow(1 - progressRatio, 3);
+      const nextProgress = startProgress + progressDelta * easeOut;
+      
+      setDisplayProgress(nextProgress);
+      
+      if (progressRatio < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        setDisplayProgress(targetProgress);
+        animationRef.current = null;
+      }
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
   }, [progress]);
 
   // Smooth speed display

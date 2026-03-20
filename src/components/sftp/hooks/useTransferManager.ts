@@ -335,19 +335,35 @@ export const useTransferManager = (hostId?: number) => {
     ));
   }, []);
 
-  // 按分类清空日志和已完成的任务
-  const clearLogsByFilter = useCallback((filter: 'all' | 'upload' | 'download') => {
-    if (filter === 'all') {
-      // 清空所有已完成的任务
-      setTransferTasks(prev => prev.filter(t =>
-        t.status === 'transferring' || t.status === 'pending' || t.status === 'paused'
-      ));
-    } else {
-      // 清理特定类型的已完成任务
-      setTransferTasks(prev => prev.filter(t => {
-        if (t.status !== 'completed' && t.status !== 'failed' && t.status !== 'cancelled') return true;
-        return t.type !== filter;
-      }));
+  // 按分类清空日志和已完成的任务（永久删除，调用后端 API）
+  const clearLogsByFilter = useCallback(async (filter: 'all' | 'upload' | 'download') => {
+    try {
+      if (filter === 'all') {
+        // 清空所有已完成的任务
+        await transferApi.clearCompleted();
+      } else {
+        // 清理特定类型的已完成任务
+        await transferApi.clearByType(filter);
+      }
+      
+      // 更新本地状态
+      setTransferTasks(prev => {
+        if (filter === 'all') {
+          return prev.filter(t =>
+            t.status === 'transferring' || t.status === 'pending' || t.status === 'paused'
+          );
+        } else {
+          return prev.filter(t => {
+            if (t.status !== 'completed' && t.status !== 'failed' && t.status !== 'cancelled') return true;
+            return t.type !== filter;
+          });
+        }
+      });
+      
+      // 清除对应的 backendRecordIds 映射
+      backendRecordIds.current.clear();
+    } catch (error) {
+      console.error('[TransferManager] Failed to clear transfer records:', error);
     }
   }, []);
 

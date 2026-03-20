@@ -2,13 +2,13 @@ package routes
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 
 	"deploy-master/config"
 	"deploy-master/database"
 	"deploy-master/models"
+	"deploy-master/pkg/logger"
 	"deploy-master/services"
 
 	"github.com/gin-gonic/gin"
@@ -34,10 +34,10 @@ func connectHost(c *gin.Context) {
 	if host.KeyID != nil {
 		key = &models.SSHKey{}
 		if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-			log.Printf("[SSH] Failed to load key (key_id=%d): %v", *host.KeyID, err)
+			logger.SSH.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
 			key = nil
 		} else {
-			log.Printf("[SSH] Loaded key (key_id=%d, name=%s, has_private_key=%v)",
+			logger.SSH.Debug("Loaded key (key_id=%d, name=%s, has_private_key=%v)",
 				*host.KeyID, key.Name, key.PrivateKey != "")
 		}
 	}
@@ -144,10 +144,10 @@ func testHostConnection(c *gin.Context) {
 	if host.KeyID != nil {
 		key = &models.SSHKey{}
 		if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-			log.Printf("[SSH] Failed to load key (key_id=%d): %v", *host.KeyID, err)
+			logger.SSH.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
 			key = nil
 		} else {
-			log.Printf("[SSH] Loaded key (key_id=%d, name=%s, has_private_key=%v)",
+			logger.SSH.Debug("Loaded key (key_id=%d, name=%s, has_private_key=%v)",
 				*host.KeyID, key.Name, key.PrivateKey != "")
 		}
 	}
@@ -163,16 +163,16 @@ func testHostConnection(c *gin.Context) {
 		return
 	}
 
-	log.Printf("[TestConnection] Successfully connected to host %s (%s), fetching system info...", host.Name, host.Host)
+	logger.TestConnection.Info("Successfully connected to host %s (%s), fetching system info...", host.Name, host.Host)
 
 	// 获取系统信息并更新数据库
 	updateHostSystemInfo(&host, hostID)
 
 	// 保存更新
 	if err := database.DB.Save(&host).Error; err != nil {
-		log.Printf("[TestConnection] Failed to save host info: %v", err)
+		logger.TestConnection.Error("Failed to save host info: %v", err)
 	} else {
-		log.Printf("[TestConnection] Successfully updated host %s with system info", host.Name)
+		logger.TestConnection.Info("Successfully updated host %s with system info", host.Name)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -194,10 +194,10 @@ func autoConnectAndGetInfo(host models.Host) {
 	if host.KeyID != nil {
 		key = &models.SSHKey{}
 		if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-			log.Printf("[AutoConnect] Failed to load key (key_id=%d): %v", *host.KeyID, err)
+			logger.AutoConnect.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
 			key = nil
 		} else {
-			log.Printf("[AutoConnect] Loaded key (key_id=%d, name=%s)", *host.KeyID, key.Name)
+			logger.AutoConnect.Debug("Loaded key (key_id=%d, name=%s)", *host.KeyID, key.Name)
 		}
 	}
 
@@ -205,20 +205,20 @@ func autoConnectAndGetInfo(host models.Host) {
 	hostID := host.ID
 	_, err := config.Pool.Connect(hostID, host.Host, host.Port, host.User, password, key)
 	if err != nil {
-		log.Printf("[AutoConnect] Failed to connect to host %s (%s): %v", host.Name, host.Host, err)
+		logger.AutoConnect.Error("Failed to connect to host %s (%s): %v", host.Name, host.Host, err)
 		return
 	}
 
-	log.Printf("[AutoConnect] Successfully connected to host %s (%s), fetching system info...", host.Name, host.Host)
+	logger.AutoConnect.Info("Successfully connected to host %s (%s), fetching system info...", host.Name, host.Host)
 
 	// 更新主机系统信息
 	updateHostSystemInfo(&host, hostID)
 
 	// 保存更新
 	if err := database.DB.Save(&host).Error; err != nil {
-		log.Printf("[AutoConnect] Failed to save host info: %v", err)
+		logger.AutoConnect.Error("Failed to save host info: %v", err)
 	} else {
-		log.Printf("[AutoConnect] Successfully updated host %s with system info", host.Name)
+		logger.AutoConnect.Info("Successfully updated host %s with system info", host.Name)
 	}
 }
 
@@ -235,10 +235,10 @@ func connectAndGetInfoSync(host *models.Host) {
 	if host.KeyID != nil {
 		key = &models.SSHKey{}
 		if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-			log.Printf("[ConnectSync] Failed to load key (key_id=%d): %v", *host.KeyID, err)
+			logger.ConnectSync.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
 			key = nil
 		} else {
-			log.Printf("[ConnectSync] Loaded key (key_id=%d, name=%s)", *host.KeyID, key.Name)
+			logger.ConnectSync.Debug("Loaded key (key_id=%d, name=%s)", *host.KeyID, key.Name)
 		}
 	}
 
@@ -246,20 +246,20 @@ func connectAndGetInfoSync(host *models.Host) {
 	hostID := host.ID
 	_, err := config.Pool.Connect(hostID, host.Host, host.Port, host.User, password, key)
 	if err != nil {
-		log.Printf("[ConnectSync] Failed to connect to host %s (%s): %v", host.Name, host.Host, err)
+		logger.ConnectSync.Error("Failed to connect to host %s (%s): %v", host.Name, host.Host, err)
 		return
 	}
 
-	log.Printf("[ConnectSync] Successfully connected to host %s (%s), fetching system info...", host.Name, host.Host)
+	logger.ConnectSync.Info("Successfully connected to host %s (%s), fetching system info...", host.Name, host.Host)
 
 	// 更新主机系统信息
 	updateHostSystemInfo(host, hostID)
 
 	// 保存更新
 	if err := database.DB.Save(host).Error; err != nil {
-		log.Printf("[ConnectSync] Failed to save host info: %v", err)
+		logger.ConnectSync.Error("Failed to save host info: %v", err)
 	} else {
-		log.Printf("[ConnectSync] Successfully updated host %s with system info", host.Name)
+		logger.ConnectSync.Info("Successfully updated host %s with system info", host.Name)
 	}
 }
 
