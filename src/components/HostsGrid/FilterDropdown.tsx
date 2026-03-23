@@ -73,7 +73,7 @@ const FilterDropdown = ({ column, options, selectedValues, onChange }: FilterDro
               <label className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer">
                 <Checkbox
                   checked={isAllSelected}
-                  onChange={() => handleToggle('(全选)')}
+                  onChange={() => handleToggle('(Select All)')}
                   size="sm"
                 />
                 <span className="text-xs text-gray-600">(Select All)</span>

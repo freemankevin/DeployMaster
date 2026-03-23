@@ -24,7 +24,7 @@ export interface SFTPListResponse {
 }
 
 export interface UploadProgress {
-  stage: 'init' | 'receiving' | 'received' | 'transferring' | 'completed' | 'error' | 'not_found' | 'uploading' | 'downloading';
+  stage: 'init' | 'receiving' | 'uploading' | 'completed' | 'error' | 'cancelled';
   progress: number;  // 0-100
   bytes_transferred: number;
   total_bytes: number;
@@ -147,8 +147,17 @@ export const sftpApi = {
     const formData = new FormData();
     formData.append('host_id', hostId.toString());
     formData.append('path', remotePath);
+    
+    // 如果有相对路径（文件夹上传），将其作为单独字段传递
+    // 同时使用相对路径作为文件名，以便后端创建目录结构
+    if (relativePath) {
+      formData.append('relative_path', relativePath);
+    }
     const fileName = relativePath || file.name;
     formData.append('file', file, fileName);
+    
+    // Debug: 输出上传信息
+    console.log('[SFTP API] Uploading file:', file.name, 'relativePath:', relativePath, 'fileName:', fileName);
     
     // Dynamic timeout based on file size (min 60s, +5s per MB, max 30 min)
     const sizeMB = file.size / 1024 / 1024;

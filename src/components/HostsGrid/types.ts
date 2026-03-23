@@ -1,5 +1,8 @@
 import type { SSHHost, DiskInfo } from '@/types';
 
+// Re-export DiskInfo for use in other components
+export type { DiskInfo };
+
 export interface HostsGridProps {
   hosts: SSHHost[];
   loading: boolean;
@@ -70,6 +73,21 @@ export const formatMemory = (memoryGb?: number): string => {
   }
 };
 
+// Format bytes to human readable size
+export const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return '0B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + sizes[i];
+};
+
+// Format bytes to GB
+export const bytesToGB = (bytes: number): number => {
+  return Math.round(bytes / (1024 * 1024 * 1024));
+};
+
+// Get root mount disk (prioritize "/" mount point)
 export const getSystemDisk = (disks?: DiskInfo[]): DiskInfo | undefined => {
   if (!disks || disks.length === 0) return undefined;
   return disks.find(d => d.mount_point === '/') || disks[0];
@@ -112,10 +130,13 @@ export interface UseHostsGridReturn {
   // Filter
   statusFilter: string[];
   osFilter: string[];
+  archFilter: string[];
   statusOptions: string[];
   osOptions: string[];
+  archOptions: string[];
   setStatusFilter: (filter: string[]) => void;
   setOsFilter: (filter: string[]) => void;
+  setArchFilter: (filter: string[]) => void;
   
   // Search
   searchQuery: string;

@@ -19,12 +19,12 @@ interface UseWindowStateReturn {
   modalRef: React.RefObject<HTMLDivElement>;
   handleMinimize: () => void;
   handleMaximize: () => void;
+  handleRestore: () => void;
   handleMouseDown: (e: React.MouseEvent) => void;
 }
 
 const DEFAULT_WIDTH = 896;
 const DEFAULT_HEIGHT = 600;
-const MINIMIZED_HEIGHT = 40;
 const FULLSCREEN_MARGIN = 32; // inset-4 = 16px * 2
 
 export function useWindowState(): UseWindowStateReturn {
@@ -75,21 +75,29 @@ export function useWindowState(): UseWindowStateReturn {
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  const handleMinimize = () => {
-    setWindowState(prev => ({ ...prev, isMinimized: !prev.isMinimized }));
-    if (!windowState.isMinimized) {
-      // Keep width when minimized, only show title bar
-      setWindowSize(prev => ({ width: prev.width, height: MINIMIZED_HEIGHT }));
-    } else {
-      // Restore - Consistent with terminal
-      setWindowSize({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
-      const centerX = Math.max(0, (window.innerWidth - DEFAULT_WIDTH) / 2);
-      const centerY = Math.max(0, (window.innerHeight - DEFAULT_HEIGHT) / 2);
-      setWindowPosition({ x: centerX, y: centerY });
-    }
-  };
+  // Minimize: hide window, show floating button
+  const handleMinimize = useCallback(() => {
+    setWindowState(prev => ({ ...prev, isMinimized: true }));
+  }, []);
 
-  const handleMaximize = () => {
+  // Restore from minimized state
+  const handleRestore = useCallback(() => {
+    setWindowState(prev => ({ ...prev, isMinimized: false }));
+    // Reset to default size and center position
+    setWindowSize({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
+    const centerX = Math.max(0, (window.innerWidth - DEFAULT_WIDTH) / 2);
+    const centerY = Math.max(0, (window.innerHeight - DEFAULT_HEIGHT) / 2);
+    setWindowPosition({ x: centerX, y: centerY });
+  }, []);
+
+  // Maximize/Restore toggle (for fullscreen)
+  const handleMaximize = useCallback(() => {
+    // If currently minimized, restore first
+    if (windowState.isMinimized) {
+      handleRestore();
+      return;
+    }
+    
     setWindowState(prev => ({ ...prev, isMaximized: !prev.isMaximized }));
     if (!windowState.isMaximized) {
       // Fullscreen mode - Consistent with terminal, using inset-4 margins
@@ -105,7 +113,7 @@ export function useWindowState(): UseWindowStateReturn {
       const centerY = Math.max(0, (window.innerHeight - DEFAULT_HEIGHT) / 2);
       setWindowPosition({ x: centerX, y: centerY });
     }
-  };
+  }, [windowState.isMinimized, windowState.isMaximized, handleRestore]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.target === modalRef.current || (e.target as HTMLElement).closest('.window-header')) {
@@ -125,6 +133,7 @@ export function useWindowState(): UseWindowStateReturn {
     modalRef,
     handleMinimize,
     handleMaximize,
+    handleRestore,
     handleMouseDown
   };
 }

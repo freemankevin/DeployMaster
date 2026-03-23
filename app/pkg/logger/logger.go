@@ -75,7 +75,7 @@ type Logger struct {
 // 全局默认日志器
 var defaultLogger = &Logger{
 	output:   os.Stdout,
-	minLevel: DEBUG,
+	minLevel: INFO,
 	showTime: true,
 	colorize: true,
 }

@@ -9,12 +9,17 @@ import (
 
 // DiskInfoJSON 磁盘信息（用于JSON存储）
 type DiskInfoJSON struct {
-	Device     string  `json:"device"`      // 设备名 (如 /dev/sda1)
-	MountPoint string  `json:"mount_point"` // 挂载点 (如 /, /data)
-	Total      int     `json:"total"`       // 总容量(GB)
-	Used       int     `json:"used"`        // 已用(GB)
-	Free       int     `json:"free"`        // 可用(GB)
-	Usage      float64 `json:"usage"`       // 使用率(百分比)
+	Device       string  `json:"device"`        // 设备名 (如 /dev/sda1)
+	PhysicalDisk string  `json:"physical_disk"` // 物理磁盘 (如 /dev/sda)
+	MountPoint   string  `json:"mount_point"`   // 挂载点 (如 /, /data)
+	FileSystem   string  `json:"file_system"`   // 文件系统设备
+	FSType       string  `json:"fs_type"`       // 文件系统类型 (如 ext4, xfs)
+	Total        uint64  `json:"total"`         // 总容量(字节)
+	Used         uint64  `json:"used"`          // 已用(字节)
+	Free         uint64  `json:"free"`          // 可用(字节)
+	Usage        float64 `json:"usage"`         // 使用率(百分比)
+	Status       string  `json:"status"`        // 状态 (mounted, unmounted)
+	IsVirtual    bool    `json:"is_virtual"`    // 是否为虚拟文件系统
 }
 
 // Host 主机模型
@@ -26,6 +31,7 @@ type Host struct {
 	Port        int       `json:"port" gorm:"default:22"`
 	User        string    `json:"username" gorm:"column:user;not null"` // 用户名，返回给前端时用 username
 	Password    string    `json:"-"`                                     // 不返回给前端
+	HasPassword bool      `json:"has_password" gorm:"-"`                 // 是否有密码，计算字段
 	KeyID       *uint     `json:"key_id"`                                // 关联的密钥ID
 	AuthType    string    `json:"auth_type" gorm:"-"`                    // 认证类型，计算字段，不存储在数据库
 	Group       string    `json:"group" gorm:"default:''"`
@@ -35,10 +41,12 @@ type Host struct {
 	SystemType      string          `json:"system_type" gorm:"column:system_type"`           // 系统类型 (linux, windows, etc.)
 	OSKey           string          `json:"os_key" gorm:"column:os_key"`                     // 操作系统标识符 (ubuntu, centos, etc.)
 	OSVersion       string          `json:"os_version" gorm:"column:os_version"`             // 操作系统版本号（完整版本，包含小版本号）
+	OSPrettyName    string          `json:"os_pretty_name" gorm:"column:os_pretty_name"`     // 完整系统版本描述，如 "Ubuntu 22.04.5 LTS"
 	KernelVersion   string          `json:"kernel_version" gorm:"column:kernel_version"`     // 内核版本
 	Architecture    string          `json:"architecture" gorm:"column:architecture"`         // 架构类型 (x86_64, arm64, etc.)
 	CPUCores        int             `json:"cpu_cores" gorm:"column:cpu_cores;default:0"`     // CPU核心数
 	MemoryGB        int             `json:"memory_gb" gorm:"column:memory_gb;default:0"`     // 内存容量(GB)
+	SwapGB          int             `json:"swap_gb" gorm:"column:swap_gb;default:0"`         // Swap容量(GB)
 	Disks           json.RawMessage `json:"disks" gorm:"column:disks;type:text"`             // 磁盘信息列表(JSON格式)
 
 	CreatedAt   time.Time `json:"created_at"`
@@ -50,13 +58,14 @@ func (Host) TableName() string {
 	return "hosts"
 }
 
-// AfterFind GORM 钩子，查询后设置 auth_type
+// AfterFind GORM 钩子，查询后设置 auth_type 和 has_password
 func (h *Host) AfterFind(tx *gorm.DB) error {
 	if h.KeyID != nil {
 		h.AuthType = "key"
 	} else {
 		h.AuthType = "password"
 	}
+	h.HasPassword = h.Password != ""
 	return nil
 }
 

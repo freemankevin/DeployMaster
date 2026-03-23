@@ -22,6 +22,7 @@ interface FormFieldsProps {
   setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
   keys: SSHKeyResponse[];
   isEditMode: boolean;
+  hasPassword?: boolean;  // Whether password is set (used in edit mode)
 }
 
 // Basic info fields (name, address, port, username)
@@ -30,7 +31,7 @@ export function BasicInfoFields({ formData, setFormData }: Pick<FormFieldsProps,
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
         <label className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-          <i className="fa-solid fa-server w-3.5 h-3.5 text-gray-400"></i>
+          <i className="fa-solid fa-server w-3.5 h-3.5 text-blue-500"></i>
           Host Name
         </label>
         <input
@@ -40,24 +41,24 @@ export function BasicInfoFields({ formData, setFormData }: Pick<FormFieldsProps,
                    transition-all duration-200
                    focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
                    hover:border-gray-300"
-          placeholder="e.g.: Production-API"
+          placeholder="e.g.: Web Server, DB Master"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
         />
       </div>
       <div className="space-y-2">
         <label className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-          <i className="fa-solid fa-globe w-3.5 h-3.5 text-gray-400"></i>
+          <i className="fa-solid fa-globe w-3.5 h-3.5 text-cyan-500"></i>
           IPv4 Address
         </label>
         <input
           type="text"
           className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl
-                   text-[13px] text-gray-900 placeholder-gray-400
+                   text-[13px] text-gray-900 placeholder-gray-400 font-mono
                    transition-all duration-200
                    focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
                    hover:border-gray-300"
-          placeholder="Public IP or Private IP"
+          placeholder="e.g.: 192.168.1.100"
           value={formData.address}
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
         />
@@ -72,7 +73,7 @@ export function PortUsernameFields({ formData, setFormData }: Pick<FormFieldsPro
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
         <label className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-          <i className="fa-solid fa-hashtag w-3.5 h-3.5 text-gray-400"></i>
+          <i className="fa-solid fa-hashtag w-3.5 h-3.5 text-purple-500"></i>
           Port
         </label>
         <input
@@ -88,7 +89,7 @@ export function PortUsernameFields({ formData, setFormData }: Pick<FormFieldsPro
       </div>
       <div className="space-y-2">
         <label className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-          <i className="fa-solid fa-user w-3.5 h-3.5 text-gray-400"></i>
+          <i className="fa-solid fa-user w-3.5 h-3.5 text-emerald-500"></i>
           Username
         </label>
         <input
@@ -147,16 +148,34 @@ export function AuthTypeSelector({ formData, setFormData }: Pick<FormFieldsProps
 }
 
 // SSH Key auth fields
-export function SSHKeyFields({ 
-  formData, 
-  setFormData, 
-  keys 
+export function SSHKeyFields({
+  formData,
+  setFormData,
+  keys
 }: Pick<FormFieldsProps, 'formData' | 'setFormData' | 'keys'>) {
+  // Handle file upload for private key
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        setFormData({ ...formData, private_key: content });
+      };
+      reader.onerror = () => {
+        alert('Failed to read file');
+      };
+      reader.readAsText(file);
+    }
+    // Reset input to allow re-uploading the same file
+    e.target.value = '';
+  };
+
   return (
     <div className="space-y-3">
       <div className="space-y-2">
         <label className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-          <i className="fa-solid fa-key w-3.5 h-3.5 text-gray-400"></i>
+          <i className="fa-solid fa-key w-3.5 h-3.5 text-amber-500"></i>
           Select Key
         </label>
         <select
@@ -181,10 +200,24 @@ export function SSHKeyFields({
       {/* Manual private key input */}
       {formData.private_key === '__custom__' && (
         <div className="space-y-2 animate-fade-in">
-          <label className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-            <i className="fa-solid fa-pen-to-square w-3.5 h-3.5 text-gray-400"></i>
-            Private Key Content
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+              <i className="fa-solid fa-pen-to-square w-3.5 h-3.5 text-orange-500"></i>
+              Private Key Content
+            </label>
+            <label className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100
+                           text-[11px] font-medium text-emerald-600 rounded-lg cursor-pointer
+                           transition-all duration-200">
+              <i className="fa-solid fa-upload w-3 h-3"></i>
+              Upload File
+              <input
+                type="file"
+                accept=".pem,.key,.pub,*"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+            </label>
+          </div>
           <textarea
             className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl
                      text-[12px] text-gray-900 placeholder-gray-400 font-mono
@@ -196,13 +229,17 @@ export function SSHKeyFields({
             value={formData.private_key === '__custom__' ? '' : formData.private_key}
             onChange={(e) => setFormData({ ...formData, private_key: e.target.value })}
           />
+          <p className="text-[11px] text-gray-500 flex items-center gap-1">
+            <i className="fa-solid fa-info-circle w-3 h-3 text-blue-400"></i>
+            Paste content directly or use "Upload File" to load from a .pem or .key file
+          </p>
         </div>
       )}
 
       {/* Key Passphrase (optional) */}
       <div className="space-y-2">
         <label className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-          <i className="fa-solid fa-lock w-3.5 h-3.5 text-gray-400"></i>
+          <i className="fa-solid fa-shield-halved w-3.5 h-3.5 text-violet-500"></i>
           Key Passphrase <span className="text-gray-400 font-normal normal-case">(Optional)</span>
         </label>
         <input
@@ -222,18 +259,25 @@ export function SSHKeyFields({
 }
 
 // Password auth field
-export function PasswordField({ 
-  formData, 
-  setFormData, 
-  showPassword, 
+export function PasswordField({
+  formData,
+  setFormData,
+  showPassword,
   setShowPassword,
-  isEditMode 
-}: Pick<FormFieldsProps, 'formData' | 'setFormData' | 'showPassword' | 'setShowPassword' | 'isEditMode'>) {
+  isEditMode,
+  hasPassword
+}: Pick<FormFieldsProps, 'formData' | 'setFormData' | 'showPassword' | 'setShowPassword' | 'isEditMode' | 'hasPassword'>) {
   return (
     <div className="space-y-2">
       <label className="text-[12px] font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-        <i className="fa-solid fa-lock w-3.5 h-3.5 text-gray-400"></i>
+        <i className="fa-solid fa-lock w-3.5 h-3.5 text-rose-500"></i>
         Password
+        {isEditMode && hasPassword && (
+          <span className="ml-auto text-[11px] font-normal text-emerald-600 flex items-center gap-1">
+            <i className="fa-solid fa-check-circle w-3 h-3"></i>
+            Set
+          </span>
+        )}
       </label>
       <div className="relative">
         <input
@@ -243,7 +287,7 @@ export function PasswordField({
                    transition-all duration-200
                    focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
                    hover:border-gray-300"
-          placeholder={isEditMode ? "Leave blank to keep current password" : "Enter password"}
+          placeholder={isEditMode && hasPassword ? "Leave empty to keep unchanged" : "Enter password"}
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
         />

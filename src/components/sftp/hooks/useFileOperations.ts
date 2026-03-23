@@ -59,7 +59,7 @@ export const useFileOperations = ({
     const confirmed = await onShowDialog({
       type: 'delete',
       title: file.is_dir ? 'Delete Folder' : 'Delete File',
-      message: file.is_dir 
+      message: file.is_dir
         ? 'Are you sure you want to delete this folder and all its contents? This action cannot be undone.'
         : 'Are you sure you want to delete this file? This action cannot be undone.',
       itemName: file.name,
@@ -67,7 +67,8 @@ export const useFileOperations = ({
     });
     if (!confirmed) return false;
     try {
-      const response = await sftpApi.remove(hostId, file.path, file.is_dir, false);
+      // 删除目录时使用递归删除，以支持非空目录
+      const response = await sftpApi.remove(hostId, file.path, file.is_dir, file.is_dir);
       if (response.success) {
         onSuccess('Deleted', `${file.name} has been deleted`);
         onLog('delete', `Deleted ${file.is_dir ? 'folder' : 'file'}: ${file.name}`, file.path, 'success', file.size_formatted);

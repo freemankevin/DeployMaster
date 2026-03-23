@@ -34,17 +34,17 @@ func connectHost(c *gin.Context) {
 	if host.KeyID != nil {
 		key = &models.SSHKey{}
 		if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-			logger.SSH.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
+			logger.SSH.Warn("[%s] Failed to load key (key_id=%d): %v", host.HostID, *host.KeyID, err)
 			key = nil
 		} else {
-			logger.SSH.Debug("Loaded key (key_id=%d, name=%s, has_private_key=%v)",
-				*host.KeyID, key.Name, key.PrivateKey != "")
+			logger.SSH.Debug("[%s] Loaded key (key_id=%d, name=%s, has_private_key=%v)",
+				host.HostID, *host.KeyID, key.Name, key.PrivateKey != "")
 		}
 	}
 
 	// 连接
 	hostID := uint(parseInt(id))
-	conn, err := config.Pool.Connect(hostID, host.Host, host.Port, host.User, password, key)
+	conn, err := config.Pool.Connect(hostID, host.HostID, host.Host, host.Port, host.User, password, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
@@ -59,7 +59,7 @@ func connectHost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success":     true,
 		"message":     "Connected",
-		"host_id":     hostID,
+		"host_id":     host.HostID,
 		"connected":   true,
 		"server_info": conn.ServerInfo,
 	})
@@ -144,17 +144,17 @@ func testHostConnection(c *gin.Context) {
 	if host.KeyID != nil {
 		key = &models.SSHKey{}
 		if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-			logger.SSH.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
+			logger.SSH.Warn("[%s] Failed to load key (key_id=%d): %v", host.HostID, *host.KeyID, err)
 			key = nil
 		} else {
-			logger.SSH.Debug("Loaded key (key_id=%d, name=%s, has_private_key=%v)",
-				*host.KeyID, key.Name, key.PrivateKey != "")
+			logger.SSH.Debug("[%s] Loaded key (key_id=%d, name=%s, has_private_key=%v)",
+				host.HostID, *host.KeyID, key.Name, key.PrivateKey != "")
 		}
 	}
 
 	// 尝试连接
 	hostID := uint(parseInt(id))
-	_, err := config.Pool.Connect(hostID, host.Host, host.Port, host.User, password, key)
+	_, err := config.Pool.Connect(hostID, host.HostID, host.Host, host.Port, host.User, password, key)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
@@ -163,16 +163,16 @@ func testHostConnection(c *gin.Context) {
 		return
 	}
 
-	logger.TestConnection.Info("Successfully connected to host %s (%s), fetching system info...", host.Name, host.Host)
+	logger.TestConnection.Info("[%s] Successfully connected to host %s (%s), fetching system info...", host.HostID, host.Name, host.Host)
 
 	// 获取系统信息并更新数据库
 	updateHostSystemInfo(&host, hostID)
 
 	// 保存更新
 	if err := database.DB.Save(&host).Error; err != nil {
-		logger.TestConnection.Error("Failed to save host info: %v", err)
+		logger.TestConnection.Error("[%s] Failed to save host info: %v", host.HostID, err)
 	} else {
-		logger.TestConnection.Info("Successfully updated host %s with system info", host.Name)
+		logger.TestConnection.Info("[%s] Successfully updated host %s with system info", host.HostID, host.Name)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -194,31 +194,31 @@ func autoConnectAndGetInfo(host models.Host) {
 	if host.KeyID != nil {
 		key = &models.SSHKey{}
 		if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-			logger.AutoConnect.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
+			logger.AutoConnect.Warn("[%s] Failed to load key (key_id=%d): %v", host.HostID, *host.KeyID, err)
 			key = nil
 		} else {
-			logger.AutoConnect.Debug("Loaded key (key_id=%d, name=%s)", *host.KeyID, key.Name)
+			logger.AutoConnect.Debug("[%s] Loaded key (key_id=%d, name=%s)", host.HostID, *host.KeyID, key.Name)
 		}
 	}
 
 	// 尝试连接
 	hostID := host.ID
-	_, err := config.Pool.Connect(hostID, host.Host, host.Port, host.User, password, key)
+	_, err := config.Pool.Connect(hostID, host.HostID, host.Host, host.Port, host.User, password, key)
 	if err != nil {
-		logger.AutoConnect.Error("Failed to connect to host %s (%s): %v", host.Name, host.Host, err)
+		logger.AutoConnect.Error("[%s] Failed to connect to host %s (%s): %v", host.HostID, host.Name, host.Host, err)
 		return
 	}
 
-	logger.AutoConnect.Info("Successfully connected to host %s (%s), fetching system info...", host.Name, host.Host)
+	logger.AutoConnect.Info("[%s] Successfully connected to host %s (%s), fetching system info...", host.HostID, host.Name, host.Host)
 
 	// 更新主机系统信息
 	updateHostSystemInfo(&host, hostID)
 
 	// 保存更新
 	if err := database.DB.Save(&host).Error; err != nil {
-		logger.AutoConnect.Error("Failed to save host info: %v", err)
+		logger.AutoConnect.Error("[%s] Failed to save host info: %v", host.HostID, err)
 	} else {
-		logger.AutoConnect.Info("Successfully updated host %s with system info", host.Name)
+		logger.AutoConnect.Info("[%s] Successfully updated host %s with system info", host.HostID, host.Name)
 	}
 }
 
@@ -235,31 +235,31 @@ func connectAndGetInfoSync(host *models.Host) {
 	if host.KeyID != nil {
 		key = &models.SSHKey{}
 		if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-			logger.ConnectSync.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
+			logger.ConnectSync.Warn("[%s] Failed to load key (key_id=%d): %v", host.HostID, *host.KeyID, err)
 			key = nil
 		} else {
-			logger.ConnectSync.Debug("Loaded key (key_id=%d, name=%s)", *host.KeyID, key.Name)
+			logger.ConnectSync.Debug("[%s] Loaded key (key_id=%d, name=%s)", host.HostID, *host.KeyID, key.Name)
 		}
 	}
 
 	// 尝试连接
 	hostID := host.ID
-	_, err := config.Pool.Connect(hostID, host.Host, host.Port, host.User, password, key)
+	_, err := config.Pool.Connect(hostID, host.HostID, host.Host, host.Port, host.User, password, key)
 	if err != nil {
-		logger.ConnectSync.Error("Failed to connect to host %s (%s): %v", host.Name, host.Host, err)
+		logger.ConnectSync.Error("[%s] Failed to connect to host %s (%s): %v", host.HostID, host.Name, host.Host, err)
 		return
 	}
 
-	logger.ConnectSync.Info("Successfully connected to host %s (%s), fetching system info...", host.Name, host.Host)
+	logger.ConnectSync.Info("[%s] Successfully connected to host %s (%s), fetching system info...", host.HostID, host.Name, host.Host)
 
 	// 更新主机系统信息
 	updateHostSystemInfo(host, hostID)
 
 	// 保存更新
 	if err := database.DB.Save(host).Error; err != nil {
-		logger.ConnectSync.Error("Failed to save host info: %v", err)
+		logger.ConnectSync.Error("[%s] Failed to save host info: %v", host.HostID, err)
 	} else {
-		logger.ConnectSync.Info("Successfully updated host %s with system info", host.Name)
+		logger.ConnectSync.Info("[%s] Successfully updated host %s with system info", host.HostID, host.Name)
 	}
 }
 
@@ -272,6 +272,7 @@ func updateHostSystemInfo(host *models.Host, hostID uint) {
 		host.SystemType = "linux"
 		host.OSKey = systemInfo.Distro
 		host.OSVersion = systemInfo.Version
+		host.OSPrettyName = systemInfo.PrettyName
 		host.KernelVersion = systemInfo.Kernel
 		host.Architecture = "x86_64"
 
@@ -285,17 +286,24 @@ func updateHostSystemInfo(host *models.Host, hostID uint) {
 		host.CPUCores = hardwareInfo.CPU.Cores
 		// 内存转换为 GB
 		host.MemoryGB = int(hardwareInfo.Memory.Total / 1024 / 1024 / 1024)
+		// Swap 转换为 GB
+		host.SwapGB = int(hardwareInfo.Memory.SwapTotal / 1024 / 1024 / 1024)
 
 		// 保存所有磁盘信息为JSON
 		var diskList []models.DiskInfoJSON
 		for _, disk := range hardwareInfo.Disks {
 			diskList = append(diskList, models.DiskInfoJSON{
-				Device:     disk.Device,
-				MountPoint: disk.MountPoint,
-				Total:      int(disk.Total / 1024 / 1024 / 1024),
-				Used:       int(disk.Used / 1024 / 1024 / 1024),
-				Free:       int(disk.Free / 1024 / 1024 / 1024),
-				Usage:      disk.Usage,
+				Device:       disk.Device,
+				PhysicalDisk: disk.PhysicalDisk,
+				MountPoint:   disk.MountPoint,
+				FileSystem:   disk.FileSystem,
+				FSType:       disk.FSType,
+				Total:        disk.Total,
+				Used:         disk.Used,
+				Free:         disk.Free,
+				Usage:        disk.Usage,
+				Status:       disk.Status,
+				IsVirtual:    disk.IsVirtual,
 			})
 		}
 		if len(diskList) > 0 {
@@ -303,5 +311,50 @@ func updateHostSystemInfo(host *models.Host, hostID uint) {
 				host.Disks = diskJSON
 			}
 		}
+	}
+}
+
+// AutoConnectAllHosts 自动连接所有已配置的主机
+// 在应用启动时调用，尝试连接数据库中的所有主机
+func AutoConnectAllHosts() {
+	hosts, err := database.GetAllHosts()
+	if err != nil {
+		logger.AutoConnect.Error("Failed to get hosts from database: %v", err)
+		return
+	}
+
+	logger.AutoConnect.Info("Starting auto-connect for %d hosts...", len(hosts))
+
+	for _, host := range hosts {
+		go func(h models.Host) {
+			// 解密密码
+			password := ""
+			if h.Password != "" {
+				password = config.DecryptPassword(h.Password)
+			}
+
+			// 获取密钥
+			var key *models.SSHKey
+			if h.KeyID != nil {
+				key = &models.SSHKey{}
+				if err := database.DB.First(key, *h.KeyID).Error; err != nil {
+					logger.AutoConnect.Warn("[%s] Failed to load key (key_id=%d): %v", h.HostID, *h.KeyID, err)
+					key = nil
+				}
+			}
+
+			// 尝试连接
+			_, err := config.Pool.Connect(h.ID, h.HostID, h.Host, h.Port, h.User, password, key)
+			if err != nil {
+				logger.AutoConnect.Warn("[%s] Failed to connect to host %s (%s): %v", h.HostID, h.Name, h.Host, err)
+				return
+			}
+
+			logger.AutoConnect.Info("[%s] Connected to host %s (%s)", h.HostID, h.Name, h.Host)
+
+			// 更新主机系统信息
+			updateHostSystemInfo(&h, h.ID)
+			database.DB.Save(&h)
+		}(host)
 	}
 }

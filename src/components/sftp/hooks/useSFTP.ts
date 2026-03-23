@@ -20,6 +20,7 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
   const [files, setFiles] = useState<SFTPFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(true);
+  const [connected, setConnected] = useState(false);
   const [error, setError] = useState('');
   const [diskUsage, setDiskUsage] = useState<DiskUsage | null>(null);
   const [pathHistory, setPathHistory] = useState<string[]>(['/']);
@@ -77,18 +78,22 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
         const result = await loadDirectory('/');
         if (result === null) {
           // loadDirectory 失败，错误已被设置
+          setConnected(false);
           return false;
         }
         await loadDiskUsage();
         isConnectedRef.current = true;
+        setConnected(true);
         // 连接成功不添加日志，改用界面展示
         return true;
       } else {
         setError('SFTP connection failed: ' + (response.message || 'Unknown error'));
+        setConnected(false);
         return false;
       }
     } catch (err) {
       setError('SFTP connection error: ' + (err as Error).message);
+      setConnected(false);
       return false;
     } finally {
       setConnecting(false);
@@ -166,6 +171,7 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
     files,
     loading,
     connecting,
+    connected,
     error,
     diskUsage,
     pathHistory,

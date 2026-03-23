@@ -142,7 +142,7 @@ const UploadProgressDialog = ({
   const isCompleted = stage === 'completed';
   const isError = stage === 'error';
   const isCancelled = stage === 'cancelled';
-  const isUploading = stage === 'uploading' || stage === 'init' || stage === 'received';
+  const isUploading = stage === 'uploading' || stage === 'init' || stage === 'receiving';
 
   // Calculate progress bar color
   const getProgressColor = () => {

@@ -100,16 +100,8 @@ export const hostApi = {
     api.post<unknown, ApiResponse<void>>(`/hosts/${id}/disconnect`),
 
   // Refresh system info (reconnect and get latest info)
-  refreshSystemInfo: async (id: number) => {
-    // Disconnect first
-    try {
-      await api.post(`/hosts/${id}/disconnect`);
-    } catch (e) {
-      // Ignore disconnect error
-    }
-    // Reconnect to get latest system info
-    return api.post<unknown, ApiResponse<{ message: string; host_id: number; connected: boolean; server_info?: unknown }>>(`/hosts/${id}/connect`);
-  },
+  refreshSystemInfo: (id: number) =>
+    api.post<unknown, ApiResponse<{ message: string; host_id: number; connected: boolean; server_info?: unknown }>>(`/hosts/${id}/connect`),
 };
 
 // ==================== SSH Key API ====================

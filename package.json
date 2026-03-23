@@ -7,9 +7,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "server": "cd backend && python main.py",
-    "start": "npm run build && concurrently \"npm run dev\" \"npm run server\"",
-    "init-db": "cd backend && python main.py --init-db"
+    "server": "cd app && go run .",
+    "server:prod": "cd app && SERVER_ADDR=0.0.0.0:8000 go run .",
+    "start": "npm run build && npm run dev",
+    "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
+    "init-db": "cd app && go run . --init-db"
   },
   "keywords": [
     "ssh",

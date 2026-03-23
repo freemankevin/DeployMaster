@@ -87,7 +87,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           className="w-3 h-3 rounded-full bg-[#28c840] hover:bg-[#28c840]/80 transition-colors flex items-center justify-center group"
           title={isMaximized ? "Restore" : "Maximize"}
         >
-          <i className="fa-solid fa-expand text-[10px] text-[#006500] opacity-0 group-hover:opacity-100" />
+          <i className="fa-solid fa-plus text-[9px] text-[#006500] opacity-0 group-hover:opacity-100" />
         </button>
       </div>
 

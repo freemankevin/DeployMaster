@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, Trash2, X, Info, CheckCircle, AlertCircle } from 'lucide-react';
 
 export type DialogType = 'delete' | 'confirm' | 'info' | 'warning' | 'success' | 'error';
@@ -55,7 +56,7 @@ export const Dialog = ({
   title,
   message,
   confirmText,
-  cancelText = '取消',
+  cancelText = 'Cancel',
   itemName,
   onConfirm,
   onCancel,
@@ -152,7 +153,9 @@ export const Dialog = ({
     return 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/25';
   };
 
-  return (
+  // Use Portal to render dialog at document.body level
+  // This ensures the overlay covers everything including sticky headers
+  return createPortal(
     <>
       <style>{heartbeatKeyframes}</style>
       <div
@@ -241,7 +244,7 @@ export const Dialog = ({
               <div className="flex items-center justify-end gap-2.5 mt-6">
                 <button
                   onClick={handleClose}
-                  className="px-4 py-2 text-[13px] font-medium text-gray-400 hover:text-gray-200 
+                  className="px-4 py-2 text-[13px] font-medium text-gray-400 hover:text-gray-200
                            hover:bg-white/5 rounded-lg transition-all duration-200
                            active:scale-[0.98]"
                 >
@@ -249,18 +252,19 @@ export const Dialog = ({
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className={`px-4 py-2 text-[13px] font-medium text-white rounded-lg 
+                  className={`px-4 py-2 text-[13px] font-medium text-white rounded-lg
                            transition-all duration-200 active:scale-[0.98]
                            shadow-lg ${getButtonColor()}`}
                 >
-                  {confirmText || (isDelete ? '删除' : '确定')}
+                  {confirmText || (isDelete ? 'Delete' : 'Confirm')}
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 };
 

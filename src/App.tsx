@@ -9,15 +9,13 @@ import { ToastContainer } from './components/Toast';
 import { useToast } from './hooks/useToast';
 import { useDialog } from './components/Dialog';
 import { hostApi } from './services/api';
-import type { SSHHost, CreateHostRequest, UpdateHostRequest } from './types';
+import type { SSHHost, CreateHostRequest, UpdateHostRequest, OpenWindow, WindowType } from './types';
 
 function App() {
   const [hosts, setHosts] = useState<SSHHost[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
-  const [isSFTPOpen, setIsSFTPOpen] = useState(false);
-  const [selectedHost, setSelectedHost] = useState<SSHHost | null>(null);
+  const [openWindows, setOpenWindows] = useState<OpenWindow[]>([]);
   const [editingHost, setEditingHost] = useState<SSHHost | null>(null);
   const [copyingHost, setCopyingHost] = useState<SSHHost | null>(null);
   const { toasts, removeToast, success, error } = useToast();
@@ -132,19 +130,57 @@ function App() {
     }
   };
 
-  // Open terminal
-  const handleOpenTerminal = (host: SSHHost) => {
-    setSelectedHost(host);
-    setIsTerminalOpen(true);
+  // Generate unique window ID
+  const generateWindowId = (type: WindowType, hostId: number): string => {
+    return `${type}-${hostId}-${Date.now()}`;
   };
 
-  // Open SFTP
+  // Open terminal window
+  const handleOpenTerminal = (host: SSHHost) => {
+    const windowId = generateWindowId('terminal', host.id);
+    const newWindow: OpenWindow = {
+      id: windowId,
+      type: 'terminal',
+      hostId: host.id,
+      host,
+      isMinimized: false,
+      openedAt: Date.now()
+    };
+    setOpenWindows(prev => [...prev, newWindow]);
+  };
+
+  // Open SFTP window
   const handleOpenSFTP = (host: SSHHost) => {
     console.log('[App] handleOpenSFTP called:', host);
-    console.log('[App] Setting selectedHost and isSFTPOpen...');
-    setSelectedHost(host);
-    setIsSFTPOpen(true);
-    console.log('[App] isSFTPOpen should be true now');
+    const windowId = generateWindowId('sftp', host.id);
+    const newWindow: OpenWindow = {
+      id: windowId,
+      type: 'sftp',
+      hostId: host.id,
+      host,
+      isMinimized: false,
+      openedAt: Date.now()
+    };
+    setOpenWindows(prev => [...prev, newWindow]);
+  };
+
+  // Close window
+  const handleCloseWindow = (windowId: string) => {
+    setOpenWindows(prev => prev.filter(w => w.id !== windowId));
+  };
+
+  // Toggle window minimize state
+  const handleToggleMinimize = (windowId: string) => {
+    setOpenWindows(prev => prev.map(w => 
+      w.id === windowId ? { ...w, isMinimized: !w.isMinimized } : w
+    ));
+  };
+
+  // Restore window (from minimized state)
+  const handleRestoreWindow = (windowId: string) => {
+    setOpenWindows(prev => prev.map(w => 
+      w.id === windowId ? { ...w, isMinimized: false } : w
+    ));
   };
 
   // Open edit modal
@@ -167,6 +203,10 @@ function App() {
     setEditingHost(null);
     setCopyingHost(null);
   };
+
+  // Get minimized windows for display
+  const minimizedWindows = openWindows.filter(w => w.isMinimized);
+  const activeWindows = openWindows.filter(w => !w.isMinimized);
 
   return (
     <div className="bg-[#F5F5F7] text-gray-900 h-screen overflow-hidden flex m-0 p-0">
@@ -216,26 +256,70 @@ function App() {
         />
       )}
 
-      {/* Terminal Modal */}
-      {isTerminalOpen && selectedHost && (
+      {/* Active Terminal Windows */}
+      {activeWindows.filter(w => w.type === 'terminal').map(window => (
         <TerminalModal
-          host={selectedHost}
-          onClose={() => {
-            setIsTerminalOpen(false);
-            setSelectedHost(null);
-          }}
+          key={window.id}
+          host={window.host}
+          onClose={() => handleCloseWindow(window.id)}
+          isMinimized={window.isMinimized}
+          onToggleMinimize={() => handleToggleMinimize(window.id)}
         />
-      )}
+      ))}
 
-      {/* SFTP Modal */}
-      {isSFTPOpen && selectedHost && (
+      {/* Active SFTP Windows */}
+      {activeWindows.filter(w => w.type === 'sftp').map(window => (
         <SFTPModal
-          host={selectedHost}
-          onClose={() => {
-            setIsSFTPOpen(false);
-            setSelectedHost(null);
-          }}
+          key={window.id}
+          host={window.host}
+          onClose={() => handleCloseWindow(window.id)}
+          isMinimized={window.isMinimized}
+          onToggleMinimize={() => handleToggleMinimize(window.id)}
         />
+      ))}
+
+      {/* Minimized Windows Stack - Bottom Right */}
+      {minimizedWindows.length > 0 && (
+        <div className="fixed bottom-6 right-6 z-[60] flex flex-col-reverse gap-2">
+          {minimizedWindows.map((window, index) => (
+            <div
+              key={window.id}
+              className="cursor-pointer group animate-fade-in"
+            >
+              <div className="bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3 hover:bg-[#2a2a2a]/95 transition-all duration-300 hover:scale-105"
+                style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.05), 0 10px 40px -10px rgba(0,0,0,0.5)' }}>
+                {/* Icon with gradient background */}
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                  window.type === 'terminal' 
+                    ? 'bg-blue-600' 
+                    : 'bg-emerald-500'
+                }`}>
+                  <i className={`fa-solid ${window.type === 'terminal' ? 'fa-terminal' : 'fa-folder-open'} text-white text-sm`} />
+                </div>
+                {/* Connection status and host info */}
+                <div 
+                  className="flex items-center gap-2 flex-1" 
+                  onClick={() => handleRestoreWindow(window.id)}
+                  style={{ fontFamily: '"JetBrains Mono", "SF Mono", "Monaco", "Menlo", "Consolas", monospace', fontSize: '13px' }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-gray-300">{window.host.address}</span>
+                </div>
+                {/* Close button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCloseWindow(window.id);
+                  }}
+                  className="ml-1 w-6 h-6 rounded-full bg-[#ff5f57]/20 hover:bg-[#ff5f57] flex items-center justify-center transition-colors group/close"
+                  title="Close"
+                >
+                  <i className="fa-solid fa-xmark text-[10px] text-gray-400 group-hover/close:text-white" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Toast Notifications */}

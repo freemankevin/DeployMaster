@@ -48,7 +48,7 @@ func terminalHandler(c *gin.Context) {
 	}
 	defer conn.Close()
 
-	logger.Terminal.Info("WebSocket connected (host_id=%d)", hostID)
+	logger.Terminal.Info("[%s] WebSocket connected", host.HostID)
 
 	// 获取 SSH 连接
 	sshConn, exists := config.Pool.Get(hostID)
@@ -64,16 +64,16 @@ func terminalHandler(c *gin.Context) {
 		if host.KeyID != nil {
 			key = &models.SSHKey{}
 			if err := database.DB.First(key, *host.KeyID).Error; err != nil {
-				logger.Terminal.Warn("Failed to load key (key_id=%d): %v", *host.KeyID, err)
+				logger.Terminal.Warn("[%s] Failed to load key (key_id=%d): %v", host.HostID, *host.KeyID, err)
 				key = nil
 			} else {
-				logger.Terminal.Debug("Loaded key (key_id=%d, name=%s, has_private_key=%v)",
-					*host.KeyID, key.Name, key.PrivateKey != "")
+				logger.Terminal.Debug("[%s] Loaded key (key_id=%d, name=%s, has_private_key=%v)",
+					host.HostID, *host.KeyID, key.Name, key.PrivateKey != "")
 			}
 		}
 
 		// 连接
-		sshConn, err = config.Pool.Connect(hostID, host.Host, host.Port, host.User, password, key)
+		sshConn, err = config.Pool.Connect(hostID, host.HostID, host.Host, host.Port, host.User, password, key)
 		if err != nil {
 			conn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[31mConnection failed: "+err.Error()+"\x1b[0m\r\n"))
 			return
@@ -146,7 +146,7 @@ func terminalHandler(c *gin.Context) {
 		terminalMu.Unlock()
 		// 标记终端为关闭状态，但保持连接10分钟
 		config.Pool.SetTerminalOpen(hostID, false)
-		logger.Terminal.Info("Session closed (host_id=%d)", hostID)
+		logger.Terminal.Info("[%s] Session closed", host.HostID)
 	}()
 
 	// 发送欢迎消息

@@ -35,6 +35,15 @@ body {
 html, body {
   margin: 0;
   padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Ensure no top margin on root element */
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 
 /* 数字使用苹果 SF Pro 风格字体，更有质感 */

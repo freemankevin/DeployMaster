@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import type { SSHHost } from '@/types';
 
 interface BatchConfirmDialogProps {
@@ -23,21 +24,22 @@ export const BatchConfirmDialog = ({
 }: BatchConfirmDialogProps) => {
   if (!isOpen) return null;
 
-  return (
+  // Use Portal to render at body level for proper overlay coverage
+  return createPortal(
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+      {/* Backdrop - covers entire viewport including sticky headers */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-md" onClick={onCancel} />
 
       {/* Dialog */}
       <div className="relative bg-white rounded-xl shadow-2xl w-[480px] max-w-[90vw] animate-slide-down">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center justify-between px-5 py-3">
           <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
           <button
             onClick={onCancel}
             className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
           >
-            <i className="fa-solid fa-xmark text-gray-400 text-xs"></i>
+            <i className="fa-solid fa-xmark text-gray-400 text-xs hover:text-gray-600"></i>
           </button>
         </div>
 
@@ -53,7 +55,7 @@ export const BatchConfirmDialog = ({
             <div className="divide-y divide-gray-100">
               {hosts.map((host) => (
                 <div key={host.id} className="px-3 py-2 flex items-center gap-2">
-                  <i className="fa-solid fa-server text-gray-400 text-[10px]"></i>
+                  <i className="fa-solid fa-server text-blue-500 text-[10px]"></i>
                   <span className="text-xs text-gray-700 font-medium">{host.name}</span>
                   <span className="text-xs text-gray-400">({host.address})</span>
                 </div>
@@ -78,7 +80,8 @@ export const BatchConfirmDialog = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

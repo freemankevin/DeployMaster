@@ -306,6 +306,12 @@ export function useUploadManager({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    // Debug: log all files with their relative paths
+    console.log('[Upload] Files selected:', files.length);
+    for (let i = 0; i < files.length; i++) {
+      console.log(`[Upload] File ${i}:`, files[i].name, 'webkitRelativePath:', files[i].webkitRelativePath);
+    }
+
     // Check if it's a folder upload (via webkitRelativePath)
     const isFolderUpload = files[0].webkitRelativePath && files[0].webkitRelativePath.includes('/');
 
@@ -322,6 +328,7 @@ export function useUploadManager({
         const relativePath = file.webkitRelativePath;
         if (!relativePath) continue;
 
+        console.log('[Upload] Uploading file with relativePath:', relativePath);
         const result = await uploadFileWithProgress(file, relativePath);
         if (result) successCount++;
         else failCount++;

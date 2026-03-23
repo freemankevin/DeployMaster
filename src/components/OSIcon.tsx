@@ -8,6 +8,7 @@ interface OSIconProps {
   systemType?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  title?: string;  // 自定义 tooltip，优先使用
 }
 
 // Supported system type mapping - Use SVG logo files
@@ -96,7 +97,7 @@ const sizeMap = {
   lg: 'w-8 h-8'
 };
 
-const OSIcon = ({ osKey, systemType, size = 'md', className = '' }: OSIconProps) => {
+const OSIcon = ({ osKey, systemType, size = 'md', className = '', title }: OSIconProps) => {
   // Determine system key
   const getSystemKey = (): string => {
     if (osKey) {
@@ -117,13 +118,16 @@ const OSIcon = ({ osKey, systemType, size = 'md', className = '' }: OSIconProps)
   const logoPath = `/logo/${logoFile}`;
   const label = systemConfig ? systemConfig.label : (systemType || 'Linux');
   const sizeClass = sizeMap[size];
+  
+  // Use custom title if provided, otherwise fall back to label
+  const displayTitle = title || label;
 
   return (
-    <img 
+    <img
       src={logoPath}
       alt={label}
       className={`${sizeClass} object-contain ${className}`}
-      title={label}
+      title={displayTitle}
     />
   );
 };

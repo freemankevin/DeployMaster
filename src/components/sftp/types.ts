@@ -7,6 +7,8 @@ export interface SFTPModalProps {
     address: string;
   };
   onClose: () => void;
+  isMinimized?: boolean;
+  onToggleMinimize?: () => void;
 }
 
 export interface DiskUsage {

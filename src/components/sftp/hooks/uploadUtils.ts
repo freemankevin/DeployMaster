@@ -125,15 +125,39 @@ export function createProgressPolling(options: ProgressPollingOptions): () => vo
           progressNotFoundCount = 0;
 
           const { progress, stage, message, speed, bytes_transferred } = result.progress;
+          
+          // Debug log
+          console.log('[Upload Progress] Polling result:', {
+            uploadId,
+            progress,
+            stage,
+            bytes_transferred,
+            total_bytes: fileSize,
+            speed
+          });
+
+          // Validate and clamp progress value (0-100)
+          // Backend might return invalid values during 'receiving' stage
+          let validProgress = progress;
+          if (stage === 'receiving') {
+            // During receiving stage, progress should be 0
+            validProgress = 0;
+          } else if (typeof progress !== 'number' || isNaN(progress)) {
+            validProgress = 0;
+          } else if (progress < 0) {
+            validProgress = 0;
+          } else if (progress > 100) {
+            validProgress = 100;
+          }
 
           // Calculate transferred bytes based on progress percentage
           const transferred = fileSize > 0
-            ? Math.round((progress / 100) * fileSize)
+            ? Math.round((validProgress / 100) * fileSize)
             : (bytes_transferred || 0);
 
           // Update progress
           const newProgress: UploadProgress = {
-            progress,
+            progress: validProgress,
             bytes_transferred: transferred,
             total_bytes: fileSize,
             speed: speed || '',
@@ -145,7 +169,7 @@ export function createProgressPolling(options: ProgressPollingOptions): () => vo
 
           // Update task progress
           transfer.updateTransferTask(taskId, {
-            progress,
+            progress: validProgress,
             transferred,
             speed: speed || '',
             status: stage === 'error' ? 'failed' : 'transferring'
@@ -153,7 +177,7 @@ export function createProgressPolling(options: ProgressPollingOptions): () => vo
 
           // Detect stage changes and add logs
           if (stage !== lastStage) {
-            if (stage === 'transferring' && lastStage === 'received') {
+            if (stage === 'uploading' && lastStage === 'receiving') {
               transfer.addTransferLog(
                 'upload',
                 `Received, transferring to server...`,

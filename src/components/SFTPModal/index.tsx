@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import type { SFTPModalProps } from '../sftp/types';
 import { useSFTPModal } from './useSFTPModal';
 import {
@@ -5,7 +6,6 @@ import {
   TransferPanel,
   StatusBar,
   WindowHeader,
-  MinimizedView,
   NewFolderDialog,
   RenameDialog,
   FileEditor,
@@ -17,7 +17,7 @@ import DownloadProgressDialog from '../sftp/DownloadProgressDialog';
 import DiskSpaceErrorDialog from '../sftp/DiskSpaceErrorDialog';
 
 // Mac Terminal Style SFTP Modal
-const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
+const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMinimize }: SFTPModalProps) => {
   const {
     sftp, transfer, fileOps, window, upload, download,
     pathInputValue, setPathInputValue, isPathEditing, pathInputRef,
@@ -38,21 +38,21 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
     hostAddress: host.address
   });
 
-  // Minimized view
-  if (window.windowState.isMinimized) {
-    return (
-      <MinimizedView
-        hostName={host.name}
-        windowPosition={window.windowPosition}
-        windowSize={{ width: window.windowSize.width }}
-        connecting={sftp.connecting}
-        error={sftp.error}
-        onClose={onClose}
-        onMinimize={window.handleMinimize}
-        onMaximize={window.handleMaximize}
-        onMouseDown={window.handleMouseDown}
-      />
-    );
+  // Use external minimized state if provided, otherwise use internal state
+  const isMinimized = externalMinimized !== undefined ? externalMinimized : window.windowState.isMinimized;
+  
+  // Handle minimize toggle
+  const handleMinimizeToggle = () => {
+    if (onToggleMinimize) {
+      onToggleMinimize();
+    } else {
+      window.handleMinimize();
+    }
+  };
+
+  // If minimized, don't render the modal (App.tsx will render the minimized view)
+  if (isMinimized) {
+    return null;
   }
 
   return (
@@ -96,7 +96,7 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
               onPathEdit={handlePathEdit}
               onNavigateTo={sftp.navigateTo}
               onClose={onClose}
-              onMinimize={window.handleMinimize}
+              onMinimize={handleMinimizeToggle}
               onMaximize={window.handleMaximize}
               isMaximized={window.windowState.isMaximized}
               onShowFilter={() => setShowFilter(true)}
@@ -200,11 +200,20 @@ const SFTPModal = ({ host, onClose }: SFTPModalProps) => {
                   backgroundDownloadProgress={download.backgroundDownload?.progress.progress || 0}
                   backgroundDownloadSpeed={download.backgroundDownload?.progress.speed || ''}
                   backgroundDownloadFilename={download.backgroundDownload?.file.name || ''}
+                  backgroundDownloadFileSize={download.backgroundDownload?.file.size || 0}
+                  backgroundDownloadTransferred={download.backgroundDownload?.progress.bytes_transferred || 0}
                   hasBackgroundUpload={!!upload.backgroundUpload && !upload.showUploadProgress &&
-                    (upload.backgroundUpload.progress.stage === 'uploading' || upload.backgroundUpload.progress.stage === 'init' || upload.backgroundUpload.progress.stage === 'received')}
+                    (upload.backgroundUpload.progress.stage === 'uploading' || upload.backgroundUpload.progress.stage === 'init' || upload.backgroundUpload.progress.stage === 'receiving')}
                   backgroundUploadProgress={upload.backgroundUpload?.progress.progress || 0}
                   backgroundUploadSpeed={upload.backgroundUpload?.progress.speed || ''}
                   backgroundUploadFilename={upload.backgroundUpload?.file.name || ''}
+                  backgroundUploadFileSize={upload.backgroundUpload?.file.size || 0}
+                  backgroundUploadTransferred={upload.backgroundUpload?.progress.bytes_transferred || 0}
+                  onCancelBackgroundUpload={() => {
+                    if (upload.currentUploadId) {
+                      upload.cancelUpload(upload.currentUploadId);
+                    }
+                  }}
                 />
               )}
             </div>

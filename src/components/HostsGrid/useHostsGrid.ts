@@ -11,6 +11,7 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
   // Filter state
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [osFilter, setOsFilter] = useState<string[]>([]);
+  const [archFilter, setArchFilter] = useState<string[]>([]);
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +57,14 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
     return Array.from(oss);
   }, [hosts]);
   
+  const archOptions = useMemo(() => {
+    const archs = new Set<string>();
+    hosts.forEach(h => {
+      if (h.architecture) archs.add(h.architecture);
+    });
+    return Array.from(archs);
+  }, [hosts]);
+  
   // Filtered host list
   const filteredHosts = useMemo(() => {
     return hosts.filter(host => {
@@ -75,9 +84,13 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
         const osText = host.system_type || host.os_key || 'Unknown';
         if (!osFilter.includes(osText)) return false;
       }
+      if (archFilter.length > 0) {
+        const archText = host.architecture || 'Unknown';
+        if (!archFilter.includes(archText)) return false;
+      }
       return true;
     });
-  }, [hosts, searchQuery, statusFilter, osFilter]);
+  }, [hosts, searchQuery, statusFilter, osFilter, archFilter]);
   
   // Paginated host list
   const paginatedHosts = useMemo(() => {
@@ -256,7 +269,8 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
       host.username,
       host.auth_type === 'password' ? 'Password' : 'Key',
       host.status === 'connected' ? 'Running' : host.status === 'disconnected' ? 'Offline' : 'Unknown',
-      host.system_type || host.os_key || 'Unknown',
+      // Prefer os_pretty_name for complete version info (e.g., "Ubuntu 22.04.5 LTS")
+      host.os_pretty_name || host.system_type || host.os_key || 'Unknown',
       host.cpu_cores || '',
       host.memory_gb || '',
       host.description || ''
@@ -285,10 +299,13 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
     // Filter
     statusFilter,
     osFilter,
+    archFilter,
     statusOptions,
     osOptions,
+    archOptions,
     setStatusFilter,
     setOsFilter,
+    setArchFilter,
     
     // Search
     searchQuery,

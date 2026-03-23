@@ -22,7 +22,7 @@ const initialFormData: HostFormData = {
   name: '',
   address: '',
   port: 22,
-  username: '',
+  username: 'root',
   auth_type: 'password',
   password: '',
   private_key: '',
@@ -88,7 +88,7 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
   // Form validation
   const validateForm = (): boolean => {
     if (!formData.name.trim()) {
-      alert('Please enter display name');
+      alert('Please enter host name');
       return false;
     }
     if (!formData.address.trim()) {
@@ -100,11 +100,11 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
       return false;
     }
     // In edit mode, if password/private key already exists, allow not re-entering
-    if (formData.auth_type === 'password' && !formData.password && !host) {
+    if (formData.auth_type === 'password' && !formData.password && !host?.has_password) {
       alert('Please enter password');
       return false;
     }
-    if (formData.auth_type === 'key' && !formData.private_key && !host) {
+    if (formData.auth_type === 'key' && !formData.private_key && !host?.key_id) {
       alert('Please select or enter private key');
       return false;
     }
@@ -152,11 +152,11 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
       console.log('Submission result:', success);
 
       if (!success) {
-        alert('Save failed, please try again');
+        alert('Failed to save, please try again');
       }
     } catch (error) {
       console.error('Submission error:', error);
-      alert('Save failed, please check console logs');
+      alert('Failed to save, please check console logs');
     } finally {
       setLoading(false);
     }
@@ -218,12 +218,13 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
           {formData.auth_type === 'key' ? (
             <SSHKeyFields formData={formData} setFormData={setFormData} keys={keys} />
           ) : (
-            <PasswordField 
-              formData={formData} 
-              setFormData={setFormData} 
-              showPassword={showPassword} 
+            <PasswordField
+              formData={formData}
+              setFormData={setFormData}
+              showPassword={showPassword}
               setShowPassword={setShowPassword}
               isEditMode={!!host}
+              hasPassword={host?.has_password}
             />
           )}
 

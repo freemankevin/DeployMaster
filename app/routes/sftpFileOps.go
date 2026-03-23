@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path/filepath"
+	"strings"
 
 	"deploy-master/pkg/logger"
 	"deploy-master/services"
@@ -107,9 +109,10 @@ func sftpUpload(c *gin.Context) {
 
 	hostIDStr := c.PostForm("host_id")
 	path := c.PostForm("path")
+	relativePath := c.PostForm("relative_path") // 获取相对路径（文件夹上传时使用）
 	hostID := uint(parseInt(hostIDStr))
 
-	logger.SFTP.Debug("[Upload] %s host_id=%d, path=%s", progressID, hostID, path)
+	logger.SFTP.Debug("[Upload] %s host_id=%d, path=%s, relative_path=%s", progressID, hostID, path, relativePath)
 
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
@@ -146,8 +149,33 @@ func sftpUpload(c *gin.Context) {
 		return
 	}
 
+	// 构建远程文件路径
+	// 优先使用 relativePath（文件夹上传时传递），否则使用 header.Filename
+	fileName := relativePath
+	if fileName == "" {
+		fileName = header.Filename
+	}
+	remotePath := path + "/" + fileName
+	
+	// Debug: 输出文件名信息，帮助排查问题
+	logger.SFTP.Debug("[Upload] %s fileName='%s', header.Filename='%s', contains '/': %v", progressID, fileName, header.Filename, strings.Contains(fileName, "/"))
+	
+	// 如果文件名包含目录路径（文件夹上传），需要先创建目录结构
+	if strings.Contains(fileName, "/") {
+		dirPath := filepath.Dir(remotePath)
+		dirPath = strings.ReplaceAll(dirPath, "\\", "/")
+		logger.SFTP.Info("[Upload] %s creating directory structure: %s", progressID, dirPath)
+		err = service.CreateDirectory(dirPath)
+		if err != nil {
+			logger.SFTP.Error("[Upload] %s failed to create directory: %v", progressID, err)
+			services.UpdateProgress(progressID, "error", 0, 0, 0, "Failed to create directory: "+err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Failed to create directory: " + err.Error()})
+			return
+		}
+		logger.SFTP.Info("[Upload] %s directory structure created successfully: %s", progressID, dirPath)
+	}
+	
 	// 检查目标路径的磁盘空间
-	remotePath := path + "/" + header.Filename
 	logger.SFTP.Debug("[Upload] %s checking disk space for path: %s", progressID, path)
 	
 	diskUsage, err := service.GetDiskUsage(path)
