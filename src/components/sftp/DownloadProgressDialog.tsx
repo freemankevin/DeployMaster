@@ -189,11 +189,46 @@ const DownloadProgressDialog = ({
   const [displayProgress, setDisplayProgress] = useState(0);
   const [smoothSpeed, setSmoothSpeed] = useState('0 B/s');
   const [showConfetti, setShowConfetti] = useState(false);
+  const [dialogWidth, setDialogWidth] = useState(420);
   const prevCompletedRef = useRef(false);
   // Track max progress to prevent rollback - progress should only increase
   const maxProgressRef = useRef(0);
   // Animation frame ref for smooth animation
   const animationRef = useRef<number | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Smart resize: adjust dialog width based on viewport size
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window === 'undefined') return;
+      
+      const viewportWidth = window.innerWidth;
+      
+      // Calculate optimal width based on viewport
+      // Minimum 320px for mobile, maximum 520px for large screens
+      let calculatedWidth: number;
+      
+      if (viewportWidth < 480) {
+        // Small mobile screens
+        calculatedWidth = Math.max(320, viewportWidth - 32);
+      } else if (viewportWidth < 768) {
+        // Mobile and small tablets
+        calculatedWidth = Math.min(440, viewportWidth - 40);
+      } else {
+        // Desktop and large tablets
+        calculatedWidth = Math.min(520, viewportWidth * 0.4);
+      }
+      
+      setDialogWidth(Math.round(calculatedWidth));
+    };
+
+    // Initial calculation
+    handleResize();
+
+    // Listen for resize events
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Smooth progress animation - only allows progress to increase
   useEffect(() => {
@@ -299,10 +334,12 @@ const DownloadProgressDialog = ({
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onMinimize} />
         
         {/* Dialog body */}
-        <div 
-          className="relative bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] rounded-2xl shadow-2xl border border-white/10 overflow-hidden"
-          style={{ 
-            width: 420,
+        <div
+          ref={dialogRef}
+          className="relative bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] rounded-2xl shadow-2xl border border-white/10 overflow-hidden transition-all duration-200 ease-out"
+          style={{
+            width: dialogWidth,
+            maxWidth: '95vw',
             fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
           }}
         >

@@ -77,8 +77,16 @@ const TransferPanel = ({
 }: TransferPanelProps) => {
 
   // Filter completed tasks and logs based on current filter
-  const filteredTasks = transferTasks.filter(t => {
+  const completedTasks = transferTasks.filter(t => {
     if (t.status !== 'completed' && t.status !== 'failed' && t.status !== 'cancelled') return false;
+    if (activeLogFilter === 'upload') return t.type === 'upload';
+    if (activeLogFilter === 'download') return t.type === 'download';
+    return true;
+  });
+
+  // Filter active/transferring tasks based on current filter
+  const activeTasks = transferTasks.filter(t => {
+    if (t.status !== 'transferring' && t.status !== 'paused') return false;
     if (activeLogFilter === 'upload') return t.type === 'upload';
     if (activeLogFilter === 'download') return t.type === 'download';
     return true;
@@ -295,15 +303,62 @@ const TransferPanel = ({
           </div>
         )}
 
+        {/* Active/Transferring Tasks */}
+        {activeTasks.length > 0 && (
+          <div>
+            <h5 className="text-[11px] font-semibold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <i className="fa-solid fa-spinner fa-spin text-[10px]" />
+              {activeLogFilter === 'upload' ? 'Active Uploads' : 'Active Downloads'} ({activeTasks.length})
+            </h5>
+            <div className="space-y-2">
+              {activeTasks.map(task => (
+                <div
+                  key={task.id}
+                  className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-lg p-2.5"
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    {task.type === 'upload' ? (
+                      <i className="fa-solid fa-upload text-[10px] text-blue-400" />
+                    ) : (
+                      <i className="fa-solid fa-circle-down text-[10px] text-emerald-400" />
+                    )}
+                    <span className="flex-1 truncate text-gray-200 text-[12px] font-medium">{task.filename}</span>
+                    <span className="text-[11px] text-blue-400 font-semibold">{Math.round(task.progress || 0)}%</span>
+                  </div>
+                  {/* Progress bar for active task */}
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-1">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        task.type === 'upload'
+                          ? 'bg-gradient-to-r from-blue-500 to-cyan-400'
+                          : 'bg-gradient-to-r from-emerald-500 to-cyan-400'
+                      }`}
+                      style={{ width: `${task.progress || 0}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-gray-500">
+                    <span>{task.speed || 'Waiting...'}</span>
+                    <span>
+                      {task.transferred && task.size
+                        ? `${formatFileSize(task.transferred)} / ${formatFileSize(task.size)}`
+                        : '--'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Completed/Failed Tasks */}
-        {filteredTasks.length > 0 && (
+        {completedTasks.length > 0 && (
           <div>
             <h5 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
               <i className="fa-solid fa-check text-[10px]" />
-              {activeLogFilter === 'upload' ? 'Uploads' : 'Downloads'} ({filteredTasks.length})
+              {activeLogFilter === 'upload' ? 'Uploads' : 'Downloads'} ({completedTasks.length})
             </h5>
             <div className="space-y-1">
-              {filteredTasks.slice(0, 10).map(task => (
+              {completedTasks.slice(0, 10).map(task => (
                 <div
                   key={task.id}
                   className={`flex items-center gap-2 p-2 rounded-lg text-[12px] ${
@@ -328,7 +383,7 @@ const TransferPanel = ({
         )}
 
         {/* Empty State */}
-        {filteredTasks.length === 0 && !hasBackgroundDownload && !hasBackgroundUpload && (
+        {activeTasks.length === 0 && completedTasks.length === 0 && !hasBackgroundDownload && !hasBackgroundUpload && (
           <div className="text-center py-8 text-gray-500 text-[12px]">
             {activeLogFilter === 'upload' ? 'No upload tasks' : 'No download tasks'}
           </div>
