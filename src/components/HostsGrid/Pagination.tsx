@@ -1,4 +1,4 @@
-// Pagination component
+// Pagination component - Dark Mode
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -54,9 +54,9 @@ const Pagination = ({
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
-      <div className="text-xs text-gray-500">
-        Total <span className="text-gray-700">{totalItems}</span> items
+    <div className="flex items-center justify-between px-4 py-3 bg-background-secondary border-t border-border-primary">
+      <div className="text-xs text-text-tertiary">
+        Total <span className="text-white">{totalItems}</span> items
       </div>
       <div className="flex items-center gap-6">
         {/* Items per page selection */}
@@ -64,22 +64,22 @@ const Pagination = ({
           <select
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="text-xs border border-gray-200 rounded px-2 py-1 pr-6 focus:outline-none focus:border-blue-400 bg-white cursor-pointer"
+            className="text-xs border border-border-primary rounded px-2 py-1 pr-6 focus:outline-none focus:border-macos-blue bg-background-tertiary text-white cursor-pointer"
           >
             {pageSizeOptions.map(size => (
               <option key={size} value={size}>{size}</option>
             ))}
           </select>
-          <span className="text-xs text-gray-500">items/page</span>
+          <span className="text-xs text-text-tertiary">/ page</span>
         </div>
 
-        {/* Pagination navigation - Tencent Cloud style */}
+        {/* Pagination navigation - Dark Mode */}
         <div className="flex items-center gap-1">
           {/* Previous page */}
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            className="w-7 h-7 flex items-center justify-center rounded text-text-secondary hover:bg-background-tertiary disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
           >
             <i className="fa-solid fa-chevron-left w-4 h-4"></i>
           </button>
@@ -87,15 +87,15 @@ const Pagination = ({
           {/* Page numbers */}
           {getPageNumbers().map((page, index) => (
             page === '...' ? (
-              <span key={`ellipsis-${index}`} className="w-7 h-7 flex items-center justify-center text-xs text-gray-400">...</span>
+              <span key={`ellipsis-${index}`} className="w-7 h-7 flex items-center justify-center text-xs text-text-tertiary">...</span>
             ) : (
               <button
                 key={page}
                 onClick={() => onPageChange(page as number)}
                 className={`w-7 h-7 flex items-center justify-center rounded text-xs transition-colors ${
                   currentPage === page
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-macos-blue text-white'
+                    : 'text-text-secondary hover:bg-background-tertiary'
                 }`}
               >
                 {page}
@@ -107,7 +107,7 @@ const Pagination = ({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages || totalPages === 0}
-            className="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            className="w-7 h-7 flex items-center justify-center rounded text-text-secondary hover:bg-background-tertiary disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
           >
             <i className="fa-solid fa-chevron-right w-4 h-4"></i>
           </button>

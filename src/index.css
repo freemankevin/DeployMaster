@@ -9,7 +9,7 @@
 @tailwind utilities;
 
 /* ============================================
-   macOS Design System - Global Styles
+   macOS Dark Mode Design System - Global Styles
    ============================================ */
 
 /* 基础样式 - 苹果风格字体 */
@@ -17,14 +17,15 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  color-scheme: dark;
 }
 
 body {
   font-family: 'Inter', 'Noto Serif Khitan Small Script', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F5F5F7;
-  color: #1D1D1F;
+  background-color: #1C1C1E;
+  color: #FFFFFF;
   line-height: 1.47059;
   letter-spacing: -0.022em;
   margin: 0;
@@ -59,53 +60,62 @@ code, pre, .font-mono {
 }
 
 /* ============================================
-   macOS Button Styles
+   macOS Dark Mode Button Styles
    ============================================ */
 @layer components {
-  /* 主按钮 - macOS 风格 */
+  /* 主按钮 - macOS 暗模式风格 */
   .btn-primary {
     @apply px-4 py-2 bg-macos-blue text-white rounded-macos text-sm font-medium
            transition-all duration-200 ease-macos
            shadow-macos-button
-           hover:shadow-macos-button hover:brightness-105
+           hover:brightness-110 hover:shadow-glow-blue
            active:shadow-macos-button-active active:scale-[0.98]
            disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
   }
 
   /* 次要按钮 */
   .btn-secondary {
-    @apply px-4 py-2 bg-white text-gray-700 rounded-macos text-sm font-medium
-           border border-gray-200
+    @apply px-4 py-2 bg-background-tertiary text-white rounded-macos text-sm font-medium
+           border border-border-primary
            transition-all duration-200 ease-macos
            shadow-macos-button
-           hover:bg-gray-50 hover:border-gray-300
-           active:shadow-macos-button-active active:bg-gray-100 active:scale-[0.98];
+           hover:bg-background-elevated hover:border-border-primary
+           active:shadow-macos-button-active active:bg-macos-gray-3 active:scale-[0.98];
   }
 
   /* 幽灵按钮 */
   .btn-ghost {
     @apply px-3 py-1.5 text-macos-blue text-sm font-medium
            transition-all duration-200 ease-macos
-           hover:bg-macos-blue/10 rounded-macos-sm
-           active:bg-macos-blue/20 active:scale-[0.98];
+           hover:bg-macos-blue/20 rounded-macos-sm
+           active:bg-macos-blue/30 active:scale-[0.98];
   }
 
-  /* macOS 卡片 */
+  /* 危险按钮 */
+  .btn-danger {
+    @apply px-4 py-2 bg-macos-red text-white rounded-macos text-sm font-medium
+           transition-all duration-200 ease-macos
+           shadow-macos-button
+           hover:brightness-110 hover:shadow-glow-red
+           active:shadow-macos-button-active active:scale-[0.98];
+  }
+
+  /* macOS 暗模式卡片 */
   .card-macos {
-    @apply bg-white rounded-macos-lg border border-gray-200/60
-           shadow-macos
+    @apply bg-background-secondary rounded-macos-lg border border-border-primary
+           shadow-macos-card
            transition-all duration-300 ease-macos
-           hover:shadow-macos-lg hover:-translate-y-0.5;
+           hover:shadow-macos-card-hover hover:border-border-primary;
   }
 
-  /* macOS 输入框 */
+  /* macOS 暗模式输入框 */
   .input-macos {
-    @apply w-full px-3 py-2 bg-white border border-gray-300 rounded-macos-sm
-           text-sm text-gray-900 placeholder-gray-400
+    @apply w-full px-3 py-2 bg-background-tertiary border border-border-primary rounded-macos-sm
+           text-sm text-white placeholder-macos-gray
            transition-all duration-200 ease-macos
            shadow-macos-input
            focus:outline-none focus:border-macos-blue focus:shadow-macos-input-focus
-           hover:border-gray-400;
+           hover:border-macos-gray-2;
   }
 
   /* macOS 标签 */
@@ -124,11 +134,11 @@ code, pre, .font-mono {
   }
 
   .sidebar-item-active {
-    @apply bg-macos-blue/10 text-macos-blue;
+    @apply bg-macos-blue/20 text-macos-blue;
   }
 
   .sidebar-item-inactive {
-    @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900;
+    @apply text-text-secondary hover:bg-background-tertiary hover:text-white;
   }
 
   /* 状态脉冲动画 */
@@ -138,18 +148,18 @@ code, pre, .font-mono {
 
   /* macOS 风格分隔线 */
   .divider-macos {
-    @apply h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent;
+    @apply h-px bg-gradient-to-r from-transparent via-divider-primary to-transparent;
   }
 
-  /* macOS 玻璃效果 */
+  /* macOS 暗模式玻璃效果 */
   .glass-macos {
-    @apply bg-white/80 backdrop-blur-xl;
+    @apply bg-background-secondary/80 backdrop-blur-xl;
   }
 
-  /* macOS 窗口 */
+  /* macOS 暗模式窗口 */
   .window-macos {
-    @apply bg-white rounded-macos-xl shadow-macos-window
-           border border-gray-200/50;
+    @apply bg-background-primary rounded-macos-xl shadow-macos-window
+           border border-border-secondary;
   }
 }
 
@@ -233,7 +243,7 @@ code, pre, .font-mono {
 .card-stagger-6 { animation-delay: 0.18s; }
 
 /* ============================================
-   Scrollbar Styles - macOS Style
+   Scrollbar Styles - macOS Dark Mode
    ============================================ */
 ::-webkit-scrollbar {
   width: 8px;
@@ -245,14 +255,14 @@ code, pre, .font-mono {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.25);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
@@ -262,7 +272,7 @@ code, pre, .font-mono {
 }
 
 /* ============================================
-   Custom Scrollbar for SFTP File List
+   Custom Scrollbar for SFTP File List - Dark
    ============================================ */
 .scrollbar-custom {
   scrollbar-width: 10px;
@@ -275,12 +285,12 @@ code, pre, .font-mono {
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 5px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 5px;
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -288,13 +298,13 @@ code, pre, .font-mono {
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.35);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb:active {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.45);
 }
 
 .scrollbar-custom::-webkit-scrollbar-corner {
@@ -302,36 +312,36 @@ code, pre, .font-mono {
 }
 
 /* ============================================
-   Selection Styles
+   Selection Styles - Dark Mode
    ============================================ */
 ::selection {
-  background-color: rgba(0, 122, 255, 0.2);
+  background-color: rgba(10, 132, 255, 0.3);
   color: inherit;
 }
 
 /* ============================================
-   Focus Styles
+   Focus Styles - Dark Mode
    ============================================ */
 *:focus-visible {
-  outline: 2px solid rgba(0, 122, 255, 0.5);
+  outline: 2px solid rgba(10, 132, 255, 0.5);
   outline-offset: 2px;
 }
 
 /* ============================================
-   Grid Background
+   Grid Background - Dark Mode
    ============================================ */
 .bg-grid-macos {
   background-image: 
-    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 /* ============================================
-   Terminal Styles
+   Terminal Styles - Dark Mode Enhanced
    ============================================ */
 .terminal-macos {
-  @apply bg-[#1E1E1E] text-gray-100 font-mono text-sm rounded-macos-lg;
+  @apply bg-[#0D0D0D] text-gray-100 font-mono text-sm rounded-macos-lg;
   font-feature-settings: 'liga' 0;
 }
 
@@ -376,13 +386,15 @@ code, pre, .font-mono {
 }
 
 /* ============================================
-    Tooltip Styles
+    Tooltip Styles - Dark Mode
     ============================================ */
 .tooltip-macos {
-  @apply absolute px-2 py-1 bg-gray-800 text-white text-xs rounded-macos-sm
+  @apply absolute px-2 py-1 bg-background-elevated text-white text-xs rounded-macos-sm
          opacity-0 invisible
          transition-all duration-200 ease-macos
-         pointer-events-none z-50;
+         pointer-events-none z-50
+         shadow-macos-dropdown;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tooltip-macos::before {
@@ -404,7 +416,7 @@ code, pre, .font-mono {
 }
 
 /* ============================================
-   macOS Checkbox Styles
+   macOS Checkbox Styles - Dark Mode
    ============================================ */
 @layer components {
   /* macOS 风格复选框容器 */
@@ -417,9 +429,9 @@ code, pre, .font-mono {
     @apply absolute opacity-0 w-0 h-0 cursor-pointer;
   }
 
-  /* 复选框自定义外观 */
+  /* 复选框自定义外观 - 暗模式 */
   .checkbox-macos .checkbox-custom {
-    @apply w-[18px] h-[18px] rounded-md border border-gray-300 bg-white
+    @apply w-[18px] h-[18px] rounded-md border border-macos-gray-2 bg-background-tertiary
            flex items-center justify-center
            transition-all duration-200 ease-macos
            shadow-sm;
@@ -427,12 +439,12 @@ code, pre, .font-mono {
 
   /* hover 状态 */
   .checkbox-macos:hover .checkbox-custom {
-    @apply border-gray-400;
+    @apply border-macos-gray;
   }
 
   /* 选中状态 */
   .checkbox-macos input:checked + .checkbox-custom {
-    @apply bg-blue-500 border-blue-500 shadow-checkbox;
+    @apply bg-macos-blue border-macos-blue shadow-checkbox;
   }
 
   /* 选中时的勾选图标 */
@@ -447,7 +459,7 @@ code, pre, .font-mono {
 
   /* 焦点状态 */
   .checkbox-macos input:focus-visible + .checkbox-custom {
-    @apply ring-2 ring-blue-500/30 ring-offset-1;
+    @apply ring-2 ring-macos-blue/30 ring-offset-1 ring-offset-background-primary;
   }
 
   /* 禁用状态 */
@@ -466,10 +478,224 @@ code, pre, .font-mono {
   }
 }
 
-/* 复选框阴影 */
+/* 复选框阴影 - 暗模式 */
 .shadow-checkbox {
-  box-shadow: 0 1px 3px rgba(0, 122, 255, 0.3);
+  box-shadow: 0 1px 3px rgba(10, 132, 255, 0.4);
 }
 
+/* ============================================
+   Additional Dark Mode Utility Classes
+   ============================================ */
+@layer utilities {
+  /* 文字阴影 - 增强暗模式可读性 */
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .text-shadow-md {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
 
+  /* 玻璃态效果 */
+  .glass-dark {
+    background: rgba(28, 28, 30, 0.8);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
 
+  .glass-dark-elevated {
+    background: rgba(58, 58, 60, 0.8);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  /* 边框发光效果 */
+  .border-glow-blue {
+    box-shadow: 0 0 0 1px rgba(10, 132, 255, 0.3), 0 0 20px rgba(10, 132, 255, 0.15);
+  }
+
+  .border-glow-green {
+    box-shadow: 0 0 0 1px rgba(48, 209, 88, 0.3), 0 0 20px rgba(48, 209, 88, 0.15);
+  }
+
+  .border-glow-red {
+    box-shadow: 0 0 0 1px rgba(255, 69, 58, 0.3), 0 0 20px rgba(255, 69, 58, 0.15);
+  }
+}
+
+/* ============================================
+   Status Colors - Dark Mode
+   ============================================ */
+.status-online {
+  @apply text-macos-green;
+}
+
+.status-offline {
+  @apply text-macos-red;
+}
+
+.status-warning {
+  @apply text-macos-orange;
+}
+
+.status-info {
+  @apply text-macos-blue;
+}
+
+/* 状态背景色 */
+.bg-status-online {
+  @apply bg-macos-green/20;
+}
+
+.bg-status-offline {
+  @apply bg-macos-red/20;
+}
+
+.bg-status-warning {
+  @apply bg-macos-orange/20;
+}
+
+.bg-status-info {
+  @apply bg-macos-blue/20;
+}
+
+/* ============================================
+   Input Placeholder - Dark Mode
+   ============================================ */
+input::placeholder,
+textarea::placeholder {
+  color: #636366;
+  opacity: 1;
+}
+
+/* ============================================
+   Table Styles - Dark Mode
+   ============================================ */
+.table-macos {
+  @apply w-full;
+}
+
+.table-macos thead {
+  @apply bg-background-tertiary text-text-secondary text-xs uppercase tracking-wider;
+}
+
+.table-macos th {
+  @apply px-4 py-3 text-left font-medium;
+}
+
+.table-macos td {
+  @apply px-4 py-3 border-t border-border-secondary;
+}
+
+.table-macos tbody tr {
+  @apply transition-colors duration-150;
+}
+
+.table-macos tbody tr:hover {
+  @apply bg-background-tertiary/50;
+}
+
+/* ============================================
+   Dropdown Menu - Dark Mode
+   ============================================ */
+.dropdown-macos {
+  @apply bg-background-secondary rounded-macos shadow-macos-dropdown
+         border border-border-primary overflow-hidden;
+}
+
+.dropdown-item {
+  @apply px-3 py-2 text-sm text-white
+         transition-colors duration-150 cursor-pointer;
+}
+
+.dropdown-item:hover {
+  @apply bg-macos-blue/20 text-macos-blue;
+}
+
+.dropdown-item-danger {
+  @apply text-macos-red;
+}
+
+.dropdown-item-danger:hover {
+  @apply bg-macos-red/20 text-macos-red;
+}
+
+/* ============================================
+   Progress Bar - Dark Mode
+   ============================================ */
+.progress-macos {
+  @apply w-full h-1.5 bg-background-tertiary rounded-full overflow-hidden;
+}
+
+.progress-macos-bar {
+  @apply h-full bg-macos-blue rounded-full transition-all duration-300 ease-macos;
+}
+
+.progress-macos-success {
+  @apply bg-macos-green;
+}
+
+.progress-macos-warning {
+  @apply bg-macos-orange;
+}
+
+.progress-macos-error {
+  @apply bg-macos-red;
+}
+
+/* ============================================
+   Badge Variants - Dark Mode
+   ============================================ */
+.badge-default {
+  @apply bg-background-tertiary text-text-secondary;
+}
+
+.badge-primary {
+  @apply bg-macos-blue/20 text-macos-blue;
+}
+
+.badge-success {
+  @apply bg-macos-green/20 text-macos-green;
+}
+
+.badge-warning {
+  @apply bg-macos-orange/20 text-macos-orange;
+}
+
+.badge-danger {
+  @apply bg-macos-red/20 text-macos-red;
+}
+
+.badge-info {
+  @apply bg-macos-teal/20 text-macos-teal;
+}
+
+/* ============================================
+   Card Hover Effects - Dark Mode
+   ============================================ */
+.card-hover {
+  @apply transition-all duration-300 ease-macos;
+}
+
+.card-hover:hover {
+  @apply shadow-macos-card-hover border-border-primary transform -translate-y-0.5;
+}
+
+/* ============================================
+   Empty State - Dark Mode
+   ============================================ */
+.empty-state {
+  @apply flex flex-col items-center justify-center py-12 text-center;
+}
+
+.empty-state-icon {
+  @apply text-macos-gray-2 text-5xl mb-4;
+}
+
+.empty-state-title {
+  @apply text-lg font-medium text-white mb-2;
+}
+
+.empty-state-description {
+  @apply text-sm text-text-secondary max-w-sm;
+}

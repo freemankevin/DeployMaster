@@ -1,28 +1,28 @@
-// 磁盘信息类型
+// Disk information type
 export interface DiskInfo {
-  device: string;         // 设备名 (如 /dev/sda1 或 /dev/mapper/vg-lv)
-  physical_disk: string;  // 物理磁盘 (如 /dev/sda)
-  mount_point: string;    // 挂载点 (如 /, /data)
-  file_system: string;    // 文件系统设备
-  fs_type: string;        // 文件系统类型 (如 ext4, xfs)
-  total: number;          // 总容量(字节)
-  used: number;           // 已用(字节)
-  free: number;           // 可用(字节)
-  usage: number;          // 使用率(百分比)
-  status: 'mounted' | 'unmounted' | 'unformatted';  // 状态
-  is_virtual: boolean;    // 是否为虚拟文件系统
+  device: string;         // Device name (e.g., /dev/sda1 or /dev/mapper/vg-lv)
+  physical_disk: string;  // Physical disk (e.g., /dev/sda)
+  mount_point: string;    // Mount point (e.g., /, /data)
+  file_system: string;    // File system device
+  fs_type: string;        // File system type (e.g., ext4, xfs)
+  total: number;          // Total capacity (bytes)
+  used: number;           // Used (bytes)
+  free: number;           // Available (bytes)
+  usage: number;          // Usage percentage
+  status: 'mounted' | 'unmounted' | 'unformatted';  // Status
+  is_virtual: boolean;    // Whether it's a virtual file system
 }
 
-// SSH 主机类型
+// SSH Host type
 export interface SSHHost {
   id: number;
-  host_id: string;  // 主机ID，格式：ins-xxxxxxxx
+  host_id: string;  // Host ID, format: ins-xxxxxxxx
   name: string;
   address: string;
   port: number;
   username: string;
   auth_type: 'password' | 'key';
-  has_password?: boolean;  // 是否已设置密码（编辑模式使用）
+  has_password?: boolean;  // Whether password is set (used in edit mode)
   password?: string;
   private_key?: string;
   key_passphrase?: string;
@@ -30,23 +30,23 @@ export interface SSHHost {
   group?: string;
   description?: string;
   system_type?: string;
-  os_key?: string;  // 操作系统标识符，用于图标映射
-  os_version?: string;  // 操作系统版本号（完整版本，包含小版本号）
-  os_pretty_name?: string;  // 完整系统版本描述，如 "Ubuntu 22.04.5 LTS"
-  kernel_version?: string;  // 内核版本
-  architecture?: string;    // 架构类型
-  cpu_cores?: number;       // CPU核心数
-  memory_gb?: number;       // 内存容量(GB)
-  swap_gb?: number;         // Swap容量(GB)
-  disks?: DiskInfo[];       // 磁盘信息列表
+  os_key?: string;  // OS identifier for icon mapping
+  os_version?: string;  // OS version number (full version including minor version)
+  os_pretty_name?: string;  // Full system version description, e.g., "Ubuntu 22.04.5 LTS"
+  kernel_version?: string;  // Kernel version
+  architecture?: string;    // Architecture type
+  cpu_cores?: number;       // CPU core count
+  memory_gb?: number;       // Memory capacity (GB)
+  swap_gb?: number;         // Swap capacity (GB)
+  disks?: DiskInfo[];       // Disk information list
   last_seen?: string;
   created_at?: string;
   updated_at?: string;
-  // 后端返回的状态字段
+  // Status field returned by backend
   status: 'connected' | 'disconnected' | 'warning';
 }
 
-// SSH 密钥类型
+// SSH Key type
 export interface SSHKey {
   id: number;
   name: string;
@@ -57,7 +57,7 @@ export interface SSHKey {
   updated_at?: string;
 }
 
-// 创建主机请求
+// Create host request
 export interface CreateHostRequest {
   name: string;
   address: string;
@@ -71,7 +71,7 @@ export interface CreateHostRequest {
   description?: string;
 }
 
-// 更新主机请求
+// Update host request
 export interface UpdateHostRequest {
   name?: string;
   address?: string;
@@ -85,7 +85,7 @@ export interface UpdateHostRequest {
   description?: string;
 }
 
-// 统计信息
+// Statistics
 export interface HostStats {
   total: number;
   online: number;
@@ -93,14 +93,14 @@ export interface HostStats {
   key_count: number;
 }
 
-// API 响应
+// API Response
 export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
   data?: T;
 }
 
-// 命令执行结果
+// Command execution result
 export interface CommandResult {
   success: boolean;
   stdout?: string;
@@ -108,7 +108,7 @@ export interface CommandResult {
   message?: string;
 }
 
-// 连接测试结果
+// Connection test result
 export interface ConnectionTestResult {
   success: boolean;
   message?: string;
@@ -119,15 +119,15 @@ export interface ConnectionTestResult {
   };
 }
 
-// 窗口类型
+// Window type
 export type WindowType = 'terminal' | 'sftp';
 
-// 窗口状态
+// Window state
 export interface OpenWindow {
-  id: string;           // 唯一窗口ID，格式：${type}-${hostId}-${timestamp}
-  type: WindowType;     // 窗口类型
-  hostId: number;       // 主机ID
-  host: SSHHost;        // 主机信息
-  isMinimized: boolean; // 是否最小化
-  openedAt: number;     // 打开时间戳
+  id: string;           // Unique window ID, format: ${type}-${hostId}-${timestamp}
+  type: WindowType;     // Window type
+  hostId: number;       // Host ID
+  host: SSHHost;        // Host information
+  isMinimized: boolean; // Whether minimized
+  openedAt: number;     // Open timestamp
 }

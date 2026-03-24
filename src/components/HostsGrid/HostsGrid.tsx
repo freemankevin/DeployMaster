@@ -82,12 +82,12 @@ const HostsGrid = ({
     return (
       <div className="space-y-2">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="rounded-lg bg-white border border-gray-200 p-4 animate-pulse">
+          <div key={i} className="rounded-lg bg-background-secondary border border-border-primary p-4 animate-pulse">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gray-200 rounded-lg" />
+              <div className="w-10 h-10 bg-background-tertiary rounded-lg" />
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded w-32 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-48" />
+                <div className="h-4 bg-background-tertiary rounded w-32 mb-2" />
+                <div className="h-3 bg-background-tertiary rounded w-48" />
               </div>
             </div>
           </div>
@@ -98,7 +98,7 @@ const HostsGrid = ({
 
   return (
     <div className="space-y-3">
-      {/* Operation bar - macOS style design */}
+      {/* Operation bar - macOS Dark Mode style */}
       <div className="flex items-center gap-3">
         {/* Left side: operation button group */}
         <div className="flex items-center gap-2 mr-auto">
@@ -108,9 +108,9 @@ const HostsGrid = ({
             className="flex items-center gap-1.5 px-3 py-1.5 bg-macos-blue text-white
                      rounded-md text-xs font-medium
                      transition-all duration-200 ease-macos
-                     shadow-[0_0.5px_1px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1),inset_0_0.5px_0_rgba(255,255,255,0.25)]
-                     hover:brightness-110 hover:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1),inset_0_0.5px_0_rgba(255,255,255,0.3)]
-                     active:shadow-[inset_0_0.5px_2px_rgba(0,0,0,0.2)] active:scale-[0.97]"
+                     shadow-macos-button
+                     hover:brightness-110 hover:shadow-glow-blue
+                     active:shadow-macos-button-active active:scale-[0.97]"
           >
             <i className="fa-solid fa-plus text-[11px] text-white"></i>
             <span>Add Host</span>
@@ -130,16 +130,16 @@ const HostsGrid = ({
 
         {/* Search box - compact size matching More Actions */}
         <div className="relative">
-          <i className="fa-solid fa-search text-[13px] absolute left-2.5 top-1/2 -translate-y-1/2 text-blue-500"></i>
+          <i className="fa-solid fa-search text-[13px] absolute left-2.5 top-1/2 -translate-y-1/2 text-macos-blue"></i>
           <input
             type="text"
-            placeholder="Search hosts"
-            className="w-[200px] pl-7 pr-3 py-1.5 bg-white border border-gray-300
-                     rounded-md text-xs text-gray-900 placeholder-gray-400
+            placeholder="Search hosts..."
+            className="w-[200px] pl-7 pr-3 py-1.5 bg-background-tertiary border border-border-primary
+                     rounded-md text-xs text-white placeholder-text-tertiary
                      transition-all duration-200 ease-macos
-                     shadow-[0_0.5px_1px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.04)]
-                     focus:outline-none focus:border-macos-blue focus:shadow-[0_0_0_3px_rgba(0,122,255,0.15),0_0_0_1px_rgba(0,122,255,0.5),0_0.5px_1px_rgba(0,0,0,0.04)]
-                     hover:border-gray-400 hover:bg-gray-50/80"
+                     shadow-macos-input
+                     focus:outline-none focus:border-macos-blue focus:shadow-macos-input-focus
+                     hover:border-macos-gray-2"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -151,97 +151,96 @@ const HostsGrid = ({
             onClick={handleRefresh}
             disabled={isRefreshing}
             className="flex items-center justify-center w-7 h-7
-                     bg-white border border-gray-300 rounded-md
-                     hover:border-gray-400 hover:bg-gray-50/80
-                     text-gray-600 transition-all duration-200 ease-macos
-                     shadow-[0_0.5px_1px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.04)]
-                     active:shadow-[inset_0_0.5px_2px_rgba(0,0,0,0.08)] active:scale-[0.97]
+                     bg-background-tertiary border border-border-primary rounded-md
+                     hover:border-macos-gray-2 hover:bg-background-elevated
+                     text-text-secondary transition-all duration-200 ease-macos
+                     shadow-macos-button
+                     active:shadow-macos-button-active active:scale-[0.97]
                      disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
           >
-            <i className={`fa-solid fa-rotate-right text-[13px] text-emerald-500 ${isRefreshing ? 'animate-spin' : ''}`}></i>
+            <i className={`fa-solid fa-rotate-right text-[13px] text-macos-green ${isRefreshing ? 'animate-spin' : ''}`}></i>
           </button>
 
           <button
             onClick={handleExport}
             className="flex items-center justify-center w-7 h-7
-                     bg-white border border-gray-300 rounded-md
-                     hover:border-gray-400 hover:bg-gray-50/80
-                     text-gray-600 transition-all duration-200 ease-macos
-                     shadow-[0_0.5px_1px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.04)]
-                     active:shadow-[inset_0_0.5px_2px_rgba(0,0,0,0.08)] active:scale-[0.97]"
+                     bg-background-tertiary border border-border-primary rounded-md
+                     hover:border-macos-gray-2 hover:bg-background-elevated
+                     text-text-secondary transition-all duration-200 ease-macos
+                     shadow-macos-button
+                     active:shadow-macos-button-active active:scale-[0.97]"
           >
-            <i className="fa-solid fa-download text-[13px] text-purple-500"></i>
+            <i className="fa-solid fa-download text-[13px] text-macos-purple"></i>
           </button>
         </div>
       </div>
 
-      {/* List view */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      {/* List view - Dark Mode */}
+      <div className="bg-background-secondary rounded-lg border border-border-primary overflow-hidden">
         {/* Table header */}
-        {/* 表头行：垂直居中 + 左对齐 */}
-        <div className="flex bg-gray-50 border-b border-gray-200 text-xs items-center">
-          {/* Checkbox - 居中对齐 */}
+        <div className="flex bg-background-tertiary border-b border-border-primary text-xs items-center">
+          {/* Checkbox */}
           <div className="w-9 pl-4 pr-2 py-3 flex items-center justify-center shrink-0">
             <Checkbox checked={isAllSelected} onChange={handleSelectAll} />
           </div>
-          {/* ID - 垂直居中+左对齐 */}
+          {/* ID */}
           <div className="w-36 px-4 py-3 flex items-center justify-start relative shrink-0">
-            <span className="font-bold text-gray-700">ID</span>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <span className="font-bold text-text-secondary">ID</span>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* Host Name - 垂直居中+左对齐 */}
+          {/* Host Name */}
           <div className="w-40 px-4 py-3 flex items-center justify-start relative shrink-0">
-            <span className="font-bold text-gray-700">Host Name</span>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <span className="font-bold text-text-secondary">Host Name</span>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* Status - 垂直居中+左对齐 */}
+          {/* Status */}
           <div className="w-20 px-4 py-3 flex items-center justify-start relative shrink-0">
             <FilterDropdown column="Status" options={statusOptions} selectedValues={statusFilter} onChange={setStatusFilter} />
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* Specs - 垂直居中+左对齐 */}
+          {/* Specs */}
           <div className="w-24 px-4 py-3 flex items-center justify-start relative shrink-0">
-            <span className="font-bold text-gray-700">Specs</span>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <span className="font-bold text-text-secondary">Specs</span>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* Swap - 垂直居中+左对齐 */}
+          {/* Swap */}
           <div className="w-16 px-4 py-3 flex items-center justify-start relative shrink-0">
-            <span className="font-bold text-gray-700">Swap</span>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <span className="font-bold text-text-secondary">Swap</span>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* Arch - 垂直居中+左对齐 */}
+          {/* Arch */}
           <div className="w-16 px-4 py-3 flex items-center justify-start relative shrink-0">
             <FilterDropdown column="Arch" options={archOptions} selectedValues={archFilter} onChange={setArchFilter} />
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* Kernel - 垂直居中+左对齐 */}
+          {/* Kernel */}
           <div className="w-52 px-4 py-3 flex items-center justify-start relative shrink-0">
-            <span className="font-bold text-gray-700">Kernel</span>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <span className="font-bold text-text-secondary">Kernel</span>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* OS - 垂直居中+左对齐 */}
+          {/* OS */}
           <div className="w-24 px-4 py-3 flex items-center justify-start relative shrink-0">
             <FilterDropdown column="OS" options={osOptions} selectedValues={osFilter} onChange={setOsFilter} />
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* IPv4 Address - 垂直居中+左对齐 */}
+          {/* IPv4 Address */}
           <div className="w-40 px-4 py-3 flex items-center justify-start relative shrink-0">
-            <span className="font-bold text-gray-700">IPv4 Address</span>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <span className="font-bold text-text-secondary">IPv4 Address</span>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* Disk - 垂直居中+左对齐 */}
+          {/* Disk */}
           <div className="w-48 px-4 py-3 flex items-center justify-start relative shrink-0">
-            <span className="font-bold text-gray-700">Disk</span>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-gray-200" />
+            <span className="font-bold text-text-secondary">Disk</span>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-px bg-border-primary" />
           </div>
-          {/* Actions - 垂直居中+左对齐 */}
+          {/* Actions */}
           <div className="w-44 px-4 py-3 flex items-center justify-start shrink-0">
-            <span className="font-bold text-gray-700">Actions</span>
+            <span className="font-bold text-text-secondary">Actions</span>
           </div>
         </div>
 
         {/* Host list */}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-border-secondary">
           {paginatedHosts.map((host) => (
             <HostListItem
               key={host.id}

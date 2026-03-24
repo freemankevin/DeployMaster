@@ -67,7 +67,7 @@ export const useFileOperations = ({
     });
     if (!confirmed) return false;
     try {
-      // 删除目录时使用递归删除，以支持非空目录
+      // Use recursive deletion for directories to support non-empty directories
       const response = await sftpApi.remove(hostId, file.path, file.is_dir, file.is_dir);
       if (response.success) {
         onSuccess('Deleted', `${file.name} has been deleted`);

@@ -7,23 +7,23 @@ export const useTransferManager = (hostId?: number) => {
   const [transferTasks, setTransferTasks] = useState<TransferTask[]>([]);
   const [transferLogs, setTransferLogs] = useState<TransferLog[]>([]);
   
-  // 用于存储进度模拟的定时器
+  // Store progress simulation timers
   const progressIntervals = useRef<Map<string, number>>(new Map());
   
-  // 用于存储后端记录ID的映射
+  // Store backend record ID mapping
   const backendRecordIds = useRef<Map<string, number>>(new Map());
 
-  // 初始化时从后端加载历史记录
+  // Load history from backend on initialization
   useEffect(() => {
     loadTransferRecords();
   }, []);
 
-  // 从后端加载传输记录
+  // Load transfer records from backend
   const loadTransferRecords = useCallback(async () => {
     try {
       const response = await transferApi.getAll(100, 0);
       if (response.success && response.data) {
-        // 将后端记录转换为前端任务格式
+        // Convert backend records to frontend task format
         const tasks: TransferTask[] = response.data.map(record => ({
           id: record.transfer_id,
           type: record.type,
@@ -39,14 +39,14 @@ export const useTransferManager = (hostId?: number) => {
           endTime: record.end_time ? new Date(record.end_time) : undefined,
         }));
         
-        // 只加载非进行中的任务（进行中的任务可能是之前中断的）
+        // Only load non-in-progress tasks (in-progress tasks may be from previous interrupted sessions)
         const completedTasks = tasks.filter(t => 
           t.status === 'completed' || t.status === 'failed' || t.status === 'cancelled'
         );
         
         setTransferTasks(completedTasks);
         
-        // 建立ID映射
+        // Build ID mapping
         response.data.forEach(record => {
           backendRecordIds.current.set(record.transfer_id, record.id);
         });
@@ -56,7 +56,7 @@ export const useTransferManager = (hostId?: number) => {
     }
   }, []);
 
-  // 保存传输记录到后端
+  // Save transfer record to backend
   const saveTransferRecord = useCallback(async (task: TransferTask, status?: TransferTask['status']) => {
     try {
       const existingId = backendRecordIds.current.get(task.id);
@@ -77,10 +77,10 @@ export const useTransferManager = (hostId?: number) => {
       };
 
       if (existingId) {
-        // 更新现有记录
+        // Update existing record
         await transferApi.update(existingId, recordData);
       } else {
-        // 创建新记录
+        // Create new record
         const response = await transferApi.create({
           ...recordData,
           start_time: task.startTime?.toISOString() || new Date().toISOString(),
@@ -94,7 +94,7 @@ export const useTransferManager = (hostId?: number) => {
     }
   }, [hostId]);
 
-  // 添加传输日志
+  // Add transfer log
   const addTransferLog = useCallback((type: TransferLog['type'], message: string, path: string, status: TransferLog['status'] = 'info', size?: string, directory?: string) => {
     const newLog: TransferLog = {
       id: generateId(),
@@ -109,7 +109,7 @@ export const useTransferManager = (hostId?: number) => {
     setTransferLogs(prev => [newLog, ...prev].slice(0, 100));
   }, []);
 
-  // 创建传输任务
+  // Create transfer task
   const createTransferTask = useCallback(async (type: 'upload' | 'download', filename: string, remotePath: string, size: number, directory?: string): Promise<string> => {
     const taskId = generateId();
     const newTask: TransferTask = {
@@ -126,7 +126,7 @@ export const useTransferManager = (hostId?: number) => {
     };
     setTransferTasks(prev => [newTask, ...prev]);
     
-    // 保存到后端
+    // Save to backend
     try {
       const response = await transferApi.create({
         transfer_id: taskId,
@@ -154,16 +154,16 @@ export const useTransferManager = (hostId?: number) => {
     return taskId;
   }, [hostId]);
 
-  // 更新传输任务进度
+  // Update transfer task progress
   const updateTransferTask = useCallback((taskId: string, updates: Partial<TransferTask>) => {
     setTransferTasks(prev => prev.map(task => 
       task.id === taskId ? { ...task, ...updates } : task
     ));
   }, []);
 
-  // 完成传输任务
+  // Complete transfer task
   const completeTransferTask = useCallback((taskId: string, success: boolean, errorMsg?: string) => {
-    // 清除进度定时器
+    // Clear progress timer
     const intervalId = progressIntervals.current.get(taskId);
     if (intervalId) {
       clearInterval(intervalId);
@@ -181,10 +181,10 @@ export const useTransferManager = (hostId?: number) => {
           progress: success ? 100 : task.progress,
           endTime: now,
           error: errorMsg,
-          uploadId: undefined  // 清除 uploadId
+          uploadId: undefined  // Clear uploadId
         };
 
-        // 保存到后端
+        // Save to backend
         saveTransferRecord(updatedTask, status);
 
         return updatedTask;
@@ -193,9 +193,9 @@ export const useTransferManager = (hostId?: number) => {
     }));
   }, [saveTransferRecord]);
 
-  // 取消上传（由 useUploadManager 调用）
+  // Cancel upload (called by useUploadManager)
   const cancelUploadById = useCallback((uploadId: string) => {
-    // 查找对应的传输任务并取消
+    // Find corresponding transfer task and cancel it
     setTransferTasks(prev => {
       return prev.map(task => {
         if (task.uploadId === uploadId) {
@@ -204,7 +204,7 @@ export const useTransferManager = (hostId?: number) => {
             status: 'cancelled' as const,
             endTime: new Date(),
             error: 'User cancelled',
-            uploadId: undefined  // 清除 uploadId
+            uploadId: undefined  // Clear uploadId
           };
           saveTransferRecord(updatedTask, 'cancelled');
           return updatedTask;
@@ -214,9 +214,9 @@ export const useTransferManager = (hostId?: number) => {
     });
   }, [saveTransferRecord]);
 
-  // 取消下载（由 useDownloadManager 调用）
+  // Cancel download (called by useDownloadManager)
   const cancelDownloadById = useCallback((downloadId: string) => {
-    // 查找对应的传输任务并取消
+    // Find corresponding transfer task and cancel it
     setTransferTasks(prev => {
       return prev.map(task => {
         if (task.downloadId === downloadId) {
@@ -225,7 +225,7 @@ export const useTransferManager = (hostId?: number) => {
             status: 'cancelled' as const,
             endTime: new Date(),
             error: 'User cancelled',
-            downloadId: undefined  // 清除 downloadId
+            downloadId: undefined  // Clear downloadId
           };
           saveTransferRecord(updatedTask, 'cancelled');
           return updatedTask;
@@ -235,9 +235,9 @@ export const useTransferManager = (hostId?: number) => {
     });
   }, [saveTransferRecord]);
 
-  // 取消传输任务
+  // Cancel transfer task
   const cancelTransferTask = useCallback((taskId: string) => {
-    // 清除进度定时器
+    // Clear progress timer
     const intervalId = progressIntervals.current.get(taskId);
     if (intervalId) {
       clearInterval(intervalId);
@@ -246,7 +246,7 @@ export const useTransferManager = (hostId?: number) => {
     
     const now = new Date();
     
-    // 更新任务状态为已取消
+    // Update task status to cancelled
     setTransferTasks(prev => {
       return prev.map(t => {
         if (t.id === taskId) {
@@ -257,7 +257,7 @@ export const useTransferManager = (hostId?: number) => {
             error: 'User cancelled'
           };
           
-          // 保存到后端
+          // Save to backend
           saveTransferRecord(updatedTask, 'cancelled');
           
           return updatedTask;
@@ -267,9 +267,9 @@ export const useTransferManager = (hostId?: number) => {
     });
   }, [saveTransferRecord]);
 
-  // 暂停传输任务
+  // Pause transfer task
   const pauseTransferTask = useCallback((taskId: string) => {
-    // 清除进度定时器
+    // Clear progress timer
     const intervalId = progressIntervals.current.get(taskId);
     if (intervalId) {
       clearInterval(intervalId);
@@ -281,13 +281,13 @@ export const useTransferManager = (hostId?: number) => {
     ));
   }, []);
 
-  // 恢复传输任务
+  // Resume transfer task
   const resumeTransferTask = useCallback((taskId: string, fileSize: number) => {
     setTransferTasks(prev => prev.map(task => 
       task.id === taskId ? { ...task, status: 'transferring' } : task
     ));
     
-    // 重新开始进度模拟
+    // Restart progress simulation
     const interval = window.setInterval(() => {
       setTransferTasks(prev => {
         const task = prev.find(t => t.id === taskId);
@@ -317,9 +317,9 @@ export const useTransferManager = (hostId?: number) => {
     progressIntervals.current.set(taskId, interval);
   }, []);
 
-  // 模拟传输进度
+  // Simulate transfer progress
   const simulateTransferProgress = useCallback((taskId: string, fileSize: number, onProgress?: (progress: number) => void) => {
-    // 清除已存在的定时器
+    // Clear existing timer
     const existingInterval = progressIntervals.current.get(taskId);
     if (existingInterval) {
       clearInterval(existingInterval);
@@ -364,27 +364,27 @@ export const useTransferManager = (hostId?: number) => {
     };
   }, []);
 
-  // 清空日志
+  // Clear logs
   const clearLogs = useCallback(() => {
     setTransferLogs([]);
-    // 同时清空所有已完成的任务
+    // Also clear all completed tasks
     setTransferTasks(prev => prev.filter(t =>
       t.status === 'transferring' || t.status === 'pending' || t.status === 'paused'
     ));
   }, []);
 
-  // 按分类清空日志和已完成的任务（永久删除，调用后端 API）
+  // Clear logs and completed tasks by category (permanent deletion, calls backend API)
   const clearLogsByFilter = useCallback(async (filter: 'all' | 'upload' | 'download') => {
     try {
       if (filter === 'all') {
-        // 清空所有已完成的任务
+        // Clear all completed tasks
         await transferApi.clearCompleted();
       } else {
-        // 清理特定类型的已完成任务
+        // Clear completed tasks of specific type
         await transferApi.clearByType(filter);
       }
       
-      // 更新本地状态
+      // Update local state
       setTransferTasks(prev => {
         if (filter === 'all') {
           return prev.filter(t =>
@@ -398,28 +398,28 @@ export const useTransferManager = (hostId?: number) => {
         }
       });
       
-      // 清除对应的 backendRecordIds 映射
+      // Clear corresponding backendRecordIds mapping
       backendRecordIds.current.clear();
     } catch (error) {
       console.error('[TransferManager] Failed to clear transfer records:', error);
     }
   }, []);
 
-  // 清空已完成的任务
+  // Clear completed tasks
   const clearCompletedTasks = useCallback(async () => {
-    // 获取要删除的任务ID
+    // Get task IDs to delete
     const tasksToDelete = transferTasks.filter(t =>
       t.status === 'completed' || t.status === 'failed' || t.status === 'cancelled'
     );
     
-    // 从后端删除
+    // Delete from backend
     try {
       await transferApi.clearCompleted();
     } catch (error) {
       console.error('[TransferManager] Failed to clear completed records:', error);
     }
     
-    // 更新本地状态
+    // Update local state
     setTransferTasks(prev => prev.filter(t =>
       t.status === 'transferring' || t.status === 'pending' || t.status === 'paused'
     ));

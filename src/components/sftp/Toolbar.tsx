@@ -43,8 +43,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {!showFilter && (
         <button
           onClick={onShowFilter}
-          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
-          title="Filter files"
+          className="flex items-center gap-1 px-2 py-1 text-xs text-text-secondary hover:text-white hover:bg-white/5 rounded transition-colors"
+          title="Filter Files"
         >
           <i className="fa-solid fa-filter text-[11px]" />
           <span>Filter</span>
@@ -53,8 +53,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
       <button
         onClick={onNewFolder}
-        className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
-        title="Create new folder"
+        className="flex items-center gap-1 px-2 py-1 text-xs text-text-secondary hover:text-white hover:bg-white/5 rounded transition-colors"
+        title="Create New Folder"
       >
         <i className="fa-solid fa-folder-plus text-[11px]" />
         <span>New</span>
@@ -64,8 +64,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       <div className={`relative ${showUploadMenu ? 'z-40' : ''}`}>
         <button
           onClick={onToggleUploadMenu}
-          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
-          title="Upload files or folder"
+          className="flex items-center gap-1 px-2 py-1 text-xs text-text-secondary hover:text-white hover:bg-white/5 rounded transition-colors"
+          title="Upload Files or Folders"
         >
           <i className="fa-solid fa-upload text-[11px]" />
           <span>Upload</span>
@@ -78,10 +78,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               className="fixed inset-0 z-30"
               onClick={onCloseUploadMenu}
             />
-            <div className="absolute top-full left-0 mt-1 bg-[#2a2a2a] border border-white/10 rounded-md shadow-xl z-[60] min-w-[140px] py-1">
+            <div className="absolute top-full left-0 mt-1 bg-background-secondary border border-border-primary rounded-md shadow-macos-dropdown z-[60] min-w-[140px] py-1">
               <button
                 onClick={() => { onUpload(); onCloseUploadMenu(); }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-text-secondary hover:bg-background-tertiary hover:text-white transition-colors"
               >
                 <span className="w-4 h-4 flex items-center justify-center">
                   <FileUploadIcon className="w-4 h-4" />
@@ -90,7 +90,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               </button>
               <button
                 onClick={() => { onUploadFolder(); onCloseUploadMenu(); }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-text-secondary hover:bg-background-tertiary hover:text-white transition-colors"
               >
                 <span className="w-4 h-4 flex items-center justify-center">
                   <FolderUploadIcon className="w-4 h-4" />
@@ -105,14 +105,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       <button
         onClick={onToggleTransferPanel}
         className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
-          showTransferPanel ? 'text-blue-400 bg-blue-500/10' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+          showTransferPanel ? 'text-macos-blue bg-macos-blue/10' : 'text-text-secondary hover:text-white hover:bg-white/5'
         }`}
-        title="Transfer history"
+        title="Transfer History"
       >
         <i className="fa-solid fa-right-left text-[11px]" />
-        <span>Transfer</span>
+        <span>Transfers</span>
         {activeTransfers > 0 && (
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-macos-blue animate-pulse" />
         )}
       </button>
     </div>

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import Checkbox from '../Checkbox';
 
-// Filter dropdown component
+// Filter dropdown component - Dark Mode
 interface FilterDropdownProps {
   column: string;
   options: string[];
@@ -43,11 +43,11 @@ const FilterDropdown = ({ column, options, selectedValues, onChange }: FilterDro
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1 transition-colors ${
-          hasFilter ? 'text-blue-600' : ''
+          hasFilter ? 'text-macos-blue' : ''
         }`}
       >
-        <span className="font-bold text-gray-700">{column}</span>
-        <i className={`fa-solid fa-filter w-3 h-3 ${hasFilter ? 'text-blue-600' : 'text-gray-400'}`}></i>
+        <span className="font-bold text-text-secondary">{column}</span>
+        <i className={`fa-solid fa-filter w-3 h-3 ${hasFilter ? 'text-macos-blue' : 'text-text-tertiary'}`}></i>
       </button>
 
       {isOpen && (
@@ -56,59 +56,59 @@ const FilterDropdown = ({ column, options, selectedValues, onChange }: FilterDro
             className="fixed inset-0 z-[100]"
             onClick={() => setIsOpen(false)}
           />
-          <div className="fixed top-auto left-auto mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-[110] py-2" style={{ marginTop: '4px' }}>
+          <div className="fixed top-auto left-auto mt-1 w-48 bg-background-secondary rounded-lg shadow-macos-dropdown border border-border-primary z-[110] py-2" style={{ marginTop: '4px' }}>
             {/* Search box */}
-            <div className="px-3 pb-2 border-b border-gray-100">
+            <div className="px-3 pb-2 border-b border-border-secondary">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search..."
-                className="w-full text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
+                className="w-full text-xs bg-background-tertiary border border-border-primary rounded px-2 py-1 focus:outline-none focus:border-macos-blue text-white placeholder-text-tertiary"
               />
             </div>
 
             {/* Option list */}
-            <div className="max-h-48 overflow-y-auto py-1">
-              <label className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer">
+            <div className="max-h-48 overflow-y-auto py-1 scrollbar-custom">
+              <label className="flex items-center gap-2 px-3 py-1.5 hover:bg-background-tertiary cursor-pointer">
                 <Checkbox
                   checked={isAllSelected}
                   onChange={() => handleToggle('(Select All)')}
                   size="sm"
                 />
-                <span className="text-xs text-gray-600">(Select All)</span>
+                <span className="text-xs text-text-secondary">(Select All)</span>
               </label>
               {filteredOptions.map((option) => (
                 <label
                   key={option}
-                  className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center gap-2 px-3 py-1.5 hover:bg-background-tertiary cursor-pointer"
                 >
                   <Checkbox
                     checked={selectedValues.includes(option)}
                     onChange={() => handleToggle(option)}
                     size="sm"
                   />
-                  <span className="text-xs text-gray-700">{option}</span>
+                  <span className="text-xs text-white">{option}</span>
                 </label>
               ))}
             </div>
 
             {/* Bottom buttons */}
-            <div className="flex items-center justify-end gap-2 px-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-end gap-2 px-3 pt-2 border-t border-border-secondary">
               <button
                 onClick={() => {
                   onChange([]);
                   setIsOpen(false);
                 }}
-                className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800"
+                className="px-3 py-1 text-xs text-text-secondary hover:text-white"
               >
                 Reset
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-3 py-1 text-xs bg-macos-blue text-white rounded hover:brightness-110"
               >
-                Confirm
+                OK
               </button>
             </div>
           </div>

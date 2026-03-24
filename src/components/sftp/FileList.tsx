@@ -38,9 +38,9 @@ const FileList = ({
     return (
       <div className="flex items-center justify-center h-full">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-gray-600 border-t-blue-400 rounded-full animate-spin" />
-          <span className="text-[13px] text-gray-400">Loading...</span>
-        </div>
+            <div className="w-8 h-8 border-2 border-macos-gray-2 border-t-macos-blue rounded-full animate-spin" />
+            <span className="text-[13px] text-text-secondary">Loading...</span>
+          </div>
       </div>
     );
   }
@@ -60,24 +60,24 @@ const FileList = ({
 
   return (
     <div className="h-full">
-      {/* File List - Mac Style */}
+      {/* File List - Mac Style Dark Mode */}
       <div className="min-h-full">
-        {/* Go to parent - Tabby style */}
+        {/* Go to parent */}
         {currentPath !== '/' && (!searchQuery || searchQuery.trim() === '') && (
           <button
             onClick={onGoUp}
-            className="w-full flex items-center gap-3 px-4 py-2 text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-all duration-150 text-left group"
+            className="w-full flex items-center gap-3 px-4 py-2 text-text-secondary hover:text-white hover:bg-white/5 transition-all duration-150 text-left group"
           >
             <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
               <i className="fa-solid fa-arrow-turn-up text-sm" />
             </div>
-            <span className="text-[13px] text-gray-500 group-hover:text-gray-300 transition-colors">Go up</span>
+            <span className="text-[13px] text-text-tertiary group-hover:text-text-secondary transition-colors">Go Up</span>
           </button>
         )}
 
         {/* File Items */}
         {files?.map((file) => {
-          // 防御性检查：确保 file 和 file.path 存在
+          // Defensive check: ensure file and file.path exist
           if (!file || !file.path) return null;
           return (
           <div
@@ -86,7 +86,7 @@ const FileList = ({
             onContextMenu={(e) => handleContextMenu(e, file)}
             className={`group flex items-center gap-3 px-4 py-2 cursor-pointer transition-colors ${
               selectedFiles.has(file.path)
-                ? 'bg-blue-500/10'
+                ? 'bg-macos-blue/10'
                 : 'hover:bg-white/5'
             }`}
             style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif' }}
@@ -96,38 +96,38 @@ const FileList = ({
               <FileIcon file={file} size="sm" />
             </div>
 
-            {/* Filename - 自适应宽度，过长时截断 */}
+            {/* Filename - adaptive width, truncate when too long */}
             <div className="flex-1 min-w-0 overflow-hidden">
               <span 
-                className="text-[13px] text-gray-200 truncate font-normal block"
+                className="text-[13px] text-white truncate font-normal block"
                 title={file.name}
               >
                 {file.name}
               </span>
             </div>
 
-            {/* Right side info container - 固定宽度，优先展示 */}
+            {/* Right side info container - fixed width, priority display */}
             <div className="flex items-center gap-4 flex-shrink-0">
               {/* Size */}
               <div className="w-16 text-right flex-shrink-0">
                 {!file.is_dir && (
-                  <span className="text-[12px] text-gray-500">{file.size_formatted}</span>
+                  <span className="text-[12px] text-text-tertiary">{file.size_formatted}</span>
                 )}
               </div>
 
               {/* Modified Time */}
               <div className="w-24 text-right flex-shrink-0">
-                <span className="text-[12px] text-gray-500 whitespace-nowrap">{file.modified_time_formatted}</span>
+                <span className="text-[12px] text-text-tertiary whitespace-nowrap">{file.modified_time_formatted}</span>
               </div>
 
               {/* Permissions */}
               <div className="w-16 text-right flex-shrink-0">
-                <span className="text-[12px] text-gray-500 whitespace-nowrap">
+                <span className="text-[12px] text-text-tertiary whitespace-nowrap">
                   {file.permissions}
                 </span>
               </div>
 
-              {/* Action Buttons - 始终占据空间，hover时显示 */}
+              {/* Action Buttons - always occupy space, show on hover */}
               <div className="w-20 flex items-center justify-end gap-0.5 flex-shrink-0">
                 <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
@@ -136,21 +136,21 @@ const FileList = ({
                       e.stopPropagation();
                       onDownload(file);
                     }}
-                    className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
+                    className="p-1.5 text-text-tertiary hover:text-macos-blue hover:bg-macos-blue/10 rounded transition-colors"
                     title={file.is_dir ? "Download as ZIP" : "Download"}
                   >
                     <i className="fa-solid fa-circle-down text-[11px]" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onRename(file); }}
-                    className="p-1.5 text-gray-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors"
+                    className="p-1.5 text-text-tertiary hover:text-macos-green hover:bg-macos-green/10 rounded transition-colors"
                     title="Rename"
                   >
                     <i className="fa-solid fa-pen text-[11px]" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDelete(file); }}
-                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                    className="p-1.5 text-text-tertiary hover:text-macos-red hover:bg-macos-red/10 rounded transition-colors"
                     title="Delete"
                   >
                     <i className="fa-solid fa-trash text-[11px]" />
@@ -164,7 +164,7 @@ const FileList = ({
 
         {/* Empty State - Search */}
         {(!files || files.length === 0) && searchQuery && (
-          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+          <div className="flex flex-col items-center justify-center py-12 text-text-tertiary">
             <i className="fa-solid fa-magnifying-glass text-2xl mb-3 opacity-50" />
             <p className="text-[13px]">No files matching "{searchQuery}"</p>
           </div>
@@ -172,14 +172,14 @@ const FileList = ({
 
         {/* Empty State - Folder */}
         {(!files || files.length === 0) && !searchQuery && !loading && (
-          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+          <div className="flex flex-col items-center justify-center py-12 text-text-tertiary">
             <i className="fa-solid fa-folder text-2xl mb-3 opacity-50" />
             <p className="text-[13px]">Folder is empty</p>
           </div>
         )}
       </div>
 
-      {/* Context Menu */}
+      {/* Context Menu - Dark Mode */}
       {contextMenu && (
         <>
           <div
@@ -187,12 +187,12 @@ const FileList = ({
             onClick={closeContextMenu}
           />
           <div
-            className="fixed z-[110] bg-[#2a2a2a] rounded-lg shadow-xl border border-white/10 py-1 min-w-[160px]"
+            className="fixed z-[110] bg-background-secondary rounded-lg shadow-macos-dropdown border border-border-primary py-1 min-w-[160px]"
             style={{ top: contextMenu.y, left: contextMenu.x }}
           >
             <button
               onClick={() => { onFileClick(contextMenu.file); closeContextMenu(); }}
-              className="w-full px-3 py-2 text-left text-[13px] text-gray-300 hover:bg-white/5 flex items-center gap-2"
+              className="w-full px-3 py-2 text-left text-[13px] text-text-secondary hover:bg-background-tertiary hover:text-white flex items-center gap-2"
             >
               <i className="fa-solid fa-folder text-xs" />
               {contextMenu.file.is_dir ? 'Open' : 'Edit'}
@@ -200,17 +200,17 @@ const FileList = ({
             
             <button
               onClick={() => { onDownload(contextMenu.file); closeContextMenu(); }}
-              className="w-full px-3 py-2 text-left text-[13px] text-gray-300 hover:bg-white/5 flex items-center gap-2"
+              className="w-full px-3 py-2 text-left text-[13px] text-text-secondary hover:bg-background-tertiary hover:text-white flex items-center gap-2"
             >
               <i className="fa-solid fa-circle-down text-xs" />
               {contextMenu.file.is_dir ? 'Download as ZIP' : 'Download'}
             </button>
             
-            <div className="h-px bg-white/10 my-1" />
+            <div className="h-px bg-border-primary my-1" />
             
             <button
               onClick={() => { onRename(contextMenu.file); closeContextMenu(); }}
-              className="w-full px-3 py-2 text-left text-[13px] text-gray-300 hover:bg-white/5 flex items-center gap-2"
+              className="w-full px-3 py-2 text-left text-[13px] text-text-secondary hover:bg-background-tertiary hover:text-white flex items-center gap-2"
             >
               <i className="fa-solid fa-pen text-xs" />
               Rename
@@ -218,7 +218,7 @@ const FileList = ({
             
             <button
               onClick={() => { onDelete(contextMenu.file); closeContextMenu(); }}
-              className="w-full px-3 py-2 text-left text-[13px] text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+              className="w-full px-3 py-2 text-left text-[13px] text-macos-red hover:bg-macos-red/10 flex items-center gap-2"
             >
               <i className="fa-solid fa-trash text-xs" />
               Delete

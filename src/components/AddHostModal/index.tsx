@@ -152,11 +152,11 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
       console.log('Submission result:', success);
 
       if (!success) {
-        alert('Failed to save, please try again');
+        alert('Save failed, please try again');
       }
     } catch (error) {
       console.error('Submission error:', error);
-      alert('Failed to save, please check console logs');
+      alert('Save failed, please check console logs');
     } finally {
       setLoading(false);
     }
@@ -174,26 +174,26 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
     if (loading) return 'Saving...';
     if (host) return 'Save Changes';
     if (copyingHost) return 'Create Copy';
-    return 'Test and Save';
+    return 'Test & Save';
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-scale-in 
-                    border border-gray-200/60 overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+      <div className="bg-background-secondary rounded-2xl w-full max-w-lg shadow-macos-modal 
+                    border border-border-primary overflow-hidden">
+        {/* Header - Dark Mode */}
+        <div className="px-6 py-5 border-b border-border-primary flex items-center justify-between bg-background-tertiary/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 
-                          flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-macos-blue to-macos-indigo 
+                          flex items-center justify-center shadow-macos-button">
               <i className="fa-solid fa-server w-5 h-5 text-white"></i>
             </div>
             <div>
-              <h3 className="text-[17px] font-semibold text-gray-900">
+              <h3 className="text-[17px] font-semibold text-white">
                 {getTitle()}
               </h3>
               {copyingHost && (
-                <p className="text-[12px] text-gray-500">
+                <p className="text-[12px] text-text-tertiary">
                   Cloned from: {copyingHost.name}
                 </p>
               )}
@@ -201,7 +201,7 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 
+            className="p-2 text-text-tertiary hover:text-white hover:bg-background-elevated 
                      rounded-lg transition-all duration-200"
           >
             <i className="fa-solid fa-xmark w-5 h-5"></i>
@@ -232,12 +232,12 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
           {copyingHost && <CopyModeHint copyingHostName={copyingHost.name} />}
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
+        {/* Footer - Dark Mode */}
+        <div className="px-6 py-4 border-t border-border-primary bg-background-tertiary/30 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl text-[13px] font-medium text-gray-600 
-                     hover:text-gray-800 hover:bg-gray-200/50 
+            className="px-5 py-2.5 rounded-xl text-[13px] font-medium text-text-secondary
+                     hover:text-white hover:bg-background-tertiary
                      transition-all duration-200"
           >
             Cancel
@@ -245,12 +245,11 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl 
-                     text-[13px] font-medium transition-all duration-200 
+            className="px-6 py-2.5 bg-macos-blue hover:brightness-110 text-white rounded-xl
+                     text-[13px] font-medium transition-all duration-200
                      flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed
-                     shadow-[0_0.5px_1px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1),inset_0_0.5px_0_rgba(255,255,255,0.25)]
-                     hover:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1),inset_0_0.5px_0_rgba(255,255,255,0.25)]
-                     hover:brightness-105 active:scale-[0.98]"
+                     shadow-macos-button hover:shadow-glow-blue
+                     active:scale-[0.98]"
           >
             {loading ? (
               <>

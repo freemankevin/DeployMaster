@@ -91,9 +91,9 @@ export const MoreActionsMenu = ({
         ref={buttonRef}
         onClick={onToggle}
         disabled={selectedCount === 0}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200
-                 hover:border-gray-300 hover:bg-gray-50/80 disabled:opacity-40 disabled:cursor-not-allowed
-                 text-gray-700 rounded-md text-xs font-medium
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-background-tertiary border border-border-primary
+                 hover:border-macos-gray hover:bg-background-elevated disabled:opacity-40 disabled:cursor-not-allowed
+                 text-white rounded-md text-xs font-medium
                  transition-all duration-200 ease-macos
                  shadow-[0_0.5px_1px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.04)]
                  active:shadow-[inset_0_0.5px_2px_rgba(0,0,0,0.08)] active:scale-[0.97]"
@@ -104,7 +104,7 @@ export const MoreActionsMenu = ({
             {selectedCount}
           </span>
         )}
-        <i className="fa-solid fa-chevron-down text-[10px] text-gray-500"></i>
+        <i className="fa-solid fa-chevron-down text-[10px] text-macos-gray"></i>
       </button>
     );
   }
@@ -115,9 +115,9 @@ export const MoreActionsMenu = ({
         ref={buttonRef}
         onClick={onToggle}
         disabled={selectedCount === 0}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200
-                 hover:border-gray-300 hover:bg-gray-50/80 disabled:opacity-40 disabled:cursor-not-allowed
-                 text-gray-700 rounded-md text-xs font-medium
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-background-tertiary border border-border-primary
+                 hover:border-macos-gray hover:bg-background-elevated disabled:opacity-40 disabled:cursor-not-allowed
+                 text-white rounded-md text-xs font-medium
                  transition-all duration-200 ease-macos
                  shadow-[0_0.5px_1px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.04)]
                  active:shadow-[inset_0_0.5px_2px_rgba(0,0,0,0.08)] active:scale-[0.97]"
@@ -128,13 +128,13 @@ export const MoreActionsMenu = ({
             {selectedCount}
           </span>
         )}
-        <i className="fa-solid fa-chevron-down text-[10px] text-gray-500 rotate-180 transition-transform"></i>
+        <i className="fa-solid fa-chevron-down text-[10px] text-macos-gray rotate-180 transition-transform"></i>
       </button>
 
       {createPortal(
         <div
           ref={menuRef}
-          className="fixed z-[70] bg-white/95 backdrop-blur-xl rounded-lg shadow-macos-lg border border-gray-200/60 py-1 animate-slide-down"
+          className="fixed z-[70] bg-background-secondary/95 backdrop-blur-xl rounded-lg shadow-macos-lg border border-border-primary py-1 animate-slide-down"
           style={{
             top: `${menuPosition.top}px`,
             left: `${menuPosition.left}px`,
@@ -143,24 +143,24 @@ export const MoreActionsMenu = ({
         >
           <button
             onClick={handleShutdown}
-            className="flex items-center gap-2 w-full px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-50/80 transition-colors"
+            className="flex items-center gap-2 w-full px-2.5 py-1.5 text-xs text-white hover:bg-macos-blue/20 transition-colors"
           >
-            <i className="fa-solid fa-power-off text-[11px] text-red-500"></i>
+            <i className="fa-solid fa-power-off text-[11px] text-macos-red"></i>
             <span>Shutdown</span>
           </button>
           <button
             onClick={handleRestart}
-            className="flex items-center gap-2 w-full px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-50/80 transition-colors"
+            className="flex items-center gap-2 w-full px-2.5 py-1.5 text-xs text-white hover:bg-macos-blue/20 transition-colors"
           >
-            <i className="fa-solid fa-rotate-right text-[11px] text-blue-500"></i>
+            <i className="fa-solid fa-rotate-right text-[11px] text-macos-blue"></i>
             <span>Restart</span>
           </button>
-          <div className="h-px bg-gray-200/60 my-1" />
+          <div className="h-px bg-border-secondary my-1" />
           <button
             onClick={handleDelete}
-            className="flex items-center gap-2 w-full px-2.5 py-1.5 text-xs text-macos-red hover:bg-red-50/50 transition-colors"
+            className="flex items-center gap-2 w-full px-2.5 py-1.5 text-xs text-macos-red hover:bg-macos-red/20 transition-colors"
           >
-            <i className="fa-solid fa-trash text-[11px] text-red-500"></i>
+            <i className="fa-solid fa-trash text-[11px] text-macos-red"></i>
             <span>Delete</span>
           </button>
         </div>,

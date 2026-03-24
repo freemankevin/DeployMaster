@@ -82,14 +82,14 @@ async function handleBlobError(response: Blob): Promise<void> {
   const text = await response.text();
   try {
     const errorData = JSON.parse(text);
-    throw new Error(errorData.detail || errorData.message || '操作失败');
+    throw new Error(errorData.detail || errorData.message || 'Operation failed');
   } catch (e) {
     if (e instanceof Error) throw e;
-    throw new Error(text || '操作失败');
+    throw new Error(text || 'Operation failed');
   }
 }
 
-// 磁盘空间信息接口
+// Disk space information interface
 export interface DiskInfo {
   used_bytes: number;
   available_bytes: number;
@@ -101,14 +101,14 @@ export interface DiskInfo {
   threshold?: string;
 }
 
-// 文件信息接口
+// File information interface
 export interface FileInfo {
   name: string;
   size_bytes: number;
   size_formatted: string;
 }
 
-// 上传错误信息接口
+// Upload error information interface
 export interface UploadError {
   success: boolean;
   error: string;
@@ -148,19 +148,19 @@ export const sftpApi = {
     formData.append('host_id', hostId.toString());
     formData.append('path', remotePath);
     
-    // 如果有相对路径（文件夹上传），将其作为单独字段传递
-    // 同时使用相对路径作为文件名，以便后端创建目录结构
+    // If there's a relative path (folder upload), pass it as a separate field
+    // Also use the relative path as filename so backend can create directory structure
     if (relativePath) {
-      // 对相对路径进行 UTF-8 编码，确保中文路径正确传输
+      // UTF-8 encode the relative path to ensure Chinese paths are transmitted correctly
       formData.append('relative_path', relativePath);
     }
     
-    // 使用原始文件名，让后端处理编码问题
-    // FormData 会自动处理文件名的编码
+    // Use original filename, let backend handle encoding issues
+    // FormData will automatically handle filename encoding
     const fileName = relativePath || file.name;
     formData.append('file', file, fileName);
     
-    // Debug: 输出上传信息
+    // Debug: output upload information
     console.log('[SFTP API] Uploading file:', file.name, 'relativePath:', relativePath, 'fileName:', fileName);
     
     // Dynamic timeout based on file size (min 60s, +5s per MB, max 30 min)
@@ -174,11 +174,11 @@ export const sftpApi = {
         signal: abortSignal,
       });
     } catch (error: any) {
-      // 处理磁盘空间不足的错误
+      // Handle disk space insufficient error
       if (error?.response?.data) {
         const errorData = error.response.data;
         if (typeof errorData === 'object' && errorData.error) {
-          // 创建包含磁盘信息和文件信息的错误对象
+          // Create error object containing disk info and file info
           const uploadError: UploadError = {
             success: false,
             error: errorData.error,
@@ -186,7 +186,7 @@ export const sftpApi = {
             file_info: errorData.file_info,
             disk_info: errorData.disk_info
           };
-          // 抛出自定义错误
+          // Throw custom error
           const customError = new Error(errorData.error);
           (customError as any).uploadError = uploadError;
           throw customError;
@@ -222,7 +222,7 @@ export const sftpApi = {
       message: 'Preparing download...'
     };
     
-    // 先通知初始状态
+    // Notify initial state first
     if (onProgress) {
       onProgress(lastProgress);
     }
@@ -230,13 +230,13 @@ export const sftpApi = {
     try {
       const api = getApi();
       
-      // 发送下载请求，后端会在收到请求时创建进度记录
+      // Send download request, backend will create progress record when receiving request
       const downloadPromise = api.post<unknown, Blob>(`/sftp/download?download_id=${downloadId}`, { host_id: hostId, path: remotePath }, {
         responseType: 'blob',
         timeout: timeout,
       });
       
-      // 等待一小段时间让后端创建进度记录，然后开始轮询
+      // Wait a short time for backend to create progress record, then start polling
       await new Promise(resolve => setTimeout(resolve, 100));
       
       if (onProgress) {
@@ -255,13 +255,13 @@ export const sftpApi = {
               }
             }
           } catch (e) {
-            // 忽略 404 错误，后端可能还在创建进度记录
+            // Ignore 404 errors, backend may still be creating progress record
             console.warn('[SFTP API] Progress polling error:', e);
           }
-        }, 500);  // 增加轮询间隔到 500ms
+        }, 500);  // Increase polling interval to 500ms
       }
       
-      // 等待下载完成
+      // Wait for download to complete
       const response = await downloadPromise;
       
       if (progressInterval) {

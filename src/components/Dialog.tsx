@@ -16,7 +16,7 @@ export interface DialogProps {
   onCancel: () => void;
 }
 
-// 心跳动画样式
+// Heartbeat animation styles
 const heartbeatKeyframes = `
 @keyframes heartbeat {
   0%, 100% { transform: scale(1); }
@@ -164,14 +164,14 @@ export const Dialog = ({
         }`}
         style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
       >
-        {/* 背景遮罩 - 毛玻璃效果 */}
+        {/* Background overlay - frosted glass effect */}
         <div
           className={`absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-300 ${
             isVisible && !isClosing ? 'opacity-100' : 'opacity-0'
           }`}
         />
 
-        {/* 弹窗容器 */}
+        {/* Dialog container */}
         <div
           ref={dialogRef}
           className={`relative w-full max-w-[420px] transform transition-all duration-300 ${
@@ -180,23 +180,23 @@ export const Dialog = ({
               : 'scale-95 opacity-0 translate-y-4'
           }`}
         >
-          {/* 背景光晕效果 */}
+          {/* Background glow effect */}
           <div
             className={`absolute -inset-1 bg-gradient-to-r ${getGlowColor()} rounded-2xl blur-2xl transition-opacity duration-500 ${
               isVisible ? 'opacity-100' : 'opacity-0'
             } ${isDelete ? 'animate-[glow-pulse_2s_ease-in-out_infinite]' : ''}`}
           />
 
-          {/* 主弹窗卡片 */}
+          {/* Main dialog card */}
           <div className="relative bg-[#1e1e1e]/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
-            {/* 顶部装饰线 */}
+            {/* Top decoration line */}
             <div
               className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent ${
                 isDanger ? 'via-red-500/50' : 'via-blue-500/50'
               } to-transparent`}
             />
 
-            {/* 关闭按钮 */}
+            {/* Close button */}
             <button
               onClick={handleClose}
               className="absolute top-3 right-3 p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-all duration-200"
@@ -204,11 +204,11 @@ export const Dialog = ({
               <X className="w-4 h-4" />
             </button>
 
-            {/* 内容区域 */}
+            {/* Content area */}
             <div className="p-6">
-              {/* 图标和标题 */}
+              {/* Icon and title */}
               <div className="flex items-start gap-4">
-                {/* 图标容器 - 带呼吸效果 */}
+                {/* Icon container - with breathing effect */}
                 <div
                   className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center ${
                     isDelete
@@ -240,7 +240,7 @@ export const Dialog = ({
                 </div>
               </div>
 
-              {/* 按钮区域 */}
+              {/* Button area */}
               <div className="flex items-center justify-end gap-2.5 mt-6">
                 <button
                   onClick={handleClose}
@@ -268,7 +268,7 @@ export const Dialog = ({
   );
 };
 
-// 简单的确认弹窗快捷使用
+// Simple confirmation dialog hook for quick usage
 export const useDialog = () => {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;

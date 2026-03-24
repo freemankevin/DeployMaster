@@ -68,9 +68,9 @@ function App() {
   // Update host
   const handleUpdateHost = async (id: number, data: UpdateHostRequest) => {
     try {
-      console.log('handleUpdateHost 被调用, id:', id, 'data:', data);
+      console.log('handleUpdateHost called, id:', id, 'data:', data);
       const response = await hostApi.update(id, data);
-      console.log('API 响应:', response);
+      console.log('API response:', response);
       if (response.success) {
         await loadHosts();
         setEditingHost(null);
@@ -209,15 +209,15 @@ function App() {
   const activeWindows = openWindows.filter(w => !w.isMinimized);
 
   return (
-    <div className="bg-[#F5F5F7] text-gray-900 h-screen overflow-hidden flex m-0 p-0">
+    <div className="bg-background-primary text-white h-screen overflow-hidden flex m-0 p-0">
       {/* Sidebar */}
       <Sidebar hostCount={hosts.length} />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col bg-[#F5F5F7] relative">
-        {/* Background Pattern */}
+      <main className="flex-1 flex flex-col bg-background-primary relative">
+        {/* Background Pattern - Dark Mode */}
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:20px_20px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]" />
         </div>
         
         {/* Header */}
@@ -280,7 +280,7 @@ function App() {
         />
       ))}
 
-      {/* Minimized Windows Stack - Bottom Right */}
+      {/* Minimized Windows Stack - Bottom Right - Dark Mode */}
       {minimizedWindows.length > 0 && (
         <div className="fixed bottom-6 right-6 z-[60] flex flex-col-reverse gap-2">
           {minimizedWindows.map((window, index) => (
@@ -288,13 +288,13 @@ function App() {
               key={window.id}
               className="cursor-pointer group animate-fade-in"
             >
-              <div className="bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3 hover:bg-[#2a2a2a]/95 transition-all duration-300 hover:scale-105"
+              <div className="bg-background-secondary/95 backdrop-blur-xl border border-border-primary rounded-xl px-4 py-3 shadow-macos-dropdown flex items-center gap-3 hover:bg-background-tertiary/95 transition-all duration-300 hover:scale-105"
                 style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.05), 0 10px 40px -10px rgba(0,0,0,0.5)' }}>
                 {/* Icon with gradient background */}
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                   window.type === 'terminal' 
-                    ? 'bg-blue-600' 
-                    : 'bg-emerald-500'
+                    ? 'bg-macos-blue' 
+                    : 'bg-macos-green'
                 }`}>
                   <i className={`fa-solid ${window.type === 'terminal' ? 'fa-terminal' : 'fa-folder-open'} text-white text-sm`} />
                 </div>
@@ -304,8 +304,8 @@ function App() {
                   onClick={() => handleRestoreWindow(window.id)}
                   style={{ fontFamily: '"JetBrains Mono", "SF Mono", "Monaco", "Menlo", "Consolas", monospace', fontSize: '13px' }}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-gray-300">{window.host.address}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-macos-green animate-pulse" />
+                  <span className="text-text-secondary">{window.host.address}</span>
                 </div>
                 {/* Close button */}
                 <button
@@ -313,10 +313,10 @@ function App() {
                     e.stopPropagation();
                     handleCloseWindow(window.id);
                   }}
-                  className="ml-1 w-6 h-6 rounded-full bg-[#ff5f57]/20 hover:bg-[#ff5f57] flex items-center justify-center transition-colors group/close"
+                  className="ml-1 w-6 h-6 rounded-full bg-macos-red/20 hover:bg-macos-red flex items-center justify-center transition-colors group/close"
                   title="Close"
                 >
-                  <i className="fa-solid fa-xmark text-[10px] text-gray-400 group-hover/close:text-white" />
+                  <i className="fa-solid fa-xmark text-[10px] text-text-tertiary group-hover/close:text-white" />
                 </button>
               </div>
             </div>

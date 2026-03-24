@@ -34,26 +34,26 @@ const Toast = ({ toast, onClose }: ToastProps) => {
   const getIcon = () => {
     switch (toast.type) {
       case 'success':
-        return <CheckCircle className="w-5 h-5 text-emerald-500" />;
+        return <CheckCircle className="w-5 h-5 text-macos-green" />;
       case 'error':
-        return <XCircle className="w-5 h-5 text-red-500" />;
+        return <XCircle className="w-5 h-5 text-macos-red" />;
       case 'warning':
-        return <AlertCircle className="w-5 h-5 text-amber-500" />;
+        return <AlertCircle className="w-5 h-5 text-macos-orange" />;
       default:
-        return <Info className="w-5 h-5 text-blue-500" />;
+        return <Info className="w-5 h-5 text-macos-blue" />;
     }
   };
 
   const getStyles = () => {
     switch (toast.type) {
       case 'success':
-        return 'bg-emerald-50/90 border-emerald-200/50 shadow-emerald-500/10';
+        return 'bg-macos-green/10 border-macos-green/30 shadow-macos-green/10';
       case 'error':
-        return 'bg-red-50/90 border-red-200/50 shadow-red-500/10';
+        return 'bg-macos-red/10 border-macos-red/30 shadow-macos-red/10';
       case 'warning':
-        return 'bg-amber-50/90 border-amber-200/50 shadow-amber-500/10';
+        return 'bg-macos-orange/10 border-macos-orange/30 shadow-macos-orange/10';
       default:
-        return 'bg-blue-50/90 border-blue-200/50 shadow-blue-500/10';
+        return 'bg-macos-blue/10 border-macos-blue/30 shadow-macos-blue/10';
     }
   };
 
@@ -61,21 +61,21 @@ const Toast = ({ toast, onClose }: ToastProps) => {
     <div
       className={`
         relative flex items-start gap-3 p-4 rounded-xl border backdrop-blur-xl
-        shadow-lg transition-all duration-300 min-w-[320px] max-w-[400px]
+        shadow-macos-dropdown transition-all duration-300 min-w-[320px] max-w-[400px]
         ${getStyles()}
         ${isExiting ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'}
       `}
     >
       <div className="flex-shrink-0 mt-0.5">{getIcon()}</div>
       <div className="flex-1 min-w-0">
-        <h4 className="text-[13px] font-semibold text-gray-900">{toast.title}</h4>
+        <h4 className="text-[13px] font-semibold text-white">{toast.title}</h4>
         {toast.message && (
-          <p className="text-[12px] text-gray-600 mt-0.5 leading-relaxed">{toast.message}</p>
+          <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">{toast.message}</p>
         )}
       </div>
       <button
         onClick={handleClose}
-        className="flex-shrink-0 p-1 rounded-lg hover:bg-black/5 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 p-1 rounded-lg hover:bg-white/10 text-text-tertiary hover:text-white transition-colors"
       >
         <X className="w-4 h-4" />
       </button>

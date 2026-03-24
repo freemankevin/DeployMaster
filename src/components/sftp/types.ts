@@ -18,14 +18,14 @@ export interface DiskUsage {
   use_percentage: string;
 }
 
-// 传输任务类型
+// Transfer task type
 export interface TransferTask {
   id: string;
   type: 'upload' | 'download';
   filename: string;
   remotePath: string;
   localPath?: string;
-  directory?: string;    // 所在目录
+  directory?: string;    // Directory location
   size: number;
   transferred: number;
   status: 'pending' | 'transferring' | 'completed' | 'failed' | 'paused' | 'cancelled';
@@ -34,11 +34,11 @@ export interface TransferTask {
   startTime: Date;
   endTime?: Date;
   error?: string;
-  uploadId?: string;  // 用于取消上传
-  downloadId?: string;  // 用于取消下载
+  uploadId?: string;  // Used for cancelling upload
+  downloadId?: string;  // Used for cancelling download
 }
 
-// 传输日志条目
+// Transfer log entry
 export interface TransferLog {
   id: string;
   timestamp: Date;
@@ -47,10 +47,10 @@ export interface TransferLog {
   path: string;
   size?: string;
   status: 'success' | 'error' | 'info';
-  directory?: string;  // 所在目录
+  directory?: string;  // Directory location
 }
 
-// 后台任务接口
+// Background task interface
 export interface BackgroundTask {
   type: 'upload' | 'download';
   filename: string;
@@ -60,16 +60,16 @@ export interface BackgroundTask {
   transferred: number;
   taskId: string;
   progressId: string;
-  directory?: string;  // 所在目录
+  directory?: string;  // Directory location
 }
 
-// 窗口状态
+// Window state
 export interface WindowState {
   isMaximized: boolean;
   isMinimized: boolean;
 }
 
-// 连接状态
+// Connection state
 export interface ConnectionState {
   isConnected: boolean;
   lastActivityTime: number;

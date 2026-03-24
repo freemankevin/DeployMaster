@@ -4,7 +4,7 @@ interface IconProps {
   className?: string;
 }
 
-// 文件上传图标 - 文件带向上箭头
+// File upload icon - file with upward arrow
 export const FileUploadIcon: React.FC<IconProps> = ({ className = '' }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -25,7 +25,7 @@ export const FileUploadIcon: React.FC<IconProps> = ({ className = '' }) => (
   </svg>
 );
 
-// 文件夹上传图标 - 文件夹带向上箭头
+// Folder upload icon - folder with upward arrow
 export const FolderUploadIcon: React.FC<IconProps> = ({ className = '' }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"

@@ -65,26 +65,26 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
   }, [hostId]);
 
   const connect = useCallback(async () => {
-    // 防止重复连接
+    // Prevent duplicate connections
     if (isConnectedRef.current) {
       return true;
     }
     
     try {
       setConnecting(true);
-      setError(''); // 清除之前的错误状态
+      setError(''); // Clear previous error state
       const response = await sftpApi.connect(hostId);
       if (response.success) {
         const result = await loadDirectory('/');
         if (result === null) {
-          // loadDirectory 失败，错误已被设置
+          // loadDirectory failed, error has been set
           setConnected(false);
           return false;
         }
         await loadDiskUsage();
         isConnectedRef.current = true;
         setConnected(true);
-        // 连接成功不添加日志，改用界面展示
+        // Don't add log on successful connection, use UI display instead
         return true;
       } else {
         setError('SFTP connection failed: ' + (response.message || 'Unknown error'));
@@ -101,10 +101,10 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
   }, [hostId, loadDirectory, loadDiskUsage]);
 
   const navigateTo = useCallback(async (path: string) => {
-    // 先尝试加载目录，成功后再更新历史记录
+    // Try loading directory first, then update history on success
     const result = await loadDirectory(path);
     if (result !== null) {
-      // 只有在目录加载成功后才更新历史记录
+      // Only update history after directory loads successfully
       setPathHistory(prev => {
         const newHistory = prev.slice(0, historyIndex + 1);
         newHistory.push(path);
@@ -157,14 +157,14 @@ export const useSFTP = ({ hostId, onLog }: UseSFTPProps) => {
   }, [hostId]);
 
   useEffect(() => {
-    // 重置连接状态
+    // Reset connection state
     isConnectedRef.current = false;
     connect();
     return () => {
       isConnectedRef.current = false;
       disconnect();
     };
-  }, [hostId]); // 只在 hostId 改变时重新连接
+  }, [hostId]); // Only reconnect when hostId changes
 
   return {
     currentPath,

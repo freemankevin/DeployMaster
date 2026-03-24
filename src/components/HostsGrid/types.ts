@@ -46,6 +46,7 @@ export interface HostGridCardProps {
 export interface ActionMenuProps {
   isOpen: boolean;
   isRefreshing: boolean;
+  anchorEl: HTMLElement | null;
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;

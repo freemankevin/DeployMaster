@@ -1,6 +1,6 @@
-// 格式化文件大小
+// Format file size
 export const formatFileSize = (bytes: number | undefined | null): string => {
-  // 处理 undefined、null、NaN 或非数字的情况
+  // Handle undefined, null, NaN or non-numeric cases
   if (bytes === undefined || bytes === null || isNaN(bytes) || bytes < 0) return '0 B';
   if (bytes === 0) return '0 B';
   const k = 1024;
@@ -9,7 +9,7 @@ export const formatFileSize = (bytes: number | undefined | null): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-// 格式化速度
+// Format speed
 export const formatSpeed = (bytesPerSecond: number): string => {
   if (bytesPerSecond === 0) return '0 B/s';
   const k = 1024;
@@ -18,10 +18,10 @@ export const formatSpeed = (bytesPerSecond: number): string => {
   return parseFloat((bytesPerSecond / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
-// 生成唯一ID
+// Generate unique ID
 export const generateId = (): string => Math.random().toString(36).substring(2, 15);
 
-// 磁盘使用进度条颜色
+// Disk usage progress bar color
 export const getDiskUsageColor = (percentage: string): string => {
   const num = parseInt(percentage);
   if (num >= 90) return 'bg-red-500';

@@ -22,7 +22,7 @@ interface SFTPModalExtendedProps extends SFTPModalProps {
   onError?: (title: string, message?: string, duration?: number) => string;
 }
 
-// Mac Terminal Style SFTP Modal
+// Mac Terminal Style SFTP Modal - Dark Mode
 const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMinimize, onSuccess, onError }: SFTPModalExtendedProps) => {
   const {
     sftp, transfer, fileOps, window, upload, download,
@@ -70,12 +70,12 @@ const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMini
 
       {!sftp.connecting && (!sftp.error || sftp.files.length > 0) && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
           <div
             ref={window.modalRef}
-            className="bg-[#1e1e1e]/95 backdrop-blur-xl rounded-xl shadow-2xl flex flex-col overflow-hidden border border-white/10 sftp-font"
+            className="bg-background-primary/95 backdrop-blur-xl rounded-xl shadow-macos-modal flex flex-col overflow-hidden border border-border-primary sftp-font"
             style={{
               width: window.windowSize.width,
               height: window.windowSize.height,
@@ -117,23 +117,23 @@ const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMini
               onToggleTransferPanel={() => setShowTransferPanel(!showTransferPanel)}
             />
 
-            {/* Filter Bar */}
+            {/* Filter Bar - Dark Mode */}
             {showFilter && (
-              <div className="flex items-center px-4 py-2 bg-[#1e1e1e] border-b border-white/5">
+              <div className="flex items-center px-4 py-2 bg-background-secondary border-b border-border-secondary">
                 <div className="flex items-center w-full">
-                  <div className="flex-1 min-w-0 border border-[#3a3a3a] rounded-l overflow-hidden focus-within:border-[#00d4aa] transition-colors">
+                  <div className="flex-1 min-w-0 border border-border-primary rounded-l overflow-hidden focus-within:border-macos-blue transition-colors">
                     <input
                       type="text"
                       placeholder="Filter..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-transparent text-[13px] text-gray-200 placeholder-gray-500 px-3 py-1.5 focus:outline-none"
+                      className="w-full bg-transparent text-[13px] text-white placeholder-text-tertiary px-3 py-1.5 focus:outline-none"
                       autoFocus
                     />
                   </div>
                   <button
                     onClick={clearFilter}
-                    className="shrink-0 px-2 text-gray-400 hover:text-gray-200 bg-[#2a2a2a] hover:bg-[#3a3a3a] rounded-r border border-l-0 border-[#3a3a3a] transition-colors flex items-center justify-center self-stretch"
+                    className="shrink-0 px-2 text-text-tertiary hover:text-white bg-background-tertiary hover:bg-background-elevated rounded-r border border-l-0 border-border-primary transition-colors flex items-center justify-center self-stretch"
                     title="Close filter"
                   >
                     <i className="fa-solid fa-xmark text-[10px]" />
@@ -145,15 +145,15 @@ const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMini
             {/* Main Content */}
             <div className="flex-1 flex overflow-hidden">
               <div 
-                className={`flex-1 overflow-auto bg-[#0d0d0d]/50 scrollbar-custom ${isDragOver ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
+                className={`flex-1 overflow-auto bg-[#0a0a0a]/50 scrollbar-custom ${isDragOver ? 'ring-2 ring-macos-blue ring-inset' : ''}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
                 {isDragOver && (
-                  <div className="absolute inset-0 bg-blue-500/10 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="bg-[#1e1e1e] px-6 py-4 rounded-lg shadow-lg border border-blue-500/30">
-                      <div className="flex items-center gap-3 text-blue-400">
+                  <div className="absolute inset-0 bg-macos-blue/10 flex items-center justify-center z-10 pointer-events-none">
+                    <div className="bg-background-secondary px-6 py-4 rounded-lg shadow-macos-dropdown border border-macos-blue/30">
+                      <div className="flex items-center gap-3 text-macos-blue">
                         <i className="fa-solid fa-cloud-arrow-up text-2xl" />
                         <span className="text-base font-medium">Drop to upload</span>
                       </div>

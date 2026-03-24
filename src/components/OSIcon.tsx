@@ -8,7 +8,7 @@ interface OSIconProps {
   systemType?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
-  title?: string;  // 自定义 tooltip，优先使用
+  title?: string;  // Custom tooltip, takes priority
 }
 
 // Supported system type mapping - Use SVG logo files
