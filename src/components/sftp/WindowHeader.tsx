@@ -65,29 +65,51 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   onToggleTransferPanel
 }) => {
   return (
-    <div className="window-header flex items-center px-4 py-3 bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] border-b border-white/5">
+    <div
+      className="window-header relative flex items-center px-4 py-2.5"
+      style={{
+        background: 'linear-gradient(180deg, rgba(70,70,72,0.9) 0%, rgba(58,58,60,0.95) 100%)',
+        borderBottom: '1px solid rgba(0,0,0,0.3)',
+        borderTopLeftRadius: '12px',
+        borderTopRightRadius: '12px',
+      }}>
+      {/* Subtle top highlight */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      
       {/* Mac Window Controls - Consistent with terminal */}
       <div className="flex items-center gap-2 mr-4">
         <button
           onClick={onClose}
-          className="w-3 h-3 rounded-full bg-[#ff5f57] hover:bg-[#ff5f57]/80 transition-colors flex items-center justify-center group"
+          className="w-3 h-3 rounded-full transition-all duration-150 group flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(180deg, #ff6b6b 0%, #ff5252 100%)',
+            boxShadow: '0 0.5px 1px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.2)'
+          }}
           title="Close"
         >
-          <i className="fa-solid fa-xmark text-[10px] text-[#990000] opacity-0 group-hover:opacity-100" />
+          <i className="fa-solid fa-xmark text-[9px] text-[#8b0000] opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
         <button
           onClick={onMinimize}
-          className="w-3 h-3 rounded-full bg-[#febc2e] hover:bg-[#febc2e]/80 transition-colors flex items-center justify-center group"
+          className="w-3 h-3 rounded-full transition-all duration-150 group flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(180deg, #ffd93d 0%, #ffbe0b 100%)',
+            boxShadow: '0 0.5px 1px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.2)'
+          }}
           title="Minimize"
         >
-          <i className="fa-solid fa-minus text-[10px] text-[#985700] opacity-0 group-hover:opacity-100" />
+          <i className="fa-solid fa-minus text-[9px] text-[#8b6914] opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
         <button
           onClick={onMaximize}
-          className="w-3 h-3 rounded-full bg-[#28c840] hover:bg-[#28c840]/80 transition-colors flex items-center justify-center group"
+          className="w-3 h-3 rounded-full transition-all duration-150 group flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(180deg, #51cf66 0%, #40c057 100%)',
+            boxShadow: '0 0.5px 1px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.2)'
+          }}
           title={isMaximized ? "Restore" : "Maximize"}
         >
-          <i className="fa-solid fa-plus text-[9px] text-[#006500] opacity-0 group-hover:opacity-100" />
+          <i className="fa-solid fa-plus text-[8px] text-[#1a5c1a] opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
       </div>
 
@@ -100,7 +122,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           onChange={(e) => onPathChange(e.target.value)}
           onKeyDown={onPathKeyDown}
           onBlur={() => onPathEdit()}
-          className="flex-1 bg-[#1e1e1e] border border-white/20 rounded px-3 py-1 text-[13px] text-gray-200 focus:outline-none focus:border-blue-500"
+          className="flex-1 bg-[#0a0a0a] border border-white/[0.12] rounded-md px-3 py-1.5 text-[13px] text-white placeholder-text-tertiary focus:outline-none focus:border-macos-blue/50 focus:ring-1 focus:ring-macos-blue/20 transition-all"
           autoFocus
         />
       ) : (
@@ -111,17 +133,17 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           {/* Home icon - Navigate to root */}
           <button
             onClick={() => onNavigateTo('/')}
-            className="text-blue-400 hover:text-blue-300 mr-2 flex items-center"
+            className="text-macos-blue hover:text-macos-blue/80 mr-2 flex items-center transition-colors"
             title="Go to root directory"
           >
             <i className="fa-solid fa-house text-xs" />
           </button>
           {pathSegments.map((segment) => (
             <span key={segment.path} className="flex items-center text-xs">
-              <span className="text-gray-500 mx-1">/</span>
+              <span className="text-text-tertiary mx-1">/</span>
               <button
                 onClick={() => onNavigateTo(segment.path)}
-                className="text-gray-300 hover:text-white hover:bg-white/5 px-1.5 py-0.5 rounded transition-colors"
+                className="text-text-secondary hover:text-white hover:bg-white/[0.06] px-1.5 py-0.5 rounded transition-colors"
               >
                 {segment.name}
               </button>
@@ -135,7 +157,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
         {!showFilter && (
           <button
             onClick={onShowFilter}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-xs text-text-tertiary hover:text-white hover:bg-white/[0.06] rounded-md transition-colors"
             title="Filter files"
           >
             <i className="fa-solid fa-filter text-[11px]" />
@@ -145,7 +167,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
 
         <button
           onClick={onNewFolder}
-          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
+          className="flex items-center gap-1 px-2 py-1 text-xs text-text-tertiary hover:text-white hover:bg-white/[0.06] rounded-md transition-colors"
           title="Create new folder"
         >
           <i className="fa-solid fa-folder-plus text-[11px]" />
@@ -156,7 +178,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
         <div className={`relative ${showUploadMenu ? 'z-40' : ''}`}>
           <button
             onClick={onToggleUploadMenu}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-xs text-text-tertiary hover:text-white hover:bg-white/[0.06] rounded-md transition-colors"
             title="Upload files or folder"
           >
             <i className="fa-solid fa-upload text-[11px]" />
@@ -170,10 +192,10 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
                 className="fixed inset-0 z-30"
                 onClick={onCloseUploadMenu}
               />
-              <div className="absolute top-full right-0 mt-1 bg-[#2a2a2a] border border-white/10 rounded-md shadow-xl z-[60] min-w-[140px] py-1">
+              <div className="absolute top-full right-0 mt-1 bg-[#1e1e20] border border-white/[0.08] rounded-lg shadow-2xl z-[60] min-w-[140px] py-1 backdrop-blur-xl">
                 <button
                    onClick={() => { onUpload(); onCloseUploadMenu(); }}
-                   className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                   className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-text-secondary hover:text-white hover:bg-white/[0.06] transition-colors"
                  >
                    <span className="w-4 h-4 flex items-center justify-center">
                      <FileUploadIcon className="w-4 h-4" />
@@ -182,7 +204,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
                  </button>
                  <button
                    onClick={() => { onUploadFolder(); onCloseUploadMenu(); }}
-                   className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 transition-colors"
+                   className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-text-secondary hover:text-white hover:bg-white/[0.06] transition-colors"
                  >
                    <span className="w-4 h-4 flex items-center justify-center">
                      <FolderUploadIcon className="w-4 h-4" />
@@ -196,15 +218,15 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
 
         <button
           onClick={onToggleTransferPanel}
-          className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
-            showTransferPanel ? 'text-blue-400 bg-blue-500/10' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+          className={`flex items-center gap-1 px-2 py-1 text-xs rounded-md transition-colors ${
+            showTransferPanel ? 'text-macos-blue bg-macos-blue/10' : 'text-text-tertiary hover:text-white hover:bg-white/[0.06]'
           }`}
           title="Transfer history"
         >
           <i className="fa-solid fa-right-left text-[11px]" />
           <span>Transfer</span>
           {activeTransfers > 0 && (
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-macos-blue animate-pulse" />
           )}
         </button>
       </div>

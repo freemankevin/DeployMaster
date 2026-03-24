@@ -345,6 +345,29 @@ code, pre, .font-mono {
   font-feature-settings: 'liga' 0;
 }
 
+/* xterm.js 终端样式覆盖 - 确保完全填充容器 */
+.xterm {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.xterm-viewport {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.xterm-screen {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* 确保终端容器没有间隙 */
+.xterm-helpers {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 /* 终端光标闪烁 */
 @keyframes blink {
   0%, 50% {

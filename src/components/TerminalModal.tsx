@@ -121,24 +121,73 @@ const TerminalModal = ({ host, onClose, isMinimized: externalMinimized, onToggle
     <>
       {/* Terminal main window - only render if not minimized */}
       {!isMinimized && (
-        <div className={`fixed inset-0 z-50 transition-all duration-300 bg-black/60 backdrop-blur-md flex items-center justify-center animate-fade-in opacity-100`}>
-          <div className={`bg-background-primary/95 backdrop-blur-xl border border-border-primary rounded-xl flex flex-col overflow-hidden animate-scale-in transition-all duration-300 ${
+        <div
+          className={`fixed inset-0 z-50 transition-all duration-300 flex items-center justify-center animate-fade-in opacity-100`}
+          style={{
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          }}>
+          <div className={`relative flex flex-col overflow-hidden animate-scale-in transition-all duration-300 ${
             isFullscreen ? 'fixed inset-4 w-auto h-auto max-w-none rounded-2xl' : 'w-full max-w-4xl h-[600px] rounded-xl'
           }`}
-            style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 100px -20px rgba(0,0,0,0.3)' }}>
+            style={{
+              background: 'linear-gradient(180deg, rgba(58,58,60,0.95) 0%, rgba(44,44,46,0.98) 100%)',
+              WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+              backdropFilter: 'blur(40px) saturate(180%)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: isFullscreen ? '16px' : '12px',
+              boxShadow: `
+                0 0 0 0.5px rgba(255,255,255,0.2),
+                0 0 0 1px rgba(0,0,0,0.3),
+                0 25px 50px -12px rgba(0,0,0,0.5),
+                0 12px 24px -8px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -1px 0 rgba(0,0,0,0.2)
+              `
+            }}>
             
             {/* Terminal Header - macOS Dark Mode style */}
-            <div className="bg-gradient-to-b from-background-tertiary to-background-secondary px-4 py-2 border-b border-border-secondary flex items-center justify-between select-none">
+            <div className="relative px-4 py-2.5 flex items-center justify-between select-none"
+              style={{
+                background: 'linear-gradient(180deg, rgba(70,70,72,0.9) 0%, rgba(58,58,60,0.95) 100%)',
+                borderBottom: '1px solid rgba(0,0,0,0.3)',
+                borderTopLeftRadius: isFullscreen ? '16px' : '12px',
+                borderTopRightRadius: isFullscreen ? '16px' : '12px',
+              }}>
+              {/* Subtle top highlight */}
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
               {/* macOS window buttons - left */}
               <div className="flex gap-2">
-                <button onClick={onClose} className="w-3 h-3 rounded-full bg-macos-red hover:brightness-110 transition-colors group flex items-center justify-center" title="Close">
-                  <i className="fa-solid fa-xmark text-[10px] text-white/60 opacity-0 group-hover:opacity-100" />
+                <button
+                  onClick={onClose}
+                  className="w-3 h-3 rounded-full transition-all duration-150 group flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(180deg, #ff6b6b 0%, #ff5252 100%)',
+                    boxShadow: '0 0.5px 1px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.2)'
+                  }}
+                  title="Close">
+                  <i className="fa-solid fa-xmark text-[9px] text-[#8b0000] opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
-                <button onClick={toggleMinimize} className="w-3 h-3 rounded-full bg-macos-orange hover:brightness-110 transition-colors group flex items-center justify-center" title="Minimize">
-                  <i className="fa-solid fa-minus text-[10px] text-white/60 opacity-0 group-hover:opacity-100" />
+                <button
+                  onClick={toggleMinimize}
+                  className="w-3 h-3 rounded-full transition-all duration-150 group flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(180deg, #ffd93d 0%, #ffbe0b 100%)',
+                    boxShadow: '0 0.5px 1px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.2)'
+                  }}
+                  title="Minimize">
+                  <i className="fa-solid fa-minus text-[9px] text-[#8b6914] opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
-                <button onClick={toggleFullscreen} className="w-3 h-3 rounded-full bg-macos-green hover:brightness-110 transition-colors group flex items-center justify-center" title="Fullscreen">
-                  <i className="fa-solid fa-plus text-[9px] text-white/60 opacity-0 group-hover:opacity-100" />
+                <button
+                  onClick={toggleFullscreen}
+                  className="w-3 h-3 rounded-full transition-all duration-150 group flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(180deg, #51cf66 0%, #40c057 100%)',
+                    boxShadow: '0 0.5px 1px rgba(0,0,0,0.3), inset 0 0.5px 0 rgba(255,255,255,0.2)'
+                  }}
+                  title="Fullscreen">
+                  <i className="fa-solid fa-plus text-[8px] text-[#1a5c1a] opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               </div>
               {/* Connection status - center */}
@@ -190,9 +239,32 @@ const TerminalModal = ({ host, onClose, isMinimized: externalMinimized, onToggle
               <div className="w-[60px]"></div>
             </div>
             
-            {/* Terminal Body */}
-            <div className="flex-1 bg-[#0a0a0a] overflow-hidden relative" onClick={handleTerminalClick}>
-              <div ref={terminalRef} className="w-full h-full p-2 pb-3 relative z-10" />
+            {/* Terminal Body - macOS Terminal style with subtle inner shadow */}
+            <div
+              className="flex-1 overflow-hidden relative"
+              onClick={handleTerminalClick}
+              style={{
+                background: 'linear-gradient(180deg, #0d0d0d 0%, #0a0a0a 100%)',
+                borderBottomLeftRadius: isFullscreen ? '16px' : '12px',
+                borderBottomRightRadius: isFullscreen ? '16px' : '12px',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
+              }}>
+              {/* Subtle scanline effect for terminal feel */}
+              <div
+                className="absolute inset-0 pointer-events-none opacity-[0.02]"
+                style={{
+                  background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)'
+                }}
+              />
+              {/* Terminal content with padding for breathing room */}
+              <div
+                className="absolute inset-0 p-3"
+                style={{
+                  borderBottomLeftRadius: isFullscreen ? '16px' : '12px',
+                  borderBottomRightRadius: isFullscreen ? '16px' : '12px',
+                }}>
+                <div ref={terminalRef} className="w-full h-full relative z-10" />
+              </div>
             </div>
           </div>
         </div>

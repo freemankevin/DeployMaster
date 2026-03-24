@@ -95,11 +95,11 @@ const TransferPanel = ({
 
   return (
     <div
-      className="w-80 bg-[#1e1e1e] border-l border-white/5 flex flex-col"
+      className="w-80 bg-gradient-to-b from-[#161618] to-[#121214] border-l border-white/[0.04] flex flex-col"
       style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif' }}
     >
       {/* Tabs */}
-      <div className="flex border-b border-white/5">
+      <div className="flex border-b border-white/[0.04]">
         {(['upload', 'download'] as LogFilter[]).map((filter) => {
           const activeCount = getActiveCount(filter);
           const completedCount = getCompletedCount(filter);
@@ -109,8 +109,8 @@ const TransferPanel = ({
               onClick={() => onFilterChange(filter)}
               className={`flex-1 px-3 py-2 text-[12px] font-medium transition-all relative ${
                 activeLogFilter === filter
-                  ? 'bg-white/5 text-gray-200'
-                  : 'text-gray-500 hover:text-gray-300'
+                  ? 'bg-white/[0.04] text-white'
+                  : 'text-text-tertiary hover:text-text-secondary'
               }`}
             >
               <span className="flex items-center justify-center gap-1">
@@ -119,8 +119,8 @@ const TransferPanel = ({
                 {/* Show active count if there are active tasks */}
                 {activeCount > 0 && (
                   <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                    filter === 'upload' ? 'bg-blue-500/30 text-blue-300' :
-                    'bg-emerald-500/30 text-emerald-300'
+                    filter === 'upload' ? 'bg-macos-blue/30 text-macos-blue' :
+                    'bg-macos-green/30 text-macos-green'
                   }`}>
                     {activeCount}
                   </span>
@@ -128,15 +128,15 @@ const TransferPanel = ({
                 {/* Show completed count if there are completed tasks and no active tasks */}
                 {activeCount === 0 && completedCount > 0 && (
                   <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                    filter === 'upload' ? 'bg-blue-500/20 text-blue-400' :
-                    'bg-emerald-500/20 text-emerald-400'
+                    filter === 'upload' ? 'bg-macos-blue/20 text-macos-blue' :
+                    'bg-macos-green/20 text-macos-green'
                   }`}>
                     {completedCount}
                   </span>
                 )}
               </span>
               {activeLogFilter === filter && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-macos-blue" />
               )}
             </button>
           );
@@ -144,11 +144,11 @@ const TransferPanel = ({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-auto p-3 space-y-3 bg-[#0d0d0d]">
+      <div className="flex-1 overflow-auto p-3 space-y-3 bg-[#0a0a0a]/80">
         {/* Active Upload Tasks */}
         {activeLogFilter === 'upload' && activeUploadTasks.length > 0 && (
           <div>
-            <h5 className="text-[11px] font-semibold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <h5 className="text-[11px] font-semibold text-macos-blue uppercase tracking-wider mb-2 flex items-center gap-2">
               <i className="fa-solid fa-spinner fa-spin text-[10px]" />
               Active Uploads ({activeUploadTasks.length})
             </h5>
@@ -156,29 +156,29 @@ const TransferPanel = ({
               {activeUploadTasks.map(task => (
                 <div
                   key={task.uploadId}
-                  className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-lg p-2.5 cursor-pointer hover:border-blue-500/40 transition-all"
+                  className="bg-gradient-to-r from-macos-blue/10 to-macos-teal/10 border border-macos-blue/20 rounded-lg p-2.5 cursor-pointer hover:border-macos-blue/40 transition-all"
                   onClick={() => onViewUploadTask?.(task)}
                 >
                   <div className="flex items-center gap-2 mb-1.5">
-                    <i className="fa-solid fa-upload text-[10px] text-blue-400" />
-                    <span className="flex-1 truncate text-gray-200 text-[12px] font-medium" title={task.filename}>{task.filename}</span>
-                    <span className="text-[11px] text-blue-400 font-semibold">{Math.round(task.progress.progress || 0)}%</span>
+                    <i className="fa-solid fa-upload text-[10px] text-macos-blue" />
+                    <span className="flex-1 truncate text-white text-[12px] font-medium" title={task.filename}>{task.filename}</span>
+                    <span className="text-[11px] text-macos-blue font-semibold">{Math.round(task.progress.progress || 0)}%</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onCancelUpload?.(task.uploadId); }}
-                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all border border-red-500/20 hover:border-red-500/40"
+                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-macos-red/10 hover:bg-macos-red/20 text-macos-red transition-all border border-macos-red/20 hover:border-macos-red/40"
                       title="Cancel"
                     >
                       <i className="fa-solid fa-xmark text-[10px]" />
                     </button>
                   </div>
                   {/* Progress bar */}
-                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-1">
+                  <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden mb-1">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-macos-blue to-macos-teal rounded-full transition-all duration-300"
                       style={{ width: `${task.progress.progress || 0}%` }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-gray-500">
+                  <div className="flex items-center justify-between text-[10px] text-text-tertiary">
                     <span>{task.progress.speed || 'Waiting...'}</span>
                     <span>
                       {task.progress.bytes_transferred && task.fileSize
@@ -195,7 +195,7 @@ const TransferPanel = ({
         {/* Active Download Tasks */}
         {activeLogFilter === 'download' && activeDownloadTasks.length > 0 && (
           <div>
-            <h5 className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <h5 className="text-[11px] font-semibold text-macos-green uppercase tracking-wider mb-2 flex items-center gap-2">
               <i className="fa-solid fa-spinner fa-spin text-[10px]" />
               Active Downloads ({activeDownloadTasks.length})
             </h5>
@@ -203,29 +203,29 @@ const TransferPanel = ({
               {activeDownloadTasks.map(task => (
                 <div
                   key={task.downloadId}
-                  className="bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 rounded-lg p-2.5 cursor-pointer hover:border-emerald-500/40 transition-all"
+                  className="bg-gradient-to-r from-macos-green/10 to-macos-teal/10 border border-macos-green/20 rounded-lg p-2.5 cursor-pointer hover:border-macos-green/40 transition-all"
                   onClick={() => onViewDownloadTask?.(task)}
                 >
                   <div className="flex items-center gap-2 mb-1.5">
-                    <i className="fa-solid fa-circle-down text-[10px] text-emerald-400" />
-                    <span className="flex-1 truncate text-gray-200 text-[12px] font-medium" title={task.filename}>{task.filename}</span>
-                    <span className="text-[11px] text-emerald-400 font-semibold">{Math.round(task.progress.progress || 0)}%</span>
+                    <i className="fa-solid fa-circle-down text-[10px] text-macos-green" />
+                    <span className="flex-1 truncate text-white text-[12px] font-medium" title={task.filename}>{task.filename}</span>
+                    <span className="text-[11px] text-macos-green font-semibold">{Math.round(task.progress.progress || 0)}%</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onCancelDownload?.(task.downloadId); }}
-                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all border border-red-500/20 hover:border-red-500/40"
+                      className="w-6 h-6 flex items-center justify-center rounded-lg bg-macos-red/10 hover:bg-macos-red/20 text-macos-red transition-all border border-macos-red/20 hover:border-macos-red/40"
                       title="Cancel"
                     >
                       <i className="fa-solid fa-xmark text-[10px]" />
                     </button>
                   </div>
                   {/* Progress bar */}
-                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-1">
+                  <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden mb-1">
                     <div
-                      className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-macos-green to-macos-teal rounded-full transition-all duration-300"
                       style={{ width: `${task.progress.progress || 0}%` }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-gray-500">
+                  <div className="flex items-center justify-between text-[10px] text-text-tertiary">
                     <span>{task.progress.speed || 'Waiting...'}</span>
                     <span>
                       {task.progress.bytes_transferred && task.fileSize
@@ -242,7 +242,7 @@ const TransferPanel = ({
         {/* Completed/Failed Tasks */}
         {completedTasks.length > 0 && (
           <div>
-            <h5 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <h5 className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider mb-2 flex items-center gap-2">
               <i className="fa-solid fa-check text-[10px]" />
               {activeLogFilter === 'upload' ? 'Uploads' : 'Downloads'} ({completedTasks.length})
             </h5>
@@ -252,19 +252,19 @@ const TransferPanel = ({
                   key={task.id}
                   className={`flex items-center gap-2 p-2 rounded-lg text-[12px] ${
                     task.status === 'failed'
-                      ? 'bg-red-500/10 border border-red-500/20'
+                      ? 'bg-macos-red/10 border border-macos-red/20'
                       : task.status === 'cancelled'
-                      ? 'bg-amber-500/10 border border-amber-500/20'
-                      : 'bg-emerald-500/10 border border-emerald-500/20'
+                      ? 'bg-macos-orange/10 border border-macos-orange/20'
+                      : 'bg-macos-green/10 border border-macos-green/20'
                   }`}
                 >
                   {task.type === 'upload' ? (
-                    <i className={`fa-solid fa-upload text-[10px] ${task.status === 'failed' ? 'text-red-400' : task.status === 'cancelled' ? 'text-amber-400' : 'text-emerald-400'}`} />
+                    <i className={`fa-solid fa-upload text-[10px] ${task.status === 'failed' ? 'text-macos-red' : task.status === 'cancelled' ? 'text-macos-orange' : 'text-macos-green'}`} />
                   ) : (
-                    <i className={`fa-solid fa-circle-down text-[10px] ${task.status === 'failed' ? 'text-red-400' : task.status === 'cancelled' ? 'text-amber-400' : 'text-emerald-400'}`} />
+                    <i className={`fa-solid fa-circle-down text-[10px] ${task.status === 'failed' ? 'text-macos-red' : task.status === 'cancelled' ? 'text-macos-orange' : 'text-macos-green'}`} />
                   )}
-                  <span className="flex-1 truncate text-gray-300">{task.filename}</span>
-                  <span className="text-[11px] text-gray-500">{formatFileSize(task.size)}</span>
+                  <span className="flex-1 truncate text-text-secondary">{task.filename}</span>
+                  <span className="text-[11px] text-text-tertiary">{formatFileSize(task.size)}</span>
                 </div>
               ))}
             </div>
@@ -273,15 +273,15 @@ const TransferPanel = ({
 
         {/* Empty State */}
         {completedTasks.length === 0 && activeUploadTasks.length === 0 && activeDownloadTasks.length === 0 && (
-          <div className="text-center py-8 text-gray-500 text-[12px]">
+          <div className="text-center py-8 text-text-tertiary text-[12px]">
             {activeLogFilter === 'upload' ? 'No upload tasks' : 'No download tasks'}
           </div>
         )}
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-white/5 bg-[#1a1a1a]">
-        <div className="flex items-center justify-between text-[12px] text-gray-500">
+      <div className="p-3 border-t border-white/[0.04] bg-gradient-to-b from-[#141416] to-[#101012]">
+        <div className="flex items-center justify-between text-[12px] text-text-tertiary">
           <span>
             {activeLogFilter === 'upload' && `Upload: ${currentCount}`}
             {activeLogFilter === 'download' && `Download: ${currentCount}`}
@@ -294,7 +294,7 @@ const TransferPanel = ({
                 onClearLogs();
               }
             }}
-            className="text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"
+            className="text-text-tertiary hover:text-white transition-colors flex items-center gap-1"
           >
             <i className="fa-solid fa-trash-can text-[10px]" />
             Clear

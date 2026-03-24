@@ -69,20 +69,38 @@ const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMini
       <ErrorOverlay isOpen={!!sftp.error && !sftp.files.length} error={sftp.error} onClose={onClose} />
 
       {!sftp.connecting && (!sftp.error || sftp.files.length > 0) && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 animate-fade-in"
+          style={{
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          }}
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
           <div
             ref={window.modalRef}
-            className="bg-background-primary/95 backdrop-blur-xl rounded-xl shadow-macos-modal flex flex-col overflow-hidden border border-border-primary sftp-font"
+            className="relative flex flex-col overflow-hidden sftp-font"
             style={{
               width: window.windowSize.width,
               height: window.windowSize.height,
               position: 'absolute',
               left: window.windowPosition.x,
               top: window.windowPosition.y,
-              fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif'
+              fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+              background: 'linear-gradient(180deg, rgba(58,58,60,0.95) 0%, rgba(44,44,46,0.98) 100%)',
+              WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+              backdropFilter: 'blur(40px) saturate(180%)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '12px',
+              boxShadow: `
+                0 0 0 0.5px rgba(255,255,255,0.2),
+                0 0 0 1px rgba(0,0,0,0.3),
+                0 25px 50px -12px rgba(0,0,0,0.5),
+                0 12px 24px -8px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -1px 0 rgba(0,0,0,0.2)
+              `
             }}
             onMouseDown={window.handleMouseDown}
           >
@@ -117,23 +135,23 @@ const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMini
               onToggleTransferPanel={() => setShowTransferPanel(!showTransferPanel)}
             />
 
-            {/* Filter Bar - Dark Mode */}
+            {/* Filter Bar - Dark Mode Enhanced */}
             {showFilter && (
-              <div className="flex items-center px-4 py-2 bg-background-secondary border-b border-border-secondary">
+              <div className="flex items-center px-4 py-2 bg-[#121214] border-b border-white/[0.04]">
                 <div className="flex items-center w-full">
-                  <div className="flex-1 min-w-0 border border-border-primary rounded-l overflow-hidden focus-within:border-macos-blue transition-colors">
+                  <div className="flex-1 min-w-0 border border-white/[0.08] rounded-l-md overflow-hidden focus-within:border-macos-blue/50 focus-within:ring-1 focus-within:ring-macos-blue/20 transition-all">
                     <input
                       type="text"
                       placeholder="Filter..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-transparent text-[13px] text-white placeholder-text-tertiary px-3 py-1.5 focus:outline-none"
+                      className="w-full bg-[#0a0a0a] text-[13px] text-white placeholder-text-tertiary px-3 py-1.5 focus:outline-none"
                       autoFocus
                     />
                   </div>
                   <button
                     onClick={clearFilter}
-                    className="shrink-0 px-2 text-text-tertiary hover:text-white bg-background-tertiary hover:bg-background-elevated rounded-r border border-l-0 border-border-primary transition-colors flex items-center justify-center self-stretch"
+                    className="shrink-0 px-2.5 text-text-tertiary hover:text-white bg-[#1a1a1c] hover:bg-[#222224] rounded-r-md border border-l-0 border-white/[0.08] transition-all flex items-center justify-center self-stretch"
                     title="Close filter"
                   >
                     <i className="fa-solid fa-xmark text-[10px]" />
@@ -144,15 +162,19 @@ const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMini
 
             {/* Main Content */}
             <div className="flex-1 flex overflow-hidden">
-              <div 
-                className={`flex-1 overflow-auto bg-[#0a0a0a]/50 scrollbar-custom ${isDragOver ? 'ring-2 ring-macos-blue ring-inset' : ''}`}
+              <div
+                className={`flex-1 overflow-auto scrollbar-custom ${isDragOver ? 'ring-2 ring-macos-blue ring-inset' : ''}`}
+                style={{
+                  background: 'linear-gradient(180deg, rgba(13,13,13,0.95) 0%, rgba(10,10,10,0.98) 100%)',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)'
+                }}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
                 {isDragOver && (
                   <div className="absolute inset-0 bg-macos-blue/10 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="bg-background-secondary px-6 py-4 rounded-lg shadow-macos-dropdown border border-macos-blue/30">
+                    <div className="bg-[#1a1a1c] px-6 py-4 rounded-xl shadow-2xl border border-macos-blue/30 backdrop-blur-xl">
                       <div className="flex items-center gap-3 text-macos-blue">
                         <i className="fa-solid fa-cloud-arrow-up text-2xl" />
                         <span className="text-base font-medium">Drop to upload</span>
