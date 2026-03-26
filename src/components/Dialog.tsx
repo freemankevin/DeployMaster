@@ -118,16 +118,16 @@ export const Dialog = ({
   const getIcon = () => {
     switch (type) {
       case 'delete':
-        return <Trash2 className="w-6 h-6 text-red-400" />;
+        return <Trash2 className="w-6 h-6 text-status-error" />;
       case 'warning':
-        return <AlertTriangle className="w-6 h-6 text-amber-400" />;
+        return <AlertTriangle className="w-6 h-6 text-status-warning" />;
       case 'error':
-        return <AlertCircle className="w-6 h-6 text-red-400" />;
+        return <AlertCircle className="w-6 h-6 text-status-error" />;
       case 'success':
-        return <CheckCircle className="w-6 h-6 text-emerald-400" />;
+        return <CheckCircle className="w-6 h-6 text-status-success" />;
       case 'info':
       default:
-        return <Info className="w-6 h-6 text-blue-400" />;
+        return <Info className="w-6 h-6 text-primary" />;
     }
   };
 
@@ -135,22 +135,22 @@ export const Dialog = ({
     switch (type) {
       case 'delete':
       case 'error':
-        return 'from-red-500/20 via-red-500/10 to-transparent';
+        return 'from-status-error/20 via-status-error/10 to-transparent';
       case 'warning':
-        return 'from-amber-500/20 via-amber-500/10 to-transparent';
+        return 'from-status-warning/20 via-status-warning/10 to-transparent';
       case 'success':
-        return 'from-emerald-500/20 via-emerald-500/10 to-transparent';
+        return 'from-status-success/20 via-status-success/10 to-transparent';
       case 'info':
       default:
-        return 'from-blue-500/20 via-blue-500/10 to-transparent';
+        return 'from-primary/20 via-primary/10 to-transparent';
     }
   };
 
   const getButtonColor = () => {
     if (isDanger) {
-      return 'bg-red-500 hover:bg-red-600 shadow-red-500/25';
+      return 'bg-status-error hover:bg-red-600 shadow-status-error/25';
     }
-    return 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/25';
+    return 'bg-primary hover:bg-primary-dark shadow-primary/25';
   };
 
   // Use Portal to render dialog at document.body level

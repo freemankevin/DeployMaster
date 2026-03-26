@@ -1,16 +1,14 @@
 import { useState, useCallback, useRef } from 'react';
 
-interface ColumnWidth {
-  [key: string]: number;
-}
+type ColumnWidth = { [key: string]: number };
 
-interface UseColumnResizeOptions {
-  initialWidths: ColumnWidth;
+interface UseColumnResizeOptions<T extends ColumnWidth> {
+  initialWidths: T;
   minWidth?: number;
 }
 
-export const useColumnResize = ({ initialWidths, minWidth = 50 }: UseColumnResizeOptions) => {
-  const [widths, setWidths] = useState<ColumnWidth>(initialWidths);
+export const useColumnResize = <T extends ColumnWidth>({ initialWidths, minWidth = 50 }: UseColumnResizeOptions<T>) => {
+  const [widths, setWidths] = useState<T>(initialWidths);
   const [draggingKey, setDraggingKey] = useState<string | null>(null);
   const [hoverKey, setHoverKey] = useState<string | null>(null);
   const startXRef = useRef(0);

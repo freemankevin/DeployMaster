@@ -321,9 +321,9 @@ const DownloadProgressDialog = ({
   
   // Calculate progress bar color
   const getProgressColor = () => {
-    if (isError) return 'from-red-500 to-red-400';
-    if (isCompleted) return 'from-emerald-500 to-emerald-400';
-    return 'from-blue-500 via-blue-400 to-cyan-400';
+    if (isError) return 'from-status-error to-status-error';
+    if (isCompleted) return 'from-status-success to-status-success';
+    return 'from-primary via-primary to-accent-cyan';
   };
   
   return (
@@ -336,7 +336,7 @@ const DownloadProgressDialog = ({
         {/* Dialog body */}
         <div
           ref={dialogRef}
-          className="relative bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] rounded-2xl shadow-2xl border border-white/10 overflow-hidden transition-all duration-200 ease-out"
+          className="relative bg-gradient-to-b from-background-secondary to-background-primary rounded-2xl shadow-2xl border border-border-primary overflow-hidden transition-all duration-200 ease-out"
           style={{
             width: dialogWidth,
             maxWidth: '95vw',
@@ -344,20 +344,20 @@ const DownloadProgressDialog = ({
           }}
         >
           {/* Title bar */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border-secondary">
             <div className="flex items-center gap-3">
               {/* Icon animation */}
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                isCompleted ? 'bg-emerald-500/20' : 
-                isError ? 'bg-red-500/20' : 
-                'bg-blue-500/20'
+                isCompleted ? 'bg-status-success/20' :
+                isError ? 'bg-status-error/20' :
+                'bg-primary/20'
               }`}>
                 {isCompleted ? (
-                  <i className="fa-solid fa-check text-lg text-emerald-400" />
+                  <i className="fa-solid fa-check text-lg text-status-success" />
                 ) : isError ? (
-                  <i className="fa-solid fa-circle-exclamation text-lg text-red-400" />
+                  <i className="fa-solid fa-circle-exclamation text-lg text-status-error" />
                 ) : (
-                  <i className="fa-solid fa-cloud-arrow-down text-lg text-blue-400 animate-pulse" />
+                  <i className="fa-solid fa-cloud-arrow-down text-lg text-primary animate-pulse" />
                 )}
               </div>
               <div>

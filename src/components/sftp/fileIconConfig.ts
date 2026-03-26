@@ -2,22 +2,22 @@
 // Color system - Following document specifications
 // ============================================
 export const colors = {
-  // Blue - Directory type
-  blue: '#378ADD',
+  // Primary - Directory type, source code
+  blue: '#8B5CF6',
   // Teal - Executable/script type, structured data
-  teal: '#1D9E75',
+  teal: '#22C55E',
   // Orange - Compressed/archive type
-  orange: '#D85A30',
+  orange: '#F97316',
   // Amber - Config file type
-  amber: '#BA7517',
+  amber: '#EAB308',
   // Purple - Document/image type
-  purple: '#7F77DD',
+  purple: '#A855F7',
   // Pink - Key/certificate type
-  pink: '#D4537E',
+  pink: '#EC4899',
   // Gray - Regular file, log, symlink
-  gray: '#888780',
+  gray: '#71717A',
   // Red - Delete/error operation
-  red: '#E24B4A',
+  red: '#EF4444',
 };
 
 // ============================================

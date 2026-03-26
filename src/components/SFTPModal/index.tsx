@@ -88,18 +88,18 @@ const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMini
               left: window.windowPosition.x,
               top: window.windowPosition.y,
               fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-              background: 'linear-gradient(180deg, rgba(58,58,60,0.95) 0%, rgba(44,44,46,0.98) 100%)',
+              background: 'linear-gradient(145deg, rgba(30, 30, 35, 0.95) 0%, rgba(24, 24, 28, 0.98) 100%)',
               WebkitBackdropFilter: 'blur(40px) saturate(180%)',
               backdropFilter: 'blur(40px) saturate(180%)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: '12px',
               boxShadow: `
-                0 0 0 0.5px rgba(255,255,255,0.2),
-                0 0 0 1px rgba(0,0,0,0.3),
-                0 25px 50px -12px rgba(0,0,0,0.5),
-                0 12px 24px -8px rgba(0,0,0,0.4),
-                inset 0 1px 0 rgba(255,255,255,0.1),
-                inset 0 -1px 0 rgba(0,0,0,0.2)
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 2px 8px rgba(0, 0, 0, 0.6),
+                0 8px 24px rgba(0, 0, 0, 0.5),
+                0 20px 48px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3)
               `
             }}
             onMouseDown={window.handleMouseDown}

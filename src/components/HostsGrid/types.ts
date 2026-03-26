@@ -17,6 +17,7 @@ export interface HostsGridProps {
 }
 
 export interface ColumnWidths {
+  [key: string]: number;
   checkbox: number;
   id: number;
   hostName: number;

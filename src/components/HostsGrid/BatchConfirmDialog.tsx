@@ -31,33 +31,33 @@ export const BatchConfirmDialog = ({
       <div className="absolute inset-0 bg-black/40 backdrop-blur-md" onClick={onCancel} />
 
       {/* Dialog */}
-      <div className="relative bg-white rounded-xl shadow-2xl w-[480px] max-w-[90vw] animate-slide-down">
+      <div className="relative bg-background-secondary rounded-xl shadow-2xl w-[480px] max-w-[90vw] animate-slide-down border border-border-primary">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3">
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+          <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
           <button
             onClick={onCancel}
-            className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-background-hover transition-colors"
           >
-            <i className="fa-solid fa-xmark text-gray-400 text-xs hover:text-gray-600"></i>
+            <i className="fa-solid fa-xmark text-text-tertiary text-xs hover:text-text-secondary"></i>
           </button>
         </div>
 
         {/* Content */}
         <div className="px-5 py-4">
-          <p className="text-xs text-gray-600 mb-3">{message}</p>
+          <p className="text-xs text-text-secondary mb-3">{message}</p>
 
           {/* Host list */}
-          <div className="bg-gray-50 rounded-lg border border-gray-200 max-h-[200px] overflow-y-auto">
-            <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-200 bg-gray-100/50">
+          <div className="bg-background-primary rounded-lg border border-border-secondary max-h-[200px] overflow-y-auto">
+            <div className="px-3 py-2 text-xs font-medium text-text-tertiary border-b border-border-secondary bg-background-tertiary/50">
               Selected Hosts ({hosts.length})
             </div>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-border-tertiary">
               {hosts.map((host) => (
                 <div key={host.id} className="px-3 py-2 flex items-center gap-2">
-                  <i className="fa-solid fa-server text-blue-500 text-[10px]"></i>
-                  <span className="text-xs text-gray-700 font-medium">{host.name}</span>
-                  <span className="text-xs text-gray-400">({host.address})</span>
+                  <i className="fa-solid fa-server text-primary text-[10px]"></i>
+                  <span className="text-xs text-text-primary font-medium">{host.name}</span>
+                  <span className="text-xs text-text-tertiary">({host.address})</span>
                 </div>
               ))}
             </div>
@@ -65,10 +65,10 @@ export const BatchConfirmDialog = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-border-secondary">
           <button
             onClick={onCancel}
-            className="px-4 py-1.5 text-xs text-gray-600 hover:text-gray-800 rounded-md hover:bg-gray-100 transition-colors"
+            className="px-4 py-1.5 text-xs text-text-secondary hover:text-text-primary rounded-md hover:bg-background-hover transition-colors"
           >
             Cancel
           </button>

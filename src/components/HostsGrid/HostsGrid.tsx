@@ -7,10 +7,10 @@ import Pagination from './Pagination';
 import FilterDropdown from './FilterDropdown';
 import { useHostsGrid } from './useHostsGrid';
 import { useColumnResize } from '@/hooks/useColumnResize';
-import type { HostsGridProps } from './types';
+import type { HostsGridProps, ColumnWidths } from './types';
 
 // Default column widths
-const defaultColumnWidths = {
+const defaultColumnWidths: ColumnWidths = {
   checkbox: 36,
   id: 140,
   hostName: 160,
@@ -22,7 +22,7 @@ const defaultColumnWidths = {
   os: 80,
   ip: 140,
   disk: 180,
-  actions: 180,
+  actions: 200,
 };
 
 const HostsGrid = ({
@@ -38,7 +38,7 @@ const HostsGrid = ({
   onRefresh
 }: HostsGridProps) => {
   // Column resize hook
-  const { widths: colWidths, getResizeHandleProps, getResizeIndicatorProps } = useColumnResize({
+  const { widths: colWidths, getResizeHandleProps, getResizeIndicatorProps } = useColumnResize<ColumnWidths>({
     initialWidths: defaultColumnWidths,
     minWidth: 50,
   });

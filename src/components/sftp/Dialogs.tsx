@@ -26,20 +26,20 @@ export const NewFolderDialog = ({ isOpen, folderName, onNameChange, onCreate, on
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60]"
       style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif' }}
     >
-      <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full max-w-md border border-white/10">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
-          <h3 className="text-[13px] font-medium text-gray-200">New Folder</h3>
-          <button onClick={onCancel} className="text-gray-500 hover:text-gray-300">
+      <div className="bg-background-secondary rounded-lg shadow-2xl w-full max-w-md border border-border-primary">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border-secondary">
+          <h3 className="text-[13px] font-medium text-text-primary">New Folder</h3>
+          <button onClick={onCancel} className="text-text-tertiary hover:text-text-secondary">
             <i className="fa-solid fa-xmark text-sm" />
           </button>
         </div>
         <div className="p-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-[#378ADD]/20 flex items-center justify-center">
-              <i className="fa-solid fa-folder text-lg text-[#378ADD]" />
+            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+              <i className="fa-solid fa-folder text-lg text-primary" />
             </div>
             <div className="flex-1">
-              <label className="block text-[12px] text-gray-500 mb-1">Folder Name</label>
+              <label className="block text-[12px] text-text-tertiary mb-1">Folder Name</label>
               <input
                 ref={inputRef}
                 type="text"
@@ -47,22 +47,22 @@ export const NewFolderDialog = ({ isOpen, folderName, onNameChange, onCreate, on
                 onChange={(e) => onNameChange(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && onCreate()}
                 placeholder="Enter folder name..."
-                className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-3 py-2 text-[13px] text-gray-200 focus:outline-none focus:border-blue-500"
+                className="w-full bg-background-tertiary border border-border-primary rounded-lg px-3 py-2 text-[13px] text-text-primary focus:outline-none focus:border-primary"
               />
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-white/5">
+        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border-secondary">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-[13px] text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-colors"
+            className="px-4 py-2 text-[13px] text-text-secondary hover:text-text-primary hover:bg-white/5 rounded-lg transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onCreate}
             disabled={!folderName.trim()}
-            className="px-4 py-2 text-[13px] bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-[13px] bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Create
           </button>
@@ -98,24 +98,24 @@ export const RenameDialog = ({ isOpen, target, newName, onNameChange, onRename, 
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60]"
       style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif' }}
     >
-      <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full max-w-md border border-white/10">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
-          <h3 className="text-[13px] font-medium text-gray-200">Rename</h3>
-          <button onClick={onCancel} className="text-gray-500 hover:text-gray-300">
+      <div className="bg-background-secondary rounded-lg shadow-2xl w-full max-w-md border border-border-primary">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border-secondary">
+          <h3 className="text-[13px] font-medium text-text-primary">Rename</h3>
+          <button onClick={onCancel} className="text-text-tertiary hover:text-text-secondary">
             <i className="fa-solid fa-xmark text-sm" />
           </button>
         </div>
         <div className="p-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-[#378ADD]/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
               {target.is_dir ? (
-                <i className="fa-solid fa-folder text-lg text-[#378ADD]" />
+                <i className="fa-solid fa-folder text-lg text-primary" />
               ) : (
-                <i className="fa-solid fa-file-lines text-lg text-[#378ADD]" />
+                <i className="fa-solid fa-file-lines text-lg text-primary" />
               )}
             </div>
             <div className="flex-1">
-              <label className="block text-[12px] text-gray-500 mb-1">New Name</label>
+              <label className="block text-[12px] text-text-tertiary mb-1">New Name</label>
               <input
                 ref={inputRef}
                 type="text"
@@ -123,25 +123,25 @@ export const RenameDialog = ({ isOpen, target, newName, onNameChange, onRename, 
                 onChange={(e) => onNameChange(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && onRename()}
                 placeholder="Enter new name..."
-                className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-3 py-2 text-[13px] text-gray-200 focus:outline-none focus:border-blue-500"
+                className="w-full bg-background-tertiary border border-border-primary rounded-lg px-3 py-2 text-[13px] text-text-primary focus:outline-none focus:border-primary"
               />
             </div>
           </div>
-          <p className="text-[12px] text-gray-500">
-            Original: <span className="text-gray-400">{target.name}</span>
+          <p className="text-[12px] text-text-tertiary">
+            Original: <span className="text-text-secondary">{target.name}</span>
           </p>
         </div>
-        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-white/5">
+        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border-secondary">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-[13px] text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-colors"
+            className="px-4 py-2 text-[13px] text-text-secondary hover:text-text-primary hover:bg-white/5 rounded-lg transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onRename}
             disabled={!newName.trim() || newName === target.name}
-            className="px-4 py-2 text-[13px] bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-[13px] bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Rename
           </button>

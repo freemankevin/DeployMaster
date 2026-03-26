@@ -20,7 +20,7 @@ const defaultWidths = {
   os: 80,
   ip: 140,
   disk: 180,
-  actions: 180,
+  actions: 200,
 };
 
 export const HostListItem = ({
@@ -146,28 +146,28 @@ export const HostListItem = ({
             <span className="text-xs text-text-tertiary">-</span>
           )}
         </div>
-        <div className="flex items-center gap-2 shrink-0 overflow-hidden" style={{ width: widths.actions, padding: '12px' }}>
+        <div className="flex items-center gap-2 shrink-0" style={{ width: widths.actions, padding: '12px' }}>
           <button
             onClick={onOpenTerminal}
-            className="px-3 py-1.5 bg-macos-blue text-white rounded-lg text-xs font-medium transition-all duration-200 ease-macos shadow-macos-button hover:brightness-110 hover:shadow-glow-blue active:shadow-macos-button-active active:scale-[0.97] flex items-center gap-1.5 whitespace-nowrap"
+            className="px-2.5 py-1.5 bg-macos-blue text-white rounded-lg text-xs font-medium transition-all duration-200 ease-macos shadow-macos-button hover:brightness-110 hover:shadow-glow-blue active:shadow-macos-button-active active:scale-[0.97] flex items-center gap-1.5 whitespace-nowrap shrink-0"
           >
-            <i className="fa-solid fa-terminal w-3.5 h-3.5 shrink-0 text-white"></i>
+            <i className="fa-solid fa-terminal text-xs shrink-0 text-white"></i>
             <span>Terminal</span>
           </button>
           <button
             onClick={onOpenSFTP}
-            className="px-3 py-1.5 bg-background-tertiary text-white border border-border-primary rounded-lg text-xs font-medium transition-all duration-200 ease-macos shadow-macos-button hover:bg-background-elevated hover:border-macos-gray-2 active:shadow-macos-button-active active:scale-[0.97] flex items-center gap-1.5 whitespace-nowrap"
+            className="px-2.5 py-1.5 bg-background-tertiary text-white border border-border-primary rounded-lg text-xs font-medium transition-all duration-200 ease-macos shadow-macos-button hover:bg-background-elevated hover:border-macos-gray-2 active:shadow-macos-button-active active:scale-[0.97] flex items-center gap-1.5 whitespace-nowrap shrink-0"
           >
-            <i className="fa-solid fa-folder-open w-3.5 h-3.5 shrink-0 text-macos-green"></i>
+            <i className="fa-solid fa-folder-open text-xs shrink-0 text-macos-green"></i>
             <span>SFTP</span>
           </button>
-          <div className={`relative ${isMenuOpen ? 'z-50' : ''}`}>
+          <div className={`relative shrink-0 ${isMenuOpen ? 'z-50' : ''}`}>
             <button
               ref={menuButtonRef}
               onClick={onToggleMenu}
-              className="flex items-center justify-center w-7 h-7 bg-background-tertiary border border-border-primary rounded-lg hover:border-macos-gray-2 hover:bg-background-elevated text-text-secondary transition-all duration-200 ease-macos shadow-macos-button active:shadow-macos-button-active active:scale-[0.97]"
+              className="flex items-center justify-center w-7 h-7 bg-background-tertiary border border-border-primary rounded-lg hover:border-macos-gray-2 hover:bg-background-elevated text-text-secondary transition-all duration-200 ease-macos shadow-macos-button active:shadow-macos-button-active active:scale-[0.97] shrink-0"
             >
-              <i className="fa-solid fa-ellipsis-vertical w-4 h-4 text-text-secondary"></i>
+              <i className="fa-solid fa-ellipsis-vertical text-xs text-text-secondary"></i>
             </button>
             <ActionMenu
               isOpen={isMenuOpen}

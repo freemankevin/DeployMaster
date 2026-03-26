@@ -68,8 +68,8 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
     <div
       className="window-header relative flex items-center px-4 py-2.5"
       style={{
-        background: 'linear-gradient(180deg, rgba(70,70,72,0.9) 0%, rgba(58,58,60,0.95) 100%)',
-        borderBottom: '1px solid rgba(0,0,0,0.3)',
+        background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%)',
+        borderBottom: '1px solid rgba(139, 92, 246, 0.15)',
         borderTopLeftRadius: '12px',
         borderTopRightRadius: '12px',
       }}>

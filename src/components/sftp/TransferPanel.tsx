@@ -25,12 +25,12 @@ interface TransferPanelProps {
 
 const getStatusColor = (status: TransferTask['status']) => {
   switch (status) {
-    case 'completed': return 'text-emerald-500';
-    case 'failed': return 'text-red-500';
-    case 'cancelled': return 'text-amber-500';
-    case 'transferring': return 'text-blue-500';
-    case 'paused': return 'text-amber-500';
-    default: return 'text-gray-400';
+    case 'completed': return 'text-status-success';
+    case 'failed': return 'text-status-error';
+    case 'cancelled': return 'text-status-warning';
+    case 'transferring': return 'text-primary';
+    case 'paused': return 'text-status-warning';
+    default: return 'text-text-tertiary';
   }
 };
 

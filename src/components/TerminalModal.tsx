@@ -148,26 +148,26 @@ const TerminalModal = ({ host, onClose, isMinimized: externalMinimized, onToggle
           isFullscreen ? 'w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] max-w-none rounded-2xl' : 'w-full max-w-4xl h-[600px] rounded-xl'
         }`}
             style={{
-              background: 'linear-gradient(180deg, rgba(58,58,60,0.95) 0%, rgba(44,44,46,0.98) 100%)',
+              background: 'linear-gradient(145deg, rgba(30, 30, 35, 0.95) 0%, rgba(24, 24, 28, 0.98) 100%)',
               WebkitBackdropFilter: 'blur(40px) saturate(180%)',
               backdropFilter: 'blur(40px) saturate(180%)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: isFullscreen ? '16px' : '12px',
               boxShadow: `
-                0 0 0 0.5px rgba(255,255,255,0.2),
-                0 0 0 1px rgba(0,0,0,0.3),
-                0 25px 50px -12px rgba(0,0,0,0.5),
-                0 12px 24px -8px rgba(0,0,0,0.4),
-                inset 0 1px 0 rgba(255,255,255,0.1),
-                inset 0 -1px 0 rgba(0,0,0,0.2)
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 2px 8px rgba(0, 0, 0, 0.6),
+                0 8px 24px rgba(0, 0, 0, 0.5),
+                0 20px 48px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3)
               `
             }}>
             
-            {/* Terminal Header - macOS Dark Mode style */}
+            {/* Terminal Header - Railway Dark Mode style */}
             <div className="relative px-4 py-2.5 flex items-center justify-between select-none"
               style={{
-                background: 'linear-gradient(180deg, rgba(70,70,72,0.9) 0%, rgba(58,58,60,0.95) 100%)',
-                borderBottom: '1px solid rgba(0,0,0,0.3)',
+                background: 'linear-gradient(180deg, rgba(26, 24, 37, 0.95) 0%, rgba(31, 29, 43, 0.98) 100%)',
+                borderBottom: '1px solid rgba(139, 92, 246, 0.08)',
                 borderTopLeftRadius: isFullscreen ? '16px' : '12px',
                 borderTopRightRadius: isFullscreen ? '16px' : '12px',
               }}>
@@ -240,7 +240,7 @@ const TerminalModal = ({ host, onClose, isMinimized: externalMinimized, onToggle
                     <span className="text-macos-orange">Connecting...</span>
                   </>
                 ) : error ? (
-                  <button onClick={reconnect} className="flex items-center gap-1.5 px-2 py-1 bg-macos-blue/20 hover:bg-macos-blue/30 text-macos-blue rounded transition-colors">
+                  <button onClick={reconnect} className="flex items-center gap-1.5 px-2 py-1 bg-primary/20 hover:bg-primary/30 text-primary rounded transition-colors">
                     <i className="fa-solid fa-rotate-right text-sm" />
                     <span>Reconnect</span>
                   </button>
@@ -255,15 +255,15 @@ const TerminalModal = ({ host, onClose, isMinimized: externalMinimized, onToggle
               <div className="w-[60px]"></div>
             </div>
             
-            {/* Terminal Body - macOS Terminal style with subtle inner shadow */}
+            {/* Terminal Body - Railway Dark Mode style with subtle inner shadow */}
             <div
               className="flex-1 overflow-hidden relative"
               onClick={handleTerminalClick}
               style={{
-                background: 'linear-gradient(180deg, #0d0d0d 0%, #0a0a0a 100%)',
+                background: 'linear-gradient(180deg, #0D0D0D 0%, #0A0A0A 100%)',
                 borderBottomLeftRadius: isFullscreen ? '16px' : '12px',
                 borderBottomRightRadius: isFullscreen ? '16px' : '12px',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)'
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)'
               }}>
               {/* Subtle scanline effect for terminal feel */}
               <div
@@ -272,12 +272,13 @@ const TerminalModal = ({ host, onClose, isMinimized: externalMinimized, onToggle
                   background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)'
                 }}
               />
-              {/* Terminal content with padding for breathing room */}
+              {/* Terminal content with reduced padding to eliminate gap */}
               <div
-                className="absolute inset-0 p-3"
+                className="absolute inset-0 p-0"
                 style={{
                   borderBottomLeftRadius: isFullscreen ? '16px' : '12px',
                   borderBottomRightRadius: isFullscreen ? '16px' : '12px',
+                  overflow: 'hidden'
                 }}>
                 <div ref={terminalRef} className="w-full h-full relative z-10" />
               </div>

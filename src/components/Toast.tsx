@@ -34,26 +34,26 @@ const Toast = ({ toast, onClose }: ToastProps) => {
   const getIcon = () => {
     switch (toast.type) {
       case 'success':
-        return <CheckCircle className="w-5 h-5 text-macos-green" />;
+        return <CheckCircle className="w-5 h-5 text-status-success" />;
       case 'error':
-        return <XCircle className="w-5 h-5 text-macos-red" />;
+        return <XCircle className="w-5 h-5 text-status-error" />;
       case 'warning':
-        return <AlertCircle className="w-5 h-5 text-macos-orange" />;
+        return <AlertCircle className="w-5 h-5 text-status-warning" />;
       default:
-        return <Info className="w-5 h-5 text-macos-blue" />;
+        return <Info className="w-5 h-5 text-primary" />;
     }
   };
 
   const getStyles = () => {
     switch (toast.type) {
       case 'success':
-        return 'bg-macos-green/10 border-macos-green/30 shadow-macos-green/10';
+        return 'bg-status-success/10 border-status-success/30 shadow-status-success/10';
       case 'error':
-        return 'bg-macos-red/10 border-macos-red/30 shadow-macos-red/10';
+        return 'bg-status-error/10 border-status-error/30 shadow-status-error/10';
       case 'warning':
-        return 'bg-macos-orange/10 border-macos-orange/30 shadow-macos-orange/10';
+        return 'bg-status-warning/10 border-status-warning/30 shadow-status-warning/10';
       default:
-        return 'bg-macos-blue/10 border-macos-blue/30 shadow-macos-blue/10';
+        return 'bg-primary/10 border-primary/30 shadow-primary/10';
     }
   };
 
