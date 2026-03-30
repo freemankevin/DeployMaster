@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertCircle, Info } from 'lucide-react';
 import type { DiskInfo, FileInfo } from '@/services/sftpApi';
 
 interface DiskSpaceErrorDialogProps {
@@ -75,9 +76,9 @@ export function DiskSpaceErrorDialog({
               justifyContent: 'center',
             }}
           >
-            <i
-              className="fa-solid fa-circle-exclamation"
-              style={{ fontSize: '24px', color: '#ef4444' }}
+            <AlertCircle
+              size={24}
+              style={{ color: '#ef4444' }}
             />
           </div>
           <div>
@@ -289,10 +290,9 @@ export function DiskSpaceErrorDialog({
               gap: '10px',
             }}
           >
-            <i
-              className="bi bi-info-circle"
+            <Info
+              size={18}
               style={{
-                fontSize: '18px',
                 color: '#ef4444',
                 marginTop: '1px',
               }}

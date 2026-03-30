@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { Check, AlertCircle, DownloadCloud, X, Minus } from 'lucide-react';
 import type { DownloadProgress } from '@/services/api';
 
 interface DownloadProgressDialogProps {
@@ -353,11 +354,11 @@ const DownloadProgressDialog = ({
                 'bg-primary/20'
               }`}>
                 {isCompleted ? (
-                  <i className="fa-solid fa-check text-lg text-status-success" />
+                  <Check className="w-5 h-5 text-status-success" />
                 ) : isError ? (
-                  <i className="fa-solid fa-circle-exclamation text-lg text-status-error" />
+                  <AlertCircle className="w-5 h-5 text-status-error" />
                 ) : (
-                  <i className="fa-solid fa-cloud-arrow-down text-lg text-primary animate-pulse" />
+                  <DownloadCloud className="w-5 h-5 text-primary animate-pulse" />
                 )}
               </div>
               <div>
@@ -375,7 +376,7 @@ const DownloadProgressDialog = ({
                   className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                   title="Cancel download"
                 >
-                  <i className="fa-solid fa-xmark text-sm" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
               <button
@@ -383,7 +384,7 @@ const DownloadProgressDialog = ({
                 className="p-2 text-gray-500 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
                 title="Minimize to background"
               >
-                <i className="fa-solid fa-minus text-sm" />
+                <Minus className="w-4 h-4" />
               </button>
               {isCompleted || isError ? (
                 <button
@@ -391,7 +392,7 @@ const DownloadProgressDialog = ({
                   className="p-2 text-gray-500 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
                   title="Close"
                 >
-                  <i className="fa-solid fa-xmark text-sm" />
+                  <X className="w-4 h-4" />
                 </button>
               ) : null}
             </div>

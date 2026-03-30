@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { ApiResponse } from '@/types';
+import { tokenManager } from './authApi';
 
 // SFTP File interface
 export interface SFTPFile {
@@ -42,7 +43,7 @@ export interface DownloadProgress {
   message: string;
 }
 
-// Get axios instance from main api module
+// Get axios instance from main api module with JWT token support
 const getApi = () => {
   const api = axios.create({
     baseURL: '/api',
@@ -52,9 +53,15 @@ const getApi = () => {
     },
   });
 
-  // Request interceptor
+  // Request interceptor - add JWT token
   api.interceptors.request.use(
     (config) => {
+      // Add JWT token to Authorization header
+      const token = tokenManager.getAccessToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      
       if (config.data instanceof FormData) {
         delete config.headers['Content-Type'];
       }

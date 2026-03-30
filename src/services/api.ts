@@ -169,11 +169,12 @@ export const terminalApi = {
   complete: (hostId: number, data: TabCompletionRequest) =>
     api.post<unknown, TabCompletionResponse>(`/terminal/${hostId}/complete`, data),
 
-  // WebSocket connection URL (via Vite proxy)
+  // WebSocket connection URL (via Vite proxy) with JWT token
   getWebSocketUrl: (hostId: number) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host; // Contains hostname and port
-    return `${protocol}//${host}/api/terminal/${hostId}`;
+    const token = tokenManager.getAccessToken();
+    return `${protocol}//${host}/api/terminal/${hostId}?token=${encodeURIComponent(token || '')}`;
   },
 };
 

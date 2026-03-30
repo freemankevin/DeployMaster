@@ -1,7 +1,6 @@
 import {
   Server,
-  Store,
-  Container,
+  Package,
   Box,
   Image,
   Layers,
@@ -15,7 +14,7 @@ import {
   Settings,
   Users,
   ClipboardList,
-  Hourglass
+  Timer
 } from 'lucide-react';
 
 // Page type for placeholder pages
@@ -90,8 +89,8 @@ const pageDescriptions: Record<PageType, string> = {
 // Icon mapping using Lucide
 const pageIcons: Record<PageType, React.ComponentType<{ className?: string }>> = {
   'hosts': Server,
-  'appstore': Store,
-  'containers': Container,
+  'appstore': Package,
+  'containers': Box,
   'container-install': Box,
   'container-images': Image,
   'container-services': Layers,
@@ -130,7 +129,7 @@ const PlaceholderPage = ({ page }: PlaceholderPageProps) => {
 
         {/* Status Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background-tertiary/50 text-text-tertiary text-sm">
-          <Hourglass className="w-4 h-4 text-primary" />
+          <Timer className="w-4 h-4 text-primary" />
           <span>Coming Soon</span>
         </div>
       </div>

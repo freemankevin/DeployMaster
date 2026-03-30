@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { Check, AlertCircle, Ban, UploadCloud, X, Minus } from 'lucide-react';
 
 interface UploadProgressDialogProps {
   isOpen: boolean;
@@ -214,13 +215,13 @@ const UploadProgressDialog = ({
               'bg-primary/20'
             }`}>
               {isCompleted ? (
-                <i className="fa-solid fa-check text-lg text-status-success" />
+                <Check className="w-5 h-5 text-status-success" />
               ) : isError ? (
-                <i className="fa-solid fa-circle-exclamation text-lg text-status-error" />
+                <AlertCircle className="w-5 h-5 text-status-error" />
               ) : isCancelled ? (
-                <i className="fa-solid fa-ban text-lg text-status-warning" />
+                <Ban className="w-5 h-5 text-status-warning" />
               ) : (
-                <i className="fa-solid fa-cloud-arrow-up text-lg text-primary animate-pulse" />
+                <UploadCloud className="w-5 h-5 text-primary animate-pulse" />
               )}
             </div>
             <div>
@@ -238,7 +239,7 @@ const UploadProgressDialog = ({
                 className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                 title="Cancel upload"
               >
-                <i className="fa-solid fa-xmark text-sm" />
+                <X className="w-4 h-4" />
               </button>
             )}
             <button
@@ -246,7 +247,7 @@ const UploadProgressDialog = ({
               className="p-2 text-gray-500 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
               title="Minimize to background"
             >
-              <i className="fa-solid fa-minus text-sm" />
+              <Minus className="w-4 h-4" />
             </button>
             {(isCompleted || isError || isCancelled) && (
               <button
@@ -254,7 +255,7 @@ const UploadProgressDialog = ({
                 className="p-2 text-gray-500 hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
                 title="Close"
               >
-                <i className="fa-solid fa-xmark text-sm" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
