@@ -16,37 +16,11 @@ export interface DialogProps {
   onCancel: () => void;
 }
 
-// Heartbeat animation styles
-const heartbeatKeyframes = `
-@keyframes heartbeat {
-  0%, 100% { transform: scale(1); }
-  10% { transform: scale(1.05); }
-  20% { transform: scale(1); }
-  30% { transform: scale(1.05); }
-  40% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  60% { transform: scale(1); }
-}
-
-@keyframes glow-pulse {
-  0%, 100% { 
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% { 
-    opacity: 0.6;
-    transform: scale(1.1);
-  }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+// Simple pulse animation for delete dialog
+const pulseKeyframes = `
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 `;
 
@@ -79,7 +53,7 @@ export const Dialog = ({
     setTimeout(() => {
       onCancel();
       setIsClosing(false);
-    }, 200);
+    }, 150);
   }, [onCancel]);
 
   const handleConfirm = useCallback(() => {
@@ -118,88 +92,84 @@ export const Dialog = ({
   const getIcon = () => {
     switch (type) {
       case 'delete':
-        return <Trash2 className="w-6 h-6 text-status-error" />;
+        return <Trash2 className="w-5 h-5" style={{ color: 'var(--color-error)' }} />;
       case 'warning':
-        return <AlertTriangle className="w-6 h-6 text-status-warning" />;
+        return <AlertTriangle className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />;
       case 'error':
-        return <AlertCircle className="w-6 h-6 text-status-error" />;
+        return <AlertCircle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />;
       case 'success':
-        return <CheckCircle className="w-6 h-6 text-status-success" />;
+        return <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />;
       case 'info':
       default:
-        return <Info className="w-6 h-6 text-primary" />;
+        return <Info className="w-5 h-5" style={{ color: 'var(--accent)' }} />;
     }
   };
 
-  const getGlowColor = () => {
+  const getIconBg = () => {
     switch (type) {
       case 'delete':
       case 'error':
-        return 'from-status-error/20 via-status-error/10 to-transparent';
+        return 'var(--color-error-muted)';
       case 'warning':
-        return 'from-status-warning/20 via-status-warning/10 to-transparent';
+        return 'var(--color-warning-muted)';
       case 'success':
-        return 'from-status-success/20 via-status-success/10 to-transparent';
+        return 'var(--color-success-muted)';
       case 'info':
       default:
-        return 'from-primary/20 via-primary/10 to-transparent';
+        return 'var(--accent-muted)';
     }
-  };
-
-  const getButtonColor = () => {
-    if (isDanger) {
-      return 'bg-status-error hover:bg-red-600 shadow-status-error/25';
-    }
-    return 'bg-primary hover:bg-primary-dark shadow-primary/25';
   };
 
   // Use Portal to render dialog at document.body level
-  // This ensures the overlay covers everything including sticky headers
   return createPortal(
     <>
-      <style>{heartbeatKeyframes}</style>
+      <style>{pulseKeyframes}</style>
       <div
-        className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-all duration-300 ${
+        className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-opacity duration-150 ${
           isVisible && !isClosing ? 'opacity-100' : 'opacity-0'
         }`}
         style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
       >
-        {/* Background overlay - frosted glass effect */}
+        {/* Background overlay - Railway style */}
         <div
-          className={`absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-300 ${
-            isVisible && !isClosing ? 'opacity-100' : 'opacity-0'
-          }`}
+          className="absolute inset-0 transition-opacity duration-150"
+          style={{
+            background: 'rgba(11, 13, 15, 0.85)',
+            backdropFilter: 'blur(8px)',
+            opacity: isVisible && !isClosing ? 1 : 0,
+          }}
         />
 
         {/* Dialog container */}
         <div
           ref={dialogRef}
-          className={`relative w-full max-w-[420px] transform transition-all duration-300 ${
+          className={`relative w-full max-w-[420px] transform transition-all duration-150 ${
             isVisible && !isClosing
               ? 'scale-100 opacity-100 translate-y-0'
-              : 'scale-95 opacity-0 translate-y-4'
+              : 'scale-95 opacity-0 translate-y-2'
           }`}
         >
-          {/* Background glow effect */}
-          <div
-            className={`absolute -inset-1 bg-gradient-to-r ${getGlowColor()} rounded-2xl blur-2xl transition-opacity duration-500 ${
-              isVisible ? 'opacity-100' : 'opacity-0'
-            } ${isDelete ? 'animate-[glow-pulse_2s_ease-in-out_infinite]' : ''}`}
-          />
-
-          {/* Main dialog card */}
-          <div className="relative bg-[#1e1e1e]/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
-            {/* Top decoration line */}
-            <div
-              className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent ${
-                isDanger ? 'via-red-500/50' : 'via-blue-500/50'
-              } to-transparent`}
-            />
-
+          {/* Main dialog card - Railway style */}
+          <div 
+            className="relative rounded-lg overflow-hidden"
+            style={{
+              background: 'var(--bg-overlay)',
+              border: '0.5px solid var(--border-default)',
+            }}
+          >
             {/* Close button */}
             <button
               onClick={handleClose}
-              className="absolute top-3 right-3 p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-all duration-200"
+              className="absolute top-3 right-3 p-1.5 rounded-lg transition-all duration-150"
+              style={{ color: 'var(--text-tertiary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--text-primary)';
+                e.currentTarget.style.background = 'var(--bg-elevated)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-tertiary)';
+                e.currentTarget.style.background = 'transparent';
+              }}
             >
               <X className="w-4 h-4" />
             </button>
@@ -208,53 +178,74 @@ export const Dialog = ({
             <div className="p-6">
               {/* Icon and title */}
               <div className="flex items-start gap-4">
-                {/* Icon container - with breathing effect */}
+                {/* Icon container */}
                 <div
-                  className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center ${
-                    isDelete
-                      ? 'bg-red-500/10 animate-[heartbeat_2s_ease-in-out_infinite]'
-                      : isDanger
-                      ? 'bg-red-500/10'
-                      : type === 'warning'
-                      ? 'bg-amber-500/10'
-                      : type === 'success'
-                      ? 'bg-emerald-500/10'
-                      : 'bg-blue-500/10'
-                  }`}
+                  className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{ 
+                    background: getIconBg(),
+                    animation: isDelete ? 'pulse-status 1.5s ease-in-out infinite' : undefined,
+                  }}
                 >
                   {getIcon()}
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[15px] font-semibold text-gray-100 leading-tight">
+                  <h3 
+                    className="text-sm font-medium leading-tight"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
                     {title}
                   </h3>
                   {message && (
-                    <p className="mt-2 text-[13px] text-gray-400 leading-relaxed">
+                    <p 
+                      className="mt-2 text-[13px] leading-relaxed"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       {message}
                       {itemName && (
-                        <span className="text-gray-300 font-medium">「{itemName}」</span>
+                        <span style={{ color: 'var(--text-primary)' }}> "{itemName}"</span>
                       )}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Button area */}
-              <div className="flex items-center justify-end gap-2.5 mt-6">
+              {/* Button area - Railway style */}
+              <div className="flex items-center justify-end gap-2 mt-6">
                 <button
                   onClick={handleClose}
-                  className="px-4 py-2 text-[13px] font-medium text-gray-400 hover:text-gray-200
-                           hover:bg-white/5 rounded-lg transition-all duration-200
-                           active:scale-[0.98]"
+                  className="px-4 py-2 text-[13px] font-medium rounded-lg transition-all duration-150"
+                  style={{ 
+                    color: 'var(--text-secondary)',
+                    background: 'transparent',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                    e.currentTarget.style.background = 'var(--bg-elevated)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                    e.currentTarget.style.background = 'transparent';
+                  }}
                 >
                   {cancelText}
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className={`px-4 py-2 text-[13px] font-medium text-white rounded-lg
-                           transition-all duration-200 active:scale-[0.98]
-                           shadow-lg ${getButtonColor()}`}
+                  className="px-4 py-2 text-[13px] font-medium text-white rounded-lg transition-all duration-150"
+                  style={{ 
+                    background: isDanger ? 'var(--color-error)' : 'var(--accent)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDanger 
+                      ? 'rgba(248, 113, 113, 0.9)' 
+                      : 'var(--accent-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = isDanger 
+                      ? 'var(--color-error)' 
+                      : 'var(--accent)';
+                  }}
                 >
                   {confirmText || (isDelete ? 'Delete' : 'Confirm')}
                 </button>

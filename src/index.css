@@ -3,10 +3,75 @@
 @tailwind utilities;
 
 /* ============================================
-   Railway Dark Mode Design System - Global Styles
+   Cockpit Design System - Railway 风格全局样式
+   核心原则：减法优先、节制色彩、扁平无阴影
    ============================================ */
 
-/* 基础样式 - Railway 风格字体 */
+/* CSS 变量定义 - Railway 风格 */
+:root {
+  /* 背景层级 - 从最深到最浅 */
+  --bg-base: #0B0D0F;
+  --bg-surface: #141518;
+  --bg-elevated: #1C1E21;
+  --bg-overlay: #242629;
+
+  /* 文字层级 */
+  --text-primary: #EFEFEF;
+  --text-secondary: #A3A3A3;
+  --text-tertiary: #636363;
+  --text-disabled: #3D3F42;
+
+  /* 边框 - 白色低透明度 */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Accent 色（品牌色） */
+  --accent: #A855F7;
+  --accent-hover: #9333EA;
+  --accent-muted: rgba(168, 85, 247, 0.15);
+
+  /* 语义色 */
+  --color-success: #4ADE80;
+  --color-success-muted: rgba(74, 222, 128, 0.12);
+  --color-success-text: #86EFAC;
+
+  --color-warning: #FACC15;
+  --color-warning-muted: rgba(250, 204, 21, 0.12);
+  --color-warning-text: #FDE047;
+
+  --color-error: #F87171;
+  --color-error-muted: rgba(248, 113, 113, 0.12);
+  --color-error-text: #FCA5A5;
+
+  --color-info: #60A5FA;
+  --color-info-muted: rgba(96, 165, 250, 0.12);
+  --color-info-text: #93C5FD;
+
+  --color-neutral: #71717A;
+  --color-neutral-muted: rgba(113, 113, 122, 0.12);
+  --color-neutral-text: #A1A1AA;
+
+  /* 间距 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-default: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-badge: 20px;
+}
+
+/* 基础样式 */
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -18,15 +83,15 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #13111c;
-  color: #FAFAFA;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   line-height: 1.5;
   letter-spacing: -0.01em;
   margin: 0;
   padding: 0;
 }
 
-/* Reset default margins */
+/* Reset */
 html, body {
   margin: 0;
   padding: 0;
@@ -34,195 +99,465 @@ html, body {
   overflow: hidden;
 }
 
-/* Ensure no top margin on root element */
 #root {
   margin: 0;
   padding: 0;
   height: 100%;
 }
 
-/* 数字使用等宽数字，更有质感 */
+/* 数字等宽 */
 input, textarea, .font-numeric {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
-/* 代码字体 - JetBrains Mono */
+/* 代码字体 */
 code, pre, .font-mono {
-  font-family: 'JetBrains Mono', 'SF Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'PingFang SC', 'Microsoft YaHei', monospace;
+  font-family: 'JetBrains Mono', 'SF Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
   font-feature-settings: 'liga' 0, 'calt' 0;
 }
 
 /* ============================================
-   Railway Dark Mode Button Styles
+   组件样式 - Railway 风格（纯色为主）
    ============================================ */
 @layer components {
-  /* 主按钮 - Railway 渐变风格 */
+  /* 主按钮 - 纯色，无渐变 */
   .btn-primary {
-    @apply px-4 py-2 text-white rounded-railway text-sm font-medium
-           transition-all duration-200 ease-out
-           shadow-railway-button
-           hover:shadow-glow-primary hover:brightness-110
-           active:shadow-railway-button-active active:scale-[0.98]
-           disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
-    background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
   }
-
   .btn-primary:hover {
-    background: linear-gradient(135deg, #A78BFA 0%, #C084FC 100%);
+    background: var(--accent-hover);
+  }
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
   }
 
-  /* 次要按钮 */
+  /* 次要按钮 - 微妙边框 */
   .btn-secondary {
-    @apply px-4 py-2 bg-background-tertiary text-text-primary rounded-railway text-sm font-medium
-           border border-border-primary
-           transition-all duration-200 ease-out
-           shadow-railway-button
-           hover:bg-background-hover hover:border-border-tertiary
-           active:shadow-railway-button-active active:scale-[0.98];
+    background: transparent;
+    color: var(--text-primary);
+    border: 0.5px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .btn-secondary:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-overlay);
   }
 
   /* 幽灵按钮 */
   .btn-ghost {
-    @apply px-3 py-1.5 text-primary text-sm font-medium
-           transition-all duration-200 ease-out
-           hover:bg-primary/15 rounded-railway-sm
-           active:bg-primary/25 active:scale-[0.98];
+    background: transparent;
+    color: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-ghost:hover {
+    background: var(--accent-muted);
   }
 
   /* 危险按钮 */
   .btn-danger {
-    @apply px-4 py-2 bg-status-error text-white rounded-railway text-sm font-medium
-           transition-all duration-200 ease-out
-           shadow-railway-button
-           hover:brightness-110 hover:shadow-glow-error
-           active:shadow-railway-button-active active:scale-[0.98];
+    background: transparent;
+    color: var(--color-error-text);
+    border: 0.5px solid rgba(248, 113, 113, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-danger:hover {
+    background: var(--color-error-muted);
+    border-color: var(--color-error);
   }
 
-  /* Railway 风格卡片 - 渐变边框效果 */
-  .card-railway {
-    @apply rounded-railway-lg
-           transition-all duration-300 ease-out;
-    background: linear-gradient(145deg, rgba(139, 92, 246, 0.06) 0%, rgba(168, 85, 247, 0.02) 100%);
-    border: 1px solid rgba(139, 92, 246, 0.12);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  /* 卡片 - 纯色背景，微妙边框 */
+  .card {
+    background: var(--bg-elevated);
+    border: 0.5px solid var(--border-default);
+    border-radius: var(--radius-default);
+    padding: 20px;
+    transition: border-color 0.15s ease;
+  }
+  .card:hover {
+    border-color: var(--border-strong);
+    /* 禁止：不加 box-shadow，不改变背景色 */
   }
 
-  .card-railway:hover {
-    border-color: rgba(139, 92, 246, 0.25);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.15);
+  /* 输入框 */
+  .input {
+    background: var(--bg-overlay);
+    border: 0.5px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--text-primary);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input::placeholder {
+    color: var(--text-tertiary);
+  }
+  .input:hover {
+    border-color: var(--border-strong);
+  }
+  .input:focus {
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 0 3px var(--accent-muted);
   }
 
-  /* Railway 风格输入框 */
-  .input-railway {
-    @apply w-full px-3 py-2 bg-background-tertiary border border-border-primary rounded-railway-sm
-           text-sm text-text-primary placeholder-text-tertiary
-           transition-all duration-200 ease-out
-           shadow-railway-input
-           focus:outline-none focus:border-primary focus:shadow-railway-input-focus
-           hover:border-border-tertiary;
+  /* 状态徽标 */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: var(--radius-badge);
+  }
+  /* 小圆点指示器 */
+  .badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
   }
 
-  /* Railway 标签 */
-  .badge-railway {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
-           text-xs font-medium
-           transition-all duration-200;
+  .badge--running {
+    background: var(--color-success-muted);
+    color: var(--color-success-text);
+  }
+  .badge--running::before {
+    background: var(--color-success);
   }
 
-  /* Railway 侧边栏项 */
-  .sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-railway
-           text-sm font-medium
-           transition-all duration-150 ease-out
-           cursor-pointer;
+  .badge--failed {
+    background: var(--color-error-muted);
+    color: var(--color-error-text);
+  }
+  .badge--failed::before {
+    background: var(--color-error);
   }
 
-  .sidebar-item-active {
-    @apply bg-primary/15 text-primary;
+  .badge--deploying {
+    background: var(--color-info-muted);
+    color: var(--color-info-text);
+  }
+  .badge--deploying::before {
+    background: var(--color-info);
+    animation: pulseStatus 1.5s infinite;
   }
 
-  .sidebar-item-inactive {
-    @apply text-text-secondary hover:bg-background-tertiary hover:text-text-primary;
+  .badge--stopped {
+    background: var(--color-neutral-muted);
+    color: var(--color-neutral-text);
+  }
+  .badge--stopped::before {
+    background: var(--color-neutral);
   }
 
-  /* 状态脉冲动画 */
-  .status-pulse {
-    animation: statusPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  /* 侧边栏导航 */
+  .sidebar {
+    background: var(--bg-surface);
+    border-right: 0.5px solid var(--border-subtle);
+    width: 240px;
+    padding: 16px 12px;
   }
 
-  /* Railway 风格分隔线 */
-  .divider-railway {
-    @apply h-px bg-gradient-to-r from-transparent via-divider-primary to-transparent;
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+  }
+  .nav-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+  }
+  .nav-item.active {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
   }
 
-  /* Railway 暗模式玻璃效果 */
-  .glass-railway {
-    background: rgba(19, 17, 28, 0.85);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  .nav-section-title {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-tertiary);
+    padding: 12px 12px 4px;
   }
 
-  /* Railway 暗模式窗口 */
-  .window-railway {
-    @apply bg-background-primary rounded-railway-xl shadow-railway-window
-           border border-border-primary;
+  /* 数据表格 */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 0.5px solid var(--border-subtle);
+  }
+  .data-table td {
+    padding: 12px 12px;
+    color: var(--text-secondary);
+    border-bottom: 0.5px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+  .data-table tr:hover td {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
   }
 
-  /* 保留 macOS 风格类名作为别名 */
-  .card-macos {
-    @apply card-railway;
+  /* 日志输出面板 */
+  .log-panel {
+    background: var(--bg-base);
+    border: 0.5px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 400px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .log-line-info { color: var(--text-secondary); }
+  .log-line-success { color: var(--color-success); }
+  .log-line-warning { color: var(--color-warning); }
+  .log-line-error { color: var(--color-error); }
+  .log-line-dim { color: var(--text-tertiary); }
+
+  /* 指标卡 */
+  .metric-card {
+    background: var(--bg-overlay);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+  .metric-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+  .metric-value {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1;
   }
 
-  .input-macos {
-    @apply input-railway;
+  /* Toast 通知 */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    min-width: 280px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    border: 0.5px solid;
+    backdrop-filter: blur(8px);
+    z-index: 999;
+  }
+  .toast--success {
+    background: rgba(20, 21, 24, 0.95);
+    border-color: rgba(74, 222, 128, 0.3);
+    color: var(--color-success-text);
+  }
+  .toast--error {
+    background: rgba(20, 21, 24, 0.95);
+    border-color: rgba(248, 113, 113, 0.3);
+    color: var(--color-error-text);
   }
 
-  .badge-macos {
-    @apply badge-railway;
+  /* 复选框 */
+  .checkbox {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    cursor: pointer;
+  }
+  .checkbox-custom {
+    width: 18px;
+    height: 18px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border-default);
+    background: var(--bg-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .checkbox:hover .checkbox-custom {
+    border-color: rgba(168, 85, 247, 0.5);
+  }
+  .checkbox input:checked + .checkbox-custom {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .checkbox input:checked + .checkbox-custom .checkbox-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .checkbox-check {
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.15s ease;
+  }
+  .checkbox input:focus-visible + .checkbox-custom {
+    box-shadow: 0 0 0 3px var(--accent-muted);
+  }
+  .checkbox input:disabled + .checkbox-custom {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* 下拉菜单 */
+  .dropdown {
+    background: var(--bg-overlay);
+    border: 0.5px solid var(--border-default);
+    border-radius: var(--radius-default);
+    overflow: hidden;
+  }
+  .dropdown-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .dropdown-item:hover {
+    background: var(--bg-elevated);
+  }
+  .dropdown-item-danger {
+    color: var(--color-error-text);
+  }
+  .dropdown-item-danger:hover {
+    background: var(--color-error-muted);
+  }
+
+  /* Modal */
+  .modal {
+    background: var(--bg-overlay);
+    border: 0.5px solid var(--border-default);
+    border-radius: var(--radius-lg);
+  }
+
+  /* 分隔线 */
+  .divider {
+    height: 0.5px;
+    background: var(--border-subtle);
+  }
+
+  /* 空状态 */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 0;
+    text-align: center;
+  }
+  .empty-state-icon {
+    color: var(--text-tertiary);
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+  .empty-state-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+  .empty-state-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 320px;
+  }
+
+  /* 进度条 */
+  .progress {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-overlay);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .progress-bar--success {
+    background: var(--color-success);
+  }
+  .progress-bar--error {
+    background: var(--color-error);
   }
 }
 
 /* ============================================
-   Animations
+   动画
    ============================================ */
-@keyframes statusPulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(0.9);
-  }
-}
-
-/* Shimmer animation for loading progress bars */
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 1.5s infinite;
+@keyframes pulseStatus {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
   from {
-    transform: translateY(20px);
+    transform: translateY(10px);
     opacity: 0;
   }
   to {
@@ -243,27 +578,19 @@ code, pre, .font-mono {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeIn 0.15s ease-out;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUp 0.2s ease-out;
 }
 
 .animate-slide-down {
-  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideDown 0.15s ease-out;
 }
 
-/* 卡片交错动画 */
-.card-stagger-1 { animation-delay: 0.03s; }
-.card-stagger-2 { animation-delay: 0.06s; }
-.card-stagger-3 { animation-delay: 0.09s; }
-.card-stagger-4 { animation-delay: 0.12s; }
-.card-stagger-5 { animation-delay: 0.15s; }
-.card-stagger-6 { animation-delay: 0.18s; }
-
 /* ============================================
-   Scrollbar Styles - Railway Dark Mode
+   滚动条样式
    ============================================ */
 ::-webkit-scrollbar {
   width: 8px;
@@ -275,28 +602,22 @@ code, pre, .font-mono {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.2);
+  background: var(--border-subtle);
   border-radius: 4px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.35);
-  border: 2px solid transparent;
-  background-clip: padding-box;
+  background: var(--border-default);
 }
 
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* ============================================
-   Custom Scrollbar for SFTP File List - Dark
-   ============================================ */
+/* 自定义滚动条 */
 .scrollbar-custom {
-  scrollbar-width: 10px;
-  scrollbar-color: rgba(139, 92, 246, 0.2) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
 }
 
 .scrollbar-custom::-webkit-scrollbar {
@@ -305,67 +626,49 @@ code, pre, .font-mono {
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 5px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.2);
+  background: var(--border-subtle);
   border-radius: 5px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
   min-height: 60px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.35);
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-.scrollbar-custom::-webkit-scrollbar-thumb:active {
-  background: rgba(139, 92, 246, 0.5);
-}
-
-.scrollbar-custom::-webkit-scrollbar-corner {
-  background: transparent;
+  background: var(--border-default);
 }
 
 /* ============================================
-   Selection Styles - Railway Dark Mode
+   选择样式
    ============================================ */
 ::selection {
-  background-color: rgba(139, 92, 246, 0.35);
+  background-color: rgba(168, 85, 247, 0.3);
   color: inherit;
 }
 
 /* ============================================
-   Focus Styles - Railway Dark Mode
+   焦点样式
    ============================================ */
 *:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.5);
+  outline: 2px solid rgba(168, 85, 247, 0.5);
   outline-offset: 2px;
 }
 
 /* ============================================
-   Grid Background - Railway Dark Mode
+   终端样式
    ============================================ */
-.bg-grid-railway {
-  background-image: 
-    linear-gradient(to right, rgba(139, 92, 246, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* ============================================
-   Terminal Styles - Railway Dark Mode Enhanced
-   ============================================ */
-.terminal-railway {
-  @apply bg-[#0D0D0D] text-gray-100 font-mono text-sm rounded-railway-lg;
+.terminal {
+  background: #0D0D0D;
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  border-radius: var(--radius-md);
   font-feature-settings: 'liga' 0;
 }
 
-/* xterm.js 终端样式覆盖 - 确保完全填充容器 */
+/* xterm.js 终端样式覆盖 */
 .xterm {
   padding: 0 !important;
   margin: 0 !important;
@@ -381,7 +684,6 @@ code, pre, .font-mono {
   padding: 0 !important;
 }
 
-/* 确保终端容器没有间隙 */
 .xterm-helpers {
   position: absolute;
   top: 0;
@@ -390,12 +692,8 @@ code, pre, .font-mono {
 
 /* 终端光标闪烁 */
 @keyframes blink {
-  0%, 50% {
-    opacity: 1;
-  }
-  51%, 100% {
-    opacity: 0;
-  }
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 .cursor-blink {
@@ -403,477 +701,177 @@ code, pre, .font-mono {
 }
 
 /* ============================================
-   Icon Styles - CSS-based Icons
+   图标样式
    ============================================ */
-.icon-railway {
-  @apply inline-flex items-center justify-center;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 图标容器 */
 .icon-container {
-  @apply flex items-center justify-center rounded-railway-sm
-         transition-all duration-200 ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
 }
 
-.icon-container-sm {
-  @apply w-6 h-6;
-}
+.icon-container-sm { width: 24px; height: 24px; }
+.icon-container-md { width: 32px; height: 32px; }
+.icon-container-lg { width: 40px; height: 40px; }
 
-.icon-container-md {
-  @apply w-8 h-8;
-}
-
-.icon-container-lg {
-  @apply w-10 h-10;
-}
+/* 图标颜色跟随文字层级 */
+.icon-primary { color: var(--text-primary); }
+.icon-secondary { color: var(--text-secondary); }
+.icon-tertiary { color: var(--text-tertiary); }
+.icon-success { color: var(--color-success); }
+.icon-error { color: var(--color-error); }
+.icon-warning { color: var(--color-warning); }
 
 /* ============================================
-    Tooltip Styles - Railway Dark Mode
-    ============================================ */
-.tooltip-railway {
-  @apply absolute px-2 py-1 bg-background-elevated text-white text-xs rounded-railway-sm
-         opacity-0 invisible
-         transition-all duration-200 ease-out
-         pointer-events-none z-50
-         shadow-railway-dropdown;
-  border: 1px solid rgba(139, 92, 246, 0.15);
-}
-
-.tooltip-railway::before {
-  content: '';
+   Tooltip 样式
+   ============================================ */
+.tooltip {
   position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
-  background: inherit;
-  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  padding: 4px 8px;
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  font-size: 11px;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.15s ease;
+  pointer-events: none;
+  z-index: 50;
+  border: 0.5px solid var(--border-default);
 }
 
-.group:hover .tooltip-railway {
+.group:hover .tooltip {
   opacity: 1;
   visibility: visible;
-  transform: translateY(-8px);
 }
 
 /* ============================================
-   Railway Checkbox Styles - Dark Mode
+   状态颜色类
    ============================================ */
-@layer components {
-  /* Railway 风格复选框容器 */
-  .checkbox-railway {
-    @apply relative inline-flex items-center justify-center cursor-pointer;
-  }
+.status-online { color: var(--color-success); }
+.status-offline { color: var(--color-error); }
+.status-warning { color: var(--color-warning); }
+.status-info { color: var(--color-info); }
 
-  /* 隐藏原生复选框 */
-  .checkbox-railway input {
-    @apply absolute opacity-0 w-0 h-0 cursor-pointer;
-  }
-
-  /* 复选框自定义外观 - 暗模式 */
-  .checkbox-railway .checkbox-custom {
-    @apply w-[18px] h-[18px] rounded-md border border-border-primary bg-background-tertiary
-           flex items-center justify-center
-           transition-all duration-200
-           shadow-sm;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* hover 状态 */
-  .checkbox-railway:hover .checkbox-custom {
-    @apply border-primary/50;
-  }
-
-  /* 选中状态 */
-  .checkbox-railway input:checked + .checkbox-custom {
-    @apply bg-primary border-primary shadow-checkbox;
-  }
-
-  /* 选中时的勾选图标 */
-  .checkbox-railway input:checked + .checkbox-custom .checkbox-check {
-    @apply opacity-100 scale-100;
-  }
-
-  /* 勾选图标 */
-  .checkbox-custom .checkbox-check {
-    @apply opacity-0 scale-0 transition-all duration-150 ease-out;
-  }
-
-  /* 焦点状态 */
-  .checkbox-railway input:focus-visible + .checkbox-custom {
-    @apply ring-2 ring-primary/30 ring-offset-1 ring-offset-background-primary;
-  }
-
-  /* 禁用状态 */
-  .checkbox-railway input:disabled + .checkbox-custom {
-    @apply opacity-40 cursor-not-allowed;
-  }
-
-  /* 小尺寸复选框 */
-  .checkbox-railway-sm .checkbox-custom {
-    @apply w-3.5 h-3.5 rounded;
-  }
-
-  /* 大尺寸复选框 */
-  .checkbox-railway-lg .checkbox-custom {
-    @apply w-5 h-5 rounded-lg;
-  }
-
-  /* 保留 macOS 别名 */
-  .checkbox-macos {
-    @apply checkbox-railway;
-  }
-}
-
-/* 复选框阴影 - Railway 风格 */
-.shadow-checkbox {
-  box-shadow: 0 1px 3px rgba(139, 92, 246, 0.4);
-}
+.bg-status-online { background: var(--color-success-muted); }
+.bg-status-offline { background: var(--color-error-muted); }
+.bg-status-warning { background: var(--color-warning-muted); }
+.bg-status-info { background: var(--color-info-muted); }
 
 /* ============================================
-   Additional Dark Mode Utility Classes
-   ============================================ */
-@layer utilities {
-  /* 文字阴影 - 增强暗模式可读性 */
-  .text-shadow-sm {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  }
-  
-  .text-shadow-md {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  /* 玻璃态效果 - Railway 风格 */
-  .glass-dark {
-    background: rgba(19, 17, 28, 0.85);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-  }
-
-  .glass-dark-elevated {
-    background: rgba(38, 36, 51, 0.85);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-  }
-
-  /* 边框发光效果 - Railway 紫色 */
-  .border-glow-primary {
-    box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3), 0 0 20px rgba(139, 92, 246, 0.15);
-  }
-
-  .border-glow-success {
-    box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3), 0 0 20px rgba(34, 197, 94, 0.15);
-  }
-
-  .border-glow-error {
-    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3), 0 0 20px rgba(239, 68, 68, 0.15);
-  }
-
-  .border-glow-warning {
-    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3), 0 0 20px rgba(245, 158, 11, 0.15);
-  }
-
-  /* 保留蓝色发光作为备用 */
-  .border-glow-blue {
-    box-shadow: 0 0 0 1px rgba(10, 132, 255, 0.3), 0 0 20px rgba(10, 132, 255, 0.15);
-  }
-
-  .border-glow-green {
-    box-shadow: 0 0 0 1px rgba(48, 209, 88, 0.3), 0 0 20px rgba(48, 209, 88, 0.15);
-  }
-
-  .border-glow-red {
-    box-shadow: 0 0 0 1px rgba(255, 69, 58, 0.3), 0 0 20px rgba(255, 69, 58, 0.15);
-  }
-}
-
-/* ============================================
-   Status Colors - Railway Dark Mode
-   ============================================ */
-.status-online {
-  @apply text-status-online;
-}
-
-.status-offline {
-  @apply text-status-offline;
-}
-
-.status-warning {
-  @apply text-status-warning;
-}
-
-.status-info {
-  @apply text-status-info;
-}
-
-/* 状态背景色 */
-.bg-status-online {
-  @apply bg-status-online/15;
-}
-
-.bg-status-offline {
-  @apply bg-status-offline/15;
-}
-
-.bg-status-warning {
-  @apply bg-status-warning/15;
-}
-
-.bg-status-info {
-  @apply bg-status-info/15;
-}
-
-/* ============================================
-   Input Placeholder - Railway Dark Mode
+   输入占位符
    ============================================ */
 input::placeholder,
 textarea::placeholder {
-  color: #71717A;
+  color: var(--text-tertiary);
   opacity: 1;
 }
 
 /* ============================================
-   Table Styles - Railway Dark Mode
+   行内代码
    ============================================ */
-.table-railway {
-  @apply w-full;
-}
-
-.table-railway thead {
-  @apply bg-background-tertiary text-text-secondary text-xs uppercase tracking-wider;
-}
-
-.table-railway th {
-  @apply px-4 py-3 text-left font-semibold;
-}
-
-.table-railway td {
-  @apply px-4 py-3 border-t border-border-secondary;
-}
-
-.table-railway tbody tr {
-  @apply transition-colors duration-150;
-}
-
-.table-railway tbody tr:hover {
-  @apply bg-background-tertiary/60;
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+  background: var(--bg-overlay);
+  border: 0.5px solid var(--border-default);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--text-primary);
 }
 
 /* ============================================
-   Dropdown Menu - Railway Dark Mode
+   网格背景
    ============================================ */
-.dropdown-railway {
-  @apply bg-background-secondary rounded-railway shadow-railway-dropdown
-         border border-border-primary overflow-hidden;
-}
-
-.dropdown-item {
-  @apply px-3 py-2 text-sm text-text-primary
-         transition-colors duration-150 cursor-pointer;
-}
-
-.dropdown-item:hover {
-  @apply bg-primary/15 text-primary;
-}
-
-.dropdown-item-danger {
-  @apply text-status-error;
-}
-
-.dropdown-item-danger:hover {
-  @apply bg-status-error/15 text-status-error;
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /* ============================================
-   Progress Bar - Railway Dark Mode
+   向后兼容别名（逐步移除）
    ============================================ */
-.progress-railway {
-  @apply w-full h-1.5 bg-background-tertiary rounded-full overflow-hidden;
-}
+/* Railway 别名 */
+.card-railway { background: var(--bg-elevated); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); padding: 20px; }
+.card-railway:hover { border-color: var(--border-strong); }
+.input-railway { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-sm); padding: 8px 12px; }
+.badge-railway { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: var(--radius-badge); }
+.sidebar-item { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: var(--radius-sm); font-size: 14px; cursor: pointer; transition: background 0.1s, color 0.1s; }
+.sidebar-item-active { background: var(--bg-elevated); color: var(--text-primary); }
+.sidebar-item-inactive { color: var(--text-secondary); }
+.sidebar-item-inactive:hover { background: var(--bg-elevated); color: var(--text-primary); }
+.divider-railway { height: 0.5px; background: var(--border-subtle); }
+.window-railway { background: var(--bg-base); border-radius: var(--radius-lg); border: 0.5px solid var(--border-default); }
+.dropdown-railway { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); overflow: hidden; }
+.table-railway { width: 100%; border-collapse: collapse; font-size: 13px; }
+.progress-railway { width: 100%; height: 6px; background: var(--bg-overlay); border-radius: 3px; overflow: hidden; }
+.progress-railway-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s ease; }
+.terminal-railway { background: #0D0D0D; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 12px; border-radius: var(--radius-md); }
+.tooltip-railway { position: absolute; padding: 4px 8px; background: var(--bg-overlay); color: var(--text-primary); font-size: 11px; border-radius: var(--radius-sm); opacity: 0; visibility: hidden; transition: all 0.15s ease; pointer-events: none; z-index: 50; border: 0.5px solid var(--border-default); }
+.glass-railway { background: rgba(11, 13, 15, 0.85); backdrop-filter: blur(20px) saturate(180%); }
+.bg-grid-railway { background-image: linear-gradient(to right, var(--border-subtle) 1px, transparent 1px), linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px); background-size: 24px 24px; }
 
-.progress-railway-bar {
-  @apply h-full bg-primary rounded-full transition-all duration-300 ease-out;
-}
+/* macOS 别名（逐步移除） */
+.card-macos { background: var(--bg-elevated); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); padding: 20px; }
+.input-macos { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-sm); padding: 8px 12px; }
+.badge-macos { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: var(--radius-badge); }
+.divider-macos { height: 0.5px; background: var(--border-subtle); }
+.window-macos { background: var(--bg-base); border-radius: var(--radius-lg); border: 0.5px solid var(--border-default); }
+.dropdown-macos { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); overflow: hidden; }
+.table-macos { width: 100%; border-collapse: collapse; font-size: 13px; }
+.progress-macos { width: 100%; height: 6px; background: var(--bg-overlay); border-radius: 3px; overflow: hidden; }
+.progress-macos-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s ease; }
+.terminal-macos { background: #0D0D0D; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 12px; border-radius: var(--radius-md); }
+.tooltip-macos { position: absolute; padding: 4px 8px; background: var(--bg-overlay); color: var(--text-primary); font-size: 11px; border-radius: var(--radius-sm); opacity: 0; visibility: hidden; transition: all 0.15s ease; pointer-events: none; z-index: 50; border: 0.5px solid var(--border-default); }
+.glass-macos { background: rgba(11, 13, 15, 0.85); backdrop-filter: blur(20px) saturate(180%); }
+.bg-grid-macos { background-image: linear-gradient(to right, var(--border-subtle) 1px, transparent 1px), linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px); background-size: 24px 24px; }
+.checkbox-macos { position: relative; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.checkbox-macos input { position: absolute; opacity: 0; width: 0; height: 0; cursor: pointer; }
 
-.progress-railway-success {
-  @apply bg-status-success;
-}
+/* ============================================
+   Badge 变体
+   ============================================ */
+.badge-default { background: var(--bg-overlay); color: var(--text-secondary); }
+.badge-primary { background: var(--accent-muted); color: var(--accent); }
+.badge-success { background: var(--color-success-muted); color: var(--color-success-text); }
+.badge-warning { background: var(--color-warning-muted); color: var(--color-warning-text); }
+.badge-danger { background: var(--color-error-muted); color: var(--color-error-text); }
+.badge-info { background: var(--color-info-muted); color: var(--color-info-text); }
 
-.progress-railway-warning {
-  @apply bg-status-warning;
-}
-
-.progress-railway-error {
-  @apply bg-status-error;
+/* ============================================
+   状态脉冲动画
+   ============================================ */
+.status-pulse {
+  animation: pulseStatus 1.5s ease-in-out infinite;
 }
 
 /* ============================================
-   Badge Variants - Railway Dark Mode
+   Shimmer 动画（加载进度条）
    ============================================ */
-.badge-default {
-  @apply bg-background-tertiary text-text-secondary;
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
-.badge-primary {
-  @apply bg-primary/15 text-primary;
-}
-
-.badge-success {
-  @apply bg-status-success/15 text-status-success;
-}
-
-.badge-warning {
-  @apply bg-status-warning/15 text-status-warning;
-}
-
-.badge-danger {
-  @apply bg-status-error/15 text-status-error;
-}
-
-.badge-info {
-  @apply bg-status-info/15 text-status-info;
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
 }
 
 /* ============================================
-   Card Hover Effects - Railway Dark Mode
+   卡片交错动画
    ============================================ */
-.card-hover {
-  @apply transition-all duration-300 ease-out;
-}
-
-.card-hover:hover {
-  @apply shadow-railway-card-hover border-border-primary transform -translate-y-0.5;
-}
-
-/* ============================================
-   Empty State - Railway Dark Mode
-   ============================================ */
-.empty-state {
-  @apply flex flex-col items-center justify-center py-12 text-center;
-}
-
-.empty-state-icon {
-  @apply text-text-tertiary text-5xl mb-4;
-}
-
-.empty-state-title {
-  @apply text-lg font-medium text-white mb-2;
-}
-
-.empty-state-description {
-  @apply text-sm text-text-secondary max-w-sm;
-}
-
-/* ============================================
-   Railway Gradient Effects
-   ============================================ */
-
-/* 渐变边框卡片 */
-.gradient-border-card {
-  position: relative;
-  background: linear-gradient(145deg, rgba(139, 92, 246, 0.06) 0%, rgba(168, 85, 247, 0.02) 100%);
-  border-radius: 16px;
-}
-
-.gradient-border-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(145deg, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.15) 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* 发光背景效果 */
-.glow-background {
-  position: relative;
-}
-
-.glow-background::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* 网格背景 + 渐变光晕 */
-.mesh-background {
-  background-image: 
-    radial-gradient(at 40% 20%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, rgba(236, 72, 153, 0.06) 0px, transparent 50%),
-    linear-gradient(to right, rgba(139, 92, 246, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 24px 24px, 24px 24px;
-}
-
-/* ============================================
-   macOS Aliases (向后兼容)
-   ============================================ */
-.divider-macos {
-  @apply divider-railway;
-}
-
-.glass-macos {
-  @apply glass-railway;
-}
-
-.window-macos {
-  @apply window-railway;
-}
-
-.tooltip-macos {
-  @apply tooltip-railway;
-}
-
-.dropdown-macos {
-  @apply dropdown-railway;
-}
-
-.table-macos {
-  @apply table-railway;
-}
-
-.progress-macos {
-  @apply progress-railway;
-}
-
-.progress-macos-bar {
-  @apply progress-railway-bar;
-}
-
-.progress-macos-success {
-  @apply progress-railway-success;
-}
-
-.progress-macos-warning {
-  @apply progress-railway-warning;
-}
-
-.progress-macos-error {
-  @apply progress-railway-error;
-}
-
-.terminal-macos {
-  @apply terminal-railway;
-}
-
-.icon-macos {
-  @apply icon-railway;
-}
-
-.bg-grid-macos {
-  @apply bg-grid-railway;
-}
+.card-stagger-1 { animation-delay: 0.03s; }
+.card-stagger-2 { animation-delay: 0.06s; }
+.card-stagger-3 { animation-delay: 0.09s; }
+.card-stagger-4 { animation-delay: 0.12s; }
+.card-stagger-5 { animation-delay: 0.15s; }
+.card-stagger-6 { animation-delay: 0.18s; }

@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { authApi } from '../services/authApi';
-import type { LoginRequest } from '../types';
 import {
   Box,
   Terminal,
@@ -19,7 +18,7 @@ interface LoginPageProps {
   onLoginSuccess: () => void;
 }
 
-// 背景图配置 - 添加更多背景图到 src/public/backgrounds/ 目录
+// Background images configuration
 const BACKGROUNDS = [
   '/backgrounds/wallhaven-1qdz5w.png',
   '/backgrounds/wallhaven-9o2w9k.png',
@@ -27,14 +26,13 @@ const BACKGROUNDS = [
   '/backgrounds/wallhaven-vpo8k8.jpg',
 ];
 
-// 获取随机背景图索引，存储在 sessionStorage 中确保每次登录会话内一致
+// Get random background index, stored in sessionStorage for consistency within session
 const getRandomBackgroundIndex = (): number => {
   const storedIndex = sessionStorage.getItem('login_background_index');
   if (storedIndex !== null) {
     return parseInt(storedIndex, 10);
   }
   
-  // 生成新的随机索引
   const randomIndex = Math.floor(Math.random() * BACKGROUNDS.length);
   sessionStorage.setItem('login_background_index', randomIndex.toString());
   return randomIndex;
@@ -48,11 +46,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [bgLoaded, setBgLoaded] = useState(false);
 
-  // 随机选择背景图
   const backgroundIndex = useMemo(() => getRandomBackgroundIndex(), []);
   const backgroundUrl = BACKGROUNDS[backgroundIndex];
 
-  // 预加载背景图
+  // Preload background image
   useEffect(() => {
     const img = new Image();
     img.onload = () => setBgLoaded(true);
@@ -74,7 +71,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       const result = await authApi.login({ username: username.trim(), password });
 
       if (result.code === 0) {
-        // Clear background index after successful login, next login will switch to new background
         sessionStorage.removeItem('login_background_index');
         onLoginSuccess();
       } else {
@@ -88,74 +84,94 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   }, [username, password, onLoginSuccess]);
 
   return (
-    <div style={styles.container}>
-      {/* 左侧背景区域 */}
-      <div style={styles.leftPanel}>
-        {/* 背景图 */}
+    <div className="flex min-h-screen w-full">
+      {/* Left Panel - Background Area */}
+      <div className="flex-1 relative flex items-center justify-center overflow-hidden min-w-[400px]">
+        {/* Background Image */}
         <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500"
           style={{
-            ...styles.backgroundImage,
             backgroundImage: bgLoaded ? `url(${backgroundUrl})` : undefined,
             opacity: bgLoaded ? 1 : 0,
           }}
         />
-        {/* 渐变遮罩 */}
-        <div style={styles.overlay} />
+        
+        {/* Overlay - Railway style dark gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0B0D0F]/80 via-[#141518]/70 to-[#1C1E21]/60" />
         
         {/* Left Content */}
-        <div style={styles.leftContent}>
-          <div style={styles.brandIcon}>
-            <Box size={40} color="white" />
+        <div className="relative z-10 text-center text-white p-10">
+          {/* Brand Icon */}
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20">
+            <Box size={40} className="text-white" />
           </div>
-          <h1 style={styles.brandTitle}>Cockpit</h1>
-          <p style={styles.brandSubtitle}>Modern Server Operations Management Platform</p>
-          <div style={styles.features}>
-            <div style={styles.featureItem}>
-              <Terminal size={18} color="#3b82f6" style={styles.featureIcon} />
+          
+          {/* Brand Title */}
+          <h1 className="text-3xl font-semibold mb-3 tracking-tight">
+            Cockpit
+          </h1>
+          
+          {/* Brand Subtitle */}
+          <p className="text-base text-white/90 mb-12 font-normal">
+            Modern Server Operations Management Platform
+          </p>
+          
+          {/* Features */}
+          <div className="flex flex-col gap-4 items-center">
+            <div className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-xl backdrop-blur-xl border border-white/10 text-sm font-medium min-w-[200px]">
+              <Terminal size={18} className="text-[#60A5FA]" />
               <span>SSH Terminal Management</span>
             </div>
-            <div style={styles.featureItem}>
-              <FolderOpen size={18} color="#8b5cf6" style={styles.featureIcon} />
+            
+            <div className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-xl backdrop-blur-xl border border-white/10 text-sm font-medium min-w-[200px]">
+              <FolderOpen size={18} className="text-[#A855F7]" />
               <span>SFTP File Transfer</span>
             </div>
-            <div style={styles.featureItem}>
-              <TrendingUp size={18} color="#10b981" style={styles.featureIcon} />
+            
+            <div className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-xl backdrop-blur-xl border border-white/10 text-sm font-medium min-w-[200px]">
+              <TrendingUp size={18} className="text-[#4ADE80]" />
               <span>System Monitoring Dashboard</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Login Area */}
-      <div style={styles.rightPanel}>
-        <div style={styles.loginContainer}>
+      {/* Right Panel - Login Area */}
+      <div className="w-[480px] min-w-[400px] flex flex-col items-center justify-center p-10 bg-[#FAFAFA] relative">
+        <div className="w-full max-w-[360px]">
           {/* Header */}
-          <div style={styles.header}>
-            <h2 style={styles.title}>Welcome Back</h2>
-            <p style={styles.subtitle}>Please sign in to your account</p>
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-[#0F0F10] mb-2 tracking-tight">
+              Welcome Back
+            </h2>
+            <p className="text-sm text-[#52525B]">
+              Please login to your account
+            </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} style={styles.form}>
-            {/* Error Message */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            {/* Error Banner */}
             {error && (
-              <div style={styles.errorBanner}>
-                <AlertCircle size={16} color="#ef4444" />
+              <div className="flex items-center gap-2.5 px-4 py-3.5 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] text-sm">
+                <AlertCircle size={16} className="text-[#F87171]" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Username */}
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Username</label>
-              <div style={styles.inputWrapper}>
-                <User size={16} color="#6366f1" style={styles.inputIcon} />
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-[#334155]">
+                Username
+              </label>
+              <div className="relative flex items-center">
+                <User size={16} className="absolute left-3.5 text-[#A855F7]" />
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
-                  style={styles.input}
+                  placeholder="Enter username"
+                  className="w-full py-3.5 pl-11 pr-4 text-sm border border-[#E2E8F0] rounded-lg bg-white text-[#1E293B] outline-none transition-all duration-150 focus:border-[#A855F7] focus:shadow-[0_0_0_3px_rgba(168,85,247,0.15)]"
                   disabled={loading}
                   autoComplete="username"
                 />
@@ -163,48 +179,55 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             </div>
 
             {/* Password */}
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Password</label>
-              <div style={styles.inputWrapper}>
-                <Lock size={16} color="#8b5cf6" style={styles.inputIcon} />
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-[#334155]">
+                Password
+              </label>
+              <div className="relative flex items-center">
+                <Lock size={16} className="absolute left-3.5 text-[#A855F7]" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  style={{ ...styles.input, ...styles.passwordInput }}
+                  placeholder="Enter password"
+                  className="w-full py-3.5 pl-11 pr-12 text-sm border border-[#E2E8F0] rounded-lg bg-white text-[#1E293B] outline-none transition-all duration-150 focus:border-[#A855F7] focus:shadow-[0_0_0_3px_rgba(168,85,247,0.15)]"
                   disabled={loading}
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={styles.passwordToggle}
+                  className="absolute right-3.5 p-1 bg-none border-none cursor-pointer flex items-center justify-center transition-colors duration-150 hover:text-[#64748B]"
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff size={16} color="#94a3b8" /> : <Eye size={16} color="#94a3b8" />}
+                  {showPassword ? (
+                    <EyeOff size={16} className="text-[#94A3B8]" />
+                  ) : (
+                    <Eye size={16} className="text-[#94A3B8]" />
+                  )}
                 </button>
               </div>
             </div>
 
-            {/* Login Button */}
+            {/* Login Button - Railway style: solid color, no gradient */}
             <button
               type="submit"
-              style={{
-                ...styles.submitButton,
-                ...(loading ? styles.submitButtonDisabled : {}),
-              }}
+              className={`flex items-center justify-center gap-2 w-full py-3.5 px-6 text-sm font-medium text-white bg-[#A855F7] border-none rounded-lg cursor-pointer transition-all duration-150 mt-2 ${
+                loading 
+                  ? 'opacity-70 cursor-not-allowed' 
+                  : 'hover:bg-[#9333EA] hover:-translate-y-0.5 active:translate-y-0'
+              }`}
               disabled={loading}
             >
               {loading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  Signing in...
+                  Logging in...
                 </>
               ) : (
                 <>
                   <LogIn size={16} />
-                  Sign In
+                  Login
                 </>
               )}
             </button>
@@ -214,255 +237,5 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     </div>
   );
 };
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    display: 'flex',
-    minHeight: '100vh',
-    width: '100%',
-  },
-  // 左侧面板
-  leftPanel: {
-    flex: 1,
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    minWidth: '400px',
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    transition: 'opacity 0.5s ease-in-out',
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(30, 41, 59, 0.6) 100%)',
-  },
-  leftContent: {
-    position: 'relative',
-    zIndex: 1,
-    textAlign: 'center',
-    color: 'white',
-    padding: '40px',
-  },
-  brandIcon: {
-    width: '80px',
-    height: '80px',
-    margin: '0 auto 24px',
-    borderRadius: '20px',
-    background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
-    backdropFilter: 'blur(10px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: '1px solid rgba(255,255,255,0.2)',
-  },
-  brandTitle: {
-    fontSize: '36px',
-    fontWeight: 700,
-    margin: '0 0 12px',
-    textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-  },
-  brandSubtitle: {
-    fontSize: '16px',
-    opacity: 0.9,
-    margin: '0 0 48px',
-    fontWeight: 400,
-  },
-  features: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-    alignItems: 'center',
-  },
-  featureItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px 24px',
-    background: 'rgba(255,255,255,0.1)',
-    borderRadius: '12px',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    fontSize: '14px',
-    fontWeight: 500,
-    minWidth: '200px',
-  },
-  featureIcon: {
-    flexShrink: 0,
-  },
-  // 右侧面板
-  rightPanel: {
-    width: '480px',
-    minWidth: '400px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '40px',
-    backgroundColor: '#f8fafc',
-    position: 'relative',
-  },
-  loginContainer: {
-    width: '100%',
-    maxWidth: '360px',
-  },
-  header: {
-    marginBottom: '32px',
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: 700,
-    color: '#0f172a',
-    margin: '0 0 8px',
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-  },
-  subtitle: {
-    fontSize: '15px',
-    color: '#64748b',
-    margin: 0,
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  errorBanner: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    padding: '14px 16px',
-    borderRadius: '10px',
-    backgroundColor: '#fef2f2',
-    border: '1px solid #fecaca',
-    color: '#dc2626',
-    fontSize: '14px',
-  },
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  label: {
-    fontSize: '14px',
-    fontWeight: 600,
-    color: '#334155',
-  },
-  inputWrapper: {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  inputIcon: {
-    position: 'absolute',
-    left: '14px',
-    pointerEvents: 'none',
-  },
-  input: {
-    width: '100%',
-    padding: '14px 16px 14px 44px',
-    fontSize: '15px',
-    border: '1px solid #e2e8f0',
-    borderRadius: '10px',
-    backgroundColor: 'white',
-    color: '#1e293b',
-    outline: 'none',
-    transition: 'all 0.2s ease',
-    boxSizing: 'border-box',
-  },
-  passwordInput: {
-    paddingRight: '48px',
-  },
-  passwordToggle: {
-    position: 'absolute',
-    right: '14px',
-    padding: '4px',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'color 0.2s ease',
-  },
-  submitButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    width: '100%',
-    padding: '14px 24px',
-    fontSize: '15px',
-    fontWeight: 600,
-    color: 'white',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-    border: 'none',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    boxShadow: '0 4px 14px rgba(59, 130, 246, 0.35)',
-    marginTop: '8px',
-  },
-  submitButtonDisabled: {
-    opacity: 0.7,
-    cursor: 'not-allowed',
-  },
-};
-
-// Add CSS animations and hover effects
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  
-  input:focus {
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
-  }
-  
-  button[type="submit"]:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45) !important;
-  }
-  
-  button[type="submit"]:active:not(:disabled) {
-    transform: translateY(0);
-  }
-  
-  .password-toggle:hover {
-    color: #64748b !important;
-  }
-  
-  .version-container:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-  }
-  
-  @media (max-width: 900px) {
-    .login-left-panel {
-      display: none !important;
-    }
-    .login-right-panel {
-      width: 100% !important;
-      min-width: unset !important;
-    }
-  }
-`;
-document.head.appendChild(styleSheet);
 
 export default LoginPage;

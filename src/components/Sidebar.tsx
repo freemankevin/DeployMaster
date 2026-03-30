@@ -43,16 +43,16 @@ export type PageType =
 interface NavItem {
   id: PageType;
   label: string;
-  icon?: LucideIcon; // Lucide icon component
+  icon?: LucideIcon;
   adminOnly?: boolean;
   isSubItem?: boolean;
 }
 
-// Navigation group interface (items with divider)
+// Navigation group interface
 interface NavGroup {
   items: NavItem[];
-  subItems?: NavItem[]; // Sub-items for expandable menu
-  expandKey?: PageType; // Key to identify which parent is expandable
+  subItems?: NavItem[];
+  expandKey?: PageType;
 }
 
 interface SidebarProps {
@@ -64,12 +64,12 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
-// Navigation structure - groups separated by dividers
+// Navigation structure
 const navigationGroups: NavGroup[] = [
   {
     items: [
       { id: 'hosts', label: 'Hosts', icon: Server },
-      { id: 'appstore', label: 'Appstore', icon: Store },
+      { id: 'appstore', label: 'App Store', icon: Store },
     ],
   },
   {
@@ -81,7 +81,7 @@ const navigationGroups: NavGroup[] = [
       { id: 'container-images', label: 'Images', isSubItem: true },
       { id: 'container-services', label: 'Services', isSubItem: true },
       { id: 'container-compose', label: 'Compose', isSubItem: true },
-      { id: 'container-repo', label: 'Repo', isSubItem: true },
+      { id: 'container-repo', label: 'Registry', isSubItem: true },
     ],
     expandKey: 'containers',
   },
@@ -100,7 +100,7 @@ const navigationGroups: NavGroup[] = [
   },
   {
     items: [
-      { id: 'cronjob', label: 'Cronjob', icon: Clock },
+      { id: 'cronjob', label: 'Cron Jobs', icon: Clock },
     ],
   },
   {
@@ -144,7 +144,6 @@ const Sidebar = ({
     });
   };
 
-  // Check if current page is a sub-item of a parent
   const isParentActive = (parentId: PageType, subItems?: NavItem[]): boolean => {
     if (currentPage === parentId) return true;
     if (subItems) {
@@ -167,16 +166,14 @@ const Sidebar = ({
     };
   }).filter(group => group.items.length > 0);
 
-  // Get user initials
   const getUserInitials = () => {
     if (!currentUser?.username) return '?';
     return currentUser.username.charAt(0).toUpperCase();
   };
 
-  // Get role label
   const getRoleLabel = () => {
     switch (currentUser?.role) {
-      case 'admin': return 'Administrator';
+      case 'admin': return 'Admin';
       case 'operator': return 'Operator';
       case 'viewer': return 'Viewer';
       default: return '';
@@ -187,18 +184,30 @@ const Sidebar = ({
 
   return (
     <aside
-      className={`${collapsedClass} h-full bg-background-secondary/80 backdrop-blur-sm border-r border-border-primary flex flex-col relative
+      className={`${collapsedClass} h-full flex flex-col relative
                   transition-[width] duration-200 ease-out overflow-visible shrink-0`}
+      style={{
+        background: 'var(--bg-surface)',
+        borderRight: '0.5px solid var(--border-subtle)',
+      }}
     >
       {/* Logo Section */}
       <div className={`p-3 flex items-center ${isCollapsed ? 'justify-center' : ''}`}>
         <img
           src="/favicon-32x32.png"
           alt="Cockpit"
-          className="w-7 h-7 rounded-lg shadow-macos-button shrink-0 object-contain"
+          className="w-7 h-7 rounded-lg shrink-0 object-contain"
         />
         {!isCollapsed && (
-          <h1 className="font-semibold text-[16px] text-text-primary tracking-tight whitespace-nowrap ml-2 font-heading">Cockpit</h1>
+          <h1 
+            className="font-semibold text-[16px] tracking-tight whitespace-nowrap ml-2"
+            style={{ 
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+              color: 'var(--text-primary)',
+            }}
+          >
+            Cockpit
+          </h1>
         )}
       </div>
 
@@ -206,26 +215,31 @@ const Sidebar = ({
       <div className={`px-2 pb-2 ${isCollapsed ? 'flex justify-center' : ''}`}>
         <button
           onClick={handleToggle}
-          className={`flex items-center justify-center gap-1.5 rounded-lg transition-all duration-200
+          className={`flex items-center justify-center gap-1.5 rounded-lg transition-all duration-150
                      ${isCollapsed
-                       ? 'w-8 h-8 hover:bg-background-hover'
-                       : 'w-full py-1.5 hover:bg-background-hover'
+                       ? 'w-8 h-8'
+                       : 'w-full py-1.5'
                       }`}
+          style={{
+            background: 'transparent',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-elevated)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
           title={isCollapsed ? 'Expand' : 'Collapse'}
         >
           {isCollapsed ? (
-            <ChevronRight className="w-3 h-3 text-text-tertiary" />
+            <ChevronRight className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
           ) : (
             <>
-              <ChevronLeft className="w-3 h-3 text-text-tertiary" />
-              <span className="text-xs text-text-tertiary">Collapse</span>
+              <ChevronLeft className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+              <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Collapse</span>
             </>
           )}
         </button>
       </div>
 
       {/* Divider */}
-      <div className="mx-3 mt-1 mb-3 border-t border-border-primary" />
+      <div className="mx-3 mt-1 mb-3" style={{ borderTop: '0.5px solid var(--border-subtle)' }} />
 
       {/* Main Navigation */}
       <nav className="flex-1 px-2 overflow-y-auto overflow-x-hidden">
@@ -255,16 +269,28 @@ const Sidebar = ({
                       title={isCollapsed ? item.label : undefined}
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[14px] font-medium
                         transition-all duration-150
-                        ${isCollapsed ? 'justify-center' : ''}
-                        ${parentActive
-                          ? 'bg-primary/10 text-text-primary'
-                          : 'text-[#a1a1aa] hover:bg-background-tertiary hover:text-[#d4d4d8]'
-                        }`}
+                        ${isCollapsed ? 'justify-center' : ''}`}
+                      style={{
+                        background: parentActive ? 'var(--accent-muted)' : 'transparent',
+                        color: parentActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!parentActive) {
+                          e.currentTarget.style.background = 'var(--bg-elevated)';
+                          e.currentTarget.style.color = 'var(--text-primary)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!parentActive) {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.color = 'var(--text-secondary)';
+                        }
+                      }}
                     >
                       {IconComponent && (
                         <IconComponent 
-                          className={`w-[18px] h-[18px] shrink-0
-                            ${parentActive ? 'text-primary' : 'text-[#71717a]'}`}
+                          className="w-[18px] h-[18px] shrink-0"
+                          style={{ color: parentActive ? 'var(--accent)' : 'var(--text-tertiary)' }}
                         />
                       )}
                       {!isCollapsed && (
@@ -272,23 +298,29 @@ const Sidebar = ({
                           <span className="truncate">{item.label}</span>
                           {hasSubItems && (
                             <ChevronDown 
-                              className={`w-3 h-3 text-[#71717a]/40 transition-transform duration-200 shrink-0 ml-1
-                                ${isExpanded ? 'rotate-180' : ''}`}
+                              className="w-3 h-3 shrink-0 ml-1 transition-transform duration-200"
+                              style={{ 
+                                color: 'var(--text-tertiary)',
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                              }}
                             />
                           )}
                         </>
                       )}
                     </a>
 
-                    {/* Sub Items - Railway Style */}
+                    {/* Sub Items */}
                     {hasSubItems && !isCollapsed && (
                       <div
                         className={`overflow-hidden transition-all duration-200 ease-out
                           ${isExpanded ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0 mt-0'}`}
                       >
                         <div className="relative ml-4 pl-3 py-1">
-                          {/* Left border line - Railway style, more subtle than text */}
-                          <div className="absolute left-0 top-2 bottom-2 w-px bg-[#94a09e]/30" />
+                          {/* Left border line */}
+                          <div 
+                            className="absolute left-0 top-2 bottom-2 w-px"
+                            style={{ background: 'var(--border-subtle)' }}
+                          />
                           
                           <div className="space-y-0.5">
                             {group.subItems!.map((subItem) => {
@@ -301,12 +333,24 @@ const Sidebar = ({
                                     e.preventDefault();
                                     onPageChange?.(subItem.id);
                                   }}
-                                  className={`flex items-center px-3 py-1.5 rounded-md text-[14px] font-medium
-                                    transition-all duration-150 ease-out
-                                    ${subIsActive
-                                      ? 'bg-primary/10 text-text-primary'
-                                      : 'text-[#94a09e] hover:bg-background-tertiary/60 hover:text-[#b0b8b5]'
-                                    }`}
+                                  className="flex items-center px-3 py-1.5 rounded-md text-[14px] font-medium
+                                    transition-all duration-150"
+                                  style={{
+                                    background: subIsActive ? 'var(--accent-muted)' : 'transparent',
+                                    color: subIsActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!subIsActive) {
+                                      e.currentTarget.style.background = 'var(--bg-elevated)';
+                                      e.currentTarget.style.color = 'var(--text-primary)';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!subIsActive) {
+                                      e.currentTarget.style.background = 'transparent';
+                                      e.currentTarget.style.color = 'var(--text-secondary)';
+                                    }
+                                  }}
                                 >
                                   <span className="truncate">{subItem.label}</span>
                                 </a>
@@ -321,47 +365,81 @@ const Sidebar = ({
               })}
             </div>
 
-            {/* Group Divider - with spacing */}
+            {/* Group Divider */}
             {groupIndex < filteredGroups.length - 1 && (
-              <div className="mx-3 my-3 border-t border-border-primary" />
+              <div className="mx-3 my-3" style={{ borderTop: '0.5px solid var(--border-subtle)' }} />
             )}
           </div>
         ))}
       </nav>
 
       {/* Divider */}
-      <div className="mx-3 my-3 border-t border-border-primary" />
+      <div className="mx-3 my-3" style={{ borderTop: '0.5px solid var(--border-subtle)' }} />
 
       {/* User Profile */}
       <div className={`p-2 shrink-0 ${isCollapsed ? 'flex justify-center' : ''}`}>
         {isCollapsed ? (
           <button
-            className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent-purple flex items-center justify-center
-                      hover:opacity-80 transition-opacity duration-200"
+            className="w-8 h-8 rounded-full flex items-center justify-center
+                      transition-opacity duration-150"
+            style={{ background: 'var(--accent)' }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             title={currentUser?.username || 'User'}
           >
             <span className="text-white text-xs font-semibold">{getUserInitials()}</span>
           </button>
         ) : (
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-background-tertiary/50
-                        hover:bg-background-tertiary transition-all duration-200 cursor-pointer group">
+          <div 
+            className="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-150 cursor-pointer group"
+            style={{ background: 'var(--bg-overlay)' }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-elevated)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-overlay)'}
+          >
             <div className="relative shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent-purple flex items-center justify-center">
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center"
+                style={{ background: 'var(--accent)' }}
+              >
                 <span className="text-white text-xs font-semibold">{getUserInitials()}</span>
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-status-success rounded-full border-2 border-background-tertiary" />
+              <div 
+                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
+                style={{ 
+                  background: 'var(--color-success)',
+                  border: '2px solid var(--bg-overlay)',
+                }}
+              />
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium text-text-primary truncate">{currentUser?.username || 'User'}</p>
-              <p className="text-[11px] text-text-tertiary truncate">{getRoleLabel()}</p>
+              <p
+                className="text-[13px] font-medium truncate"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                {currentUser?.username || 'User'}
+              </p>
+              <p 
+                className="text-[11px] truncate"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                {getRoleLabel()}
+              </p>
             </div>
 
             <button
               onClick={onLogout}
-              className="p-1.5 text-text-tertiary hover:text-status-error hover:bg-status-error/10 rounded-lg
-                       transition-all duration-200 opacity-0 group-hover:opacity-100"
-              title="Sign Out"
+              className="p-1.5 rounded-lg transition-all duration-150 opacity-0 group-hover:opacity-100"
+              style={{ color: 'var(--text-tertiary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-error)';
+                e.currentTarget.style.background = 'var(--color-error-muted)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-tertiary)';
+                e.currentTarget.style.background = 'transparent';
+              }}
+              title="Logout"
             >
               <LogOut className="w-4 h-4" />
             </button>

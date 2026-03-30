@@ -98,7 +98,7 @@ function App() {
         await loadHosts();
         setIsAddModalOpen(false);
         setCopyingHost(null);
-        success('Added Successfully', 'Host has been successfully added');
+        success('Added Successfully', 'Host has been added successfully');
         return true;
       }
       return false;
@@ -119,7 +119,7 @@ function App() {
         await loadHosts();
         setEditingHost(null);
         setIsAddModalOpen(false);
-        success('Update Successful', 'Host information has been updated');
+        success('Updated Successfully', 'Host information has been updated');
         return true;
       }
       return false;
@@ -135,7 +135,7 @@ function App() {
     const confirmed = await showDialog({
       type: 'delete',
       title: 'Delete Host',
-      message: 'Are you sure you want to delete this host? This operation cannot be undone.',
+      message: 'Are you sure you want to delete this host? This action cannot be undone.',
       itemName: hostName,
       confirmText: 'Delete',
     });
@@ -163,14 +163,14 @@ function App() {
     try {
       const response = await hostApi.testConnection(id);
       if (response.success) {
-        success('Connection Successful', 'SSH connection test passed');
+        success('Connected Successfully', 'SSH connection test passed');
         await loadHosts();
       } else {
         error('Connection Failed', response.message || 'Unable to connect to host');
       }
     } catch (err) {
       console.error('Test connection failed:', err);
-      error('Connection Failed', 'Error occurred during connection test');
+      error('Connection Failed', 'An error occurred during connection test');
     }
   };
 
@@ -254,8 +254,11 @@ function App() {
   // Show loading while checking auth
   if (!authChecked) {
     return (
-      <div className="bg-background-primary h-screen flex items-center justify-center">
-        <div className="text-text-secondary">
+      <div 
+        className="h-screen flex items-center justify-center"
+        style={{ background: 'var(--bg-base)' }}
+      >
+        <div style={{ color: 'var(--text-secondary)' }}>
           <Loader2 className="w-8 h-8 animate-spin" />
         </div>
       </div>
@@ -268,7 +271,13 @@ function App() {
   }
 
   return (
-    <div className="bg-background-primary text-text-primary h-screen overflow-hidden flex m-0 p-0">
+    <div 
+      className="h-screen overflow-hidden flex m-0 p-0"
+      style={{ 
+        background: 'var(--bg-base)',
+        color: 'var(--text-primary)',
+      }}
+    >
       {/* Sidebar */}
       <Sidebar
         currentPage={currentPage}
@@ -278,10 +287,16 @@ function App() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col bg-background-primary relative">
+      <main className="flex-1 flex flex-col relative" style={{ background: 'var(--bg-base)' }}>
         {/* Background Pattern - Subtle grid */}
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px]" />
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 1px, transparent 1px)',
+              backgroundSize: '24px 24px',
+            }}
+          />
         </div>
         
         {/* Header */}
@@ -350,7 +365,7 @@ function App() {
         />
       ))}
 
-      {/* Minimized Windows Stack - Bottom Right - Dark Mode */}
+      {/* Minimized Windows Stack - Bottom Right */}
       {minimizedWindows.length > 0 && (
         <div className="fixed bottom-6 right-6 z-[60] flex flex-col-reverse gap-2">
           {minimizedWindows.map((window, index) => (
@@ -358,14 +373,19 @@ function App() {
               key={window.id}
               className="cursor-pointer group animate-fade-in"
             >
-              <div className="bg-background-secondary/95 backdrop-blur-xl border border-border-primary rounded-xl px-4 py-3 shadow-macos-dropdown flex items-center gap-3 hover:bg-background-tertiary/95 transition-all duration-300 hover:scale-105"
-                style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.05), 0 10px 40px -10px rgba(0,0,0,0.5)' }}>
-                {/* Icon with gradient background */}
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                  window.type === 'terminal'
-                    ? 'bg-macos-blue'
-                    : 'bg-macos-green'
-                }`}>
+              <div 
+                className="rounded-xl px-4 py-3 flex items-center gap-3 transition-all duration-150 hover:scale-105"
+                style={{
+                  background: 'var(--bg-overlay)',
+                  border: '0.5px solid var(--border-default)',
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                {/* Icon */}
+                <div 
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: window.type === 'terminal' ? 'var(--accent)' : 'var(--color-success)' }}
+                >
                   {window.type === 'terminal'
                     ? <Terminal className="w-4 h-4 text-white" />
                     : <FolderOpen className="w-4 h-4 text-white" />}
@@ -376,8 +396,11 @@ function App() {
                   onClick={() => handleRestoreWindow(window.id)}
                   style={{ fontFamily: '"JetBrains Mono", "SF Mono", "Monaco", "Menlo", "Consolas", monospace', fontSize: '13px' }}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-macos-green animate-pulse" />
-                  <span className="text-text-secondary">{window.host.address}</span>
+                  <span 
+                    className="w-1.5 h-1.5 rounded-full animate-pulse"
+                    style={{ background: 'var(--color-success)' }}
+                  />
+                  <span style={{ color: 'var(--text-secondary)' }}>{window.host.address}</span>
                 </div>
                 {/* Close button */}
                 <button
@@ -385,10 +408,22 @@ function App() {
                     e.stopPropagation();
                     handleCloseWindow(window.id);
                   }}
-                  className="ml-1 w-6 h-6 rounded-full bg-macos-red/20 hover:bg-macos-red flex items-center justify-center transition-colors group/close"
+                  className="ml-1 w-6 h-6 rounded-full flex items-center justify-center transition-colors"
+                  style={{ 
+                    background: 'var(--color-error-muted)',
+                    color: 'var(--text-tertiary)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--color-error)';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--color-error-muted)';
+                    e.currentTarget.style.color = 'var(--text-tertiary)';
+                  }}
                   title="Close"
                 >
-                  <X className="w-3 h-3 text-text-tertiary group-hover/close:text-white" />
+                  <X className="w-3 h-3" />
                 </button>
               </div>
             </div>
