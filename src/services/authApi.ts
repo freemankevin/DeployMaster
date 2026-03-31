@@ -4,6 +4,7 @@ import type {
   LoginResponse,
   RefreshTokenRequest,
   UpdatePasswordRequest,
+  UpdateProfileRequest,
   CreateUserRequest,
   UpdateUserRequest,
   ResetPasswordRequest,
@@ -138,6 +139,61 @@ export const authApi = {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+  },
+
+  // Update profile (username, email, phone)
+  updateProfile: async (data: UpdateProfileRequest): Promise<ApiResult<User>> => {
+    const result = await apiRequest<User>('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+
+    // Update stored user info if successful
+    if (result.code === 0 && result.data) {
+      tokenManager.setUser(result.data);
+    }
+
+    return result;
+  },
+
+  // Upload avatar (base64)
+  uploadAvatar: async (avatarData: string): Promise<ApiResult<{ avatar: string; user: User }>> => {
+    const result = await apiRequest<{ avatar: string; user: User }>('/auth/avatar', {
+      method: 'POST',
+      body: JSON.stringify({ avatar: avatarData }),
+    });
+
+    // Update stored user info if successful
+    if (result.code === 0 && result.data?.user) {
+      tokenManager.setUser(result.data.user);
+    }
+
+    return result;
+  },
+
+  // Upload avatar (file)
+  uploadAvatarFile: async (file: File): Promise<ApiResult<{ avatar: string; user: User }>> => {
+    const token = tokenManager.getAccessToken();
+    
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await fetch(`${API_BASE}/auth/avatar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    // Update stored user info if successful
+    if (result.code === 0 && result.data?.user) {
+      tokenManager.setUser(result.data.user);
+    }
+
+    return result;
   },
 };
 

@@ -35,7 +35,7 @@ export const HostGridCard = ({
       return (
         <div
           key={disk.device}
-          className="rounded-lg p-3 transition-colors"
+          className="rounded-lg p-3 transition-all duration-150"
           style={{
             background: 'var(--bg-overlay)',
             border: '0.5px solid var(--border-default)',
@@ -59,13 +59,13 @@ export const HostGridCard = ({
                 className="text-xs font-medium"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                {isUnmounted ? 'Unmounted' : isSystemDisk ? 'System' : 'Data'}
+                {isUnmounted ? '未挂载' : isSystemDisk ? '系统盘' : '数据盘'}
               </span>
             </div>
             <span 
               className="text-[10px] font-mono"
               style={{ color: 'var(--text-tertiary)' }}
-              title={`Physical: ${disk.physical_disk || disk.device}`}
+              title={`物理磁盘: ${disk.physical_disk || disk.device}`}
             >
               {diskLabel}
             </span>
@@ -75,7 +75,16 @@ export const HostGridCard = ({
             <span style={{ color: 'var(--text-tertiary)' }}>
               {bytesToGB(disk.used)} GB / {bytesToGB(disk.total)} GB
             </span>
-            <span className="font-medium" style={{ color: getDiskTextColor(disk.usage).includes('success') ? 'var(--color-success)' : getDiskTextColor(disk.usage).includes('warning') ? 'var(--color-warning)' : getDiskTextColor(disk.usage).includes('error') ? 'var(--color-error)' : 'var(--text-primary)' }}>
+            <span 
+              className="font-medium"
+              style={{ 
+                color: disk.usage > 90 
+                  ? 'var(--color-error)' 
+                  : disk.usage > 70 
+                    ? 'var(--color-warning)' 
+                    : 'var(--color-success)'
+              }}
+            >
               {disk.usage.toFixed(1)}%
             </span>
           </div>
@@ -103,7 +112,7 @@ export const HostGridCard = ({
               style={{ color: 'var(--color-warning)' }}
             >
               <AlertTriangle className="w-3 h-3" />
-              Unmounted or Unformatted
+              未挂载或未格式化
             </div>
           )}
         </div>
@@ -115,17 +124,7 @@ export const HostGridCard = ({
 
   return (
     <div
-      className="rounded-lg p-4 transition-all duration-300"
-      style={{
-        background: 'var(--bg-elevated)',
-        border: '0.5px solid var(--border-default)',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border-strong)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border-default)';
-      }}
+      className="rounded-lg p-4 transition-all duration-150 card card-hover-border"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -156,21 +155,21 @@ export const HostGridCard = ({
         </div>
       </div>
 
-      {/* Specifications */}
+      {/* Specifications - Railway style */}
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div 
           className="flex items-center gap-2 text-xs"
           style={{ color: 'var(--text-secondary)' }}
         >
           <Cpu className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />
-          <span>{host.cpu_cores || '-'} Cores {formatMemory(host.memory_gb)} {host.architecture || ''}</span>
+          <span>{host.cpu_cores || '-'} 核 {formatMemory(host.memory_gb)} {host.architecture || ''}</span>
         </div>
         <div 
           className="flex items-center gap-2 text-xs"
           style={{ color: 'var(--text-secondary)' }}
         >
           <HardDrive className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} />
-          <span>{host.disks?.length || '-'} Disks</span>
+          <span>{host.disks?.length || '-'} 磁盘</span>
         </div>
         <div 
           className="flex items-center gap-2 text-xs"
@@ -185,7 +184,7 @@ export const HostGridCard = ({
       {systemDisk && (
         <div className="mb-3">
           <div
-            className="p-2.5 rounded-lg transition-colors"
+            className="p-2.5 rounded-lg transition-all duration-150"
             style={{
               background: 'var(--bg-overlay)',
               border: '0.5px solid var(--border-subtle)',
@@ -219,7 +218,7 @@ export const HostGridCard = ({
                   className="text-xs"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  {systemDisk.mount_point === '/' ? 'System Disk' : systemDisk.mount_point}
+                  {systemDisk.mount_point === '/' ? '系统盘' : systemDisk.mount_point}
                 </span>
               </div>
               <span 
@@ -244,7 +243,7 @@ export const HostGridCard = ({
               <span 
                 className="font-mono text-[10px]"
                 style={{ color: 'var(--text-secondary)' }}
-                title={`Physical: ${systemDisk.physical_disk || systemDisk.device}`}
+                title={`物理磁盘: ${systemDisk.physical_disk || systemDisk.device}`}
               >
                 {(systemDisk.physical_disk || systemDisk.device || '').split('/').pop()}
               </span>
@@ -259,14 +258,14 @@ export const HostGridCard = ({
                   className="text-xs font-medium"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  All Disks
+                  所有磁盘
                 </span>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsExpanded(false);
                   }}
-                  className="text-xs transition-colors"
+                  className="text-xs transition-colors duration-150"
                   style={{ color: 'var(--text-tertiary)' }}
                   onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
                   onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
@@ -286,32 +285,16 @@ export const HostGridCard = ({
       <div className="flex gap-2">
         <button
           onClick={onOpenTerminal}
-          className="flex-1 py-2 text-white rounded-md text-xs font-medium transition-all duration-150
+          className="flex-1 py-2 text-white rounded-lg text-xs font-medium btn-primary
                    flex items-center justify-center gap-1.5"
-          style={{ background: 'var(--accent)' }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--accent-hover)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'var(--accent)'}
         >
           <Terminal className="w-3.5 h-3.5" />
-          Terminal
+          终端
         </button>
         <button
           onClick={onOpenSFTP}
-          className="flex-1 py-2 rounded-md text-xs font-medium transition-all duration-150
+          className="flex-1 py-2 rounded-lg text-xs font-medium btn-secondary
                    flex items-center justify-center gap-1.5"
-          style={{ 
-            background: 'transparent',
-            color: 'var(--text-primary)',
-            border: '0.5px solid var(--border-default)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-strong)';
-            e.currentTarget.style.background = 'var(--bg-overlay)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-default)';
-            e.currentTarget.style.background = 'transparent';
-          }}
         >
           <FolderOpen className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />
           SFTP

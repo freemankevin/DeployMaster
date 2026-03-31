@@ -43,6 +43,9 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	// 静态文件服务 - 头像上传目录
+	router.Static("/uploads/avatars", "uploads/avatars")
+
 	// API 路由组
 	api := router.Group("/api")
 	{

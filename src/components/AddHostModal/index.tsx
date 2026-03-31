@@ -184,32 +184,42 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-background-secondary rounded-2xl w-full max-w-lg shadow-macos-modal 
-                    border border-border-primary overflow-hidden">
-        {/* Header - Dark Mode */}
-        <div className="px-6 py-5 border-b border-border-primary flex items-center justify-between bg-background-tertiary/50">
+    <div 
+      className="fixed inset-0 flex items-center justify-center z-[100] animate-fade-in"
+      style={{
+        background: 'rgba(11, 13, 15, 0.85)',
+        backdropFilter: 'blur(8px)',
+      }}
+    >
+      {/* Modal container - Railway style */}
+      <div 
+        className="w-full max-w-lg overflow-hidden animate-scale-in"
+        style={{
+          background: 'var(--bg-overlay)',
+          border: '0.5px solid var(--border-default)',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: '0 16px 48px rgba(0, 0, 0, 0.4)',
+        }}
+      >
+        {/* Header - Railway style */}
+        <div className="modal-header flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-macos-blue to-macos-indigo 
-                          flex items-center justify-center shadow-macos-button">
-              <Server className="w-5 h-5 text-white" />
+            {/* Icon container - Pure color, no gradient */}
+            <div className="icon-box icon-box-lg icon-box-accent">
+              <Server className="w-5 h-5" style={{ color: 'var(--accent)' }} />
             </div>
             <div>
-              <h3 className="text-[17px] font-semibold text-white">
+              <h3 className="text-base font-medium text-text-primary">
                 {getTitle()}
               </h3>
               {copyingHost && (
-                <p className="text-[12px] text-text-tertiary">
+                <p className="text-xs mt-0.5 text-text-tertiary">
                   Cloned from: {copyingHost.name}
                 </p>
               )}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-text-tertiary hover:text-white hover:bg-background-elevated 
-                     rounded-lg transition-all duration-200"
-          >
+          <button onClick={onClose} className="close-btn">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -238,24 +248,19 @@ const AddHostModal = ({ host, copyingHost, onClose, onSubmit }: AddHostModalProp
           {copyingHost && <CopyModeHint copyingHostName={copyingHost.name} />}
         </div>
 
-        {/* Footer - Dark Mode */}
-        <div className="px-6 py-4 border-t border-border-primary bg-background-tertiary/30 flex justify-end gap-3">
+        {/* Footer - Railway style */}
+        <div className="modal-footer flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl text-[13px] font-medium text-text-secondary
-                     hover:text-white hover:bg-background-tertiary
-                     transition-all duration-200"
+            className="px-5 py-2.5 rounded-lg text-sm font-medium btn-ghost"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-6 py-2.5 bg-macos-blue hover:brightness-110 text-white rounded-xl
-                     text-[13px] font-medium transition-all duration-200
-                     flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed
-                     shadow-macos-button hover:shadow-glow-blue
-                     active:scale-[0.98]"
+            className="px-6 py-2.5 text-white rounded-lg text-sm font-medium btn-primary
+                     flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>

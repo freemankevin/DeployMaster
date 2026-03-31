@@ -4,75 +4,96 @@
 
 /* ============================================
    Cockpit Design System - Railway 风格全局样式
-   核心原则：减法优先、节制色彩、扁平无阴影
+   
+   核心设计原则：
+   1. 减法优先 - 去掉不必要的装饰
+   2. 节制色彩 - 颜色只用于传递状态
+   3. 扁平无阴影 - 几乎不使用阴影效果
+   4. 微妙边框 - 0.5px Ghost Border (0.08-0.12 透明度)
+   5. 纯色背景 - 无渐变，无毛玻璃（特殊情况除外）
    ============================================ */
 
 /* CSS 变量定义 - Railway 风格 */
 :root {
-  /* 背景层级 - 从最深到最浅 */
-  --bg-base: #0B0D0F;
-  --bg-surface: #141518;
-  --bg-elevated: #1C1E21;
-  --bg-overlay: #242629;
-  --bg-hover: #1C1E21;
-
-  /* 兼容旧变量名 */
+  /* ============================================
+     背景层级系统 - 4档层次，从最深到最浅
+     ============================================ */
+  --bg-base: #0B0D0F;       /* 页面底色 - 最深邃 */
+  --bg-surface: #141518;    /* 侧边栏、导航 */
+  --bg-elevated: #1C1E21;   /* 卡片背景 */
+  --bg-overlay: #242629;    /* 下拉菜单、Modal、输入框 */
+  
+  /* 兼容旧变量名（逐步迁移） */
   --background-primary: #0B0D0F;
   --background-secondary: #141518;
   --background-tertiary: #1C1E21;
   --background-hover: #242629;
 
-  /* 文字层级 */
-  --text-primary: #EFEFEF;
-  --text-secondary: #A3A3A3;
-  --text-tertiary: #636363;
-  --text-disabled: #3D3F42;
+  /* ============================================
+     文字层级系统 - 高对比度，清晰易读
+     ============================================ */
+  --text-primary: #EFEFEF;    /* 主要内容、标题 */
+  --text-secondary: #A3A3A3;  /* 辅助说明、副标题 */
+  --text-tertiary: #636363;   /* 时间戳、元信息、占位符 */
+  --text-disabled: #3D3F42;   /* 禁用状态 */
 
-  /* 边框层级 - 更微妙的分割线 */
-  --border-primary: rgba(255, 255, 255, 0.04);
-  --border-secondary: rgba(255, 255, 255, 0.06);
-  --border-tertiary: rgba(255, 255, 255, 0.10);
+  /* ============================================
+     边框层级系统 - Ghost Border
+     关键：使用 rgba 透明度而非固定颜色
+     ============================================ */
+  --border-subtle: rgba(255, 255, 255, 0.04);   /* 最微妙 - 分隔线 */
+  --border-default: rgba(255, 255, 255, 0.08);  /* 默认 - 卡片边框 */
+  --border-strong: rgba(255, 255, 255, 0.12);   /* 强调 - hover 边框 */
+  --border-focus: rgba(255, 255, 255, 0.18);    /* 焦点 - focus 边框 */
 
-  /* 幽灵边框 - Ghost Border (更低调的透明度) */
-  --border-subtle: rgba(255, 255, 255, 0.04);
-  --border-default: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.10);
+  /* 兼容旧变量名 */
+  --border-primary: rgba(255, 255, 255, 0.08);
+  --border-secondary: rgba(255, 255, 255, 0.12);
+  --border-tertiary: rgba(255, 255, 255, 0.18);
 
-  /* Accent 色（品牌色） */
-  --accent: #A855F7;
-  --accent-hover: #9333EA;
-  --accent-muted: rgba(168, 85, 247, 0.15);
+  /* ============================================
+     Accent 色（品牌色）- 仅用于：
+     - 主要 CTA 按钮
+     - 选中状态
+     - 链接文字
+     ============================================ */
+  --accent: #A855F7;           /* Purple-500 */
+  --accent-hover: #9333EA;     /* Purple-600 */
+  --accent-muted: rgba(168, 85, 247, 0.12);
+  --accent-subtle: rgba(168, 85, 247, 0.06);
 
-  /* macOS 风格颜色 */
-  --macos-blue: #0A84FF;
-  --macos-green: #30D158;
-  --macos-purple: #A855F7;
-  --macos-red: #FF453A;
-  --macos-yellow: #FFD60A;
-  --macos-orange: #FF9F0A;
-
-  /* 语义色 */
+  /* ============================================
+     语义色（状态专用）- 颜色只用于传递状态
+     状态类型：Success / Warning / Error / Info / Neutral
+     ============================================ */
   --color-success: #4ADE80;
   --color-success-muted: rgba(74, 222, 128, 0.12);
+  --color-success-subtle: rgba(74, 222, 128, 0.06);
   --color-success-text: #86EFAC;
 
   --color-warning: #FACC15;
   --color-warning-muted: rgba(250, 204, 21, 0.12);
+  --color-warning-subtle: rgba(250, 204, 21, 0.06);
   --color-warning-text: #FDE047;
 
   --color-error: #F87171;
   --color-error-muted: rgba(248, 113, 113, 0.12);
+  --color-error-subtle: rgba(248, 113, 113, 0.06);
   --color-error-text: #FCA5A5;
 
   --color-info: #60A5FA;
   --color-info-muted: rgba(96, 165, 250, 0.12);
+  --color-info-subtle: rgba(96, 165, 250, 0.06);
   --color-info-text: #93C5FD;
 
   --color-neutral: #71717A;
   --color-neutral-muted: rgba(113, 113, 122, 0.12);
+  --color-neutral-subtle: rgba(113, 113, 122, 0.06);
   --color-neutral-text: #A1A1AA;
 
-  /* 间距 */
+  /* ============================================
+     间距系统 - 4px 基础单位
+     ============================================ */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -80,18 +101,32 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
+  --space-10: 40px;
   --space-12: 48px;
   --space-16: 64px;
 
-  /* 圆角 */
-  --radius-sm: 8px;
-  --radius-default: 10px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-badge: 20px;
+  /* ============================================
+     圆角系统 - Railway 风格偏好较小圆角
+     ============================================ */
+  --radius-sm: 6px;      /* 小组件：badge、checkbox */
+  --radius-default: 8px; /* 默认：按钮、输入框 */
+  --radius-md: 10px;     /* 中等：卡片 */
+  --radius-lg: 12px;     /* 大型：Modal、面板 */
+  --radius-xl: 16px;     /* 特大：容器 */
+
+  /* ============================================
+     动画时长 - Railway 风格偏好快速响应
+     ============================================ */
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-slow: 200ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* 基础样式 */
+/* ============================================
+   基础样式重置
+   ============================================ */
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -141,17 +176,22 @@ code, pre, .font-mono {
    组件样式 - Railway 风格（纯色为主）
    ============================================ */
 @layer components {
-  /* 主按钮 - 纯色，无渐变 */
+  /* ============================================
+     按钮系统
+     ============================================ */
+  
+  /* 主按钮 - 纯色，无渐变，无阴影 */
   .btn-primary {
     background: var(--accent);
     color: white;
     border: none;
-    border-radius: var(--radius-sm);
-    padding: 8px 16px;
+    border-radius: var(--radius-default);
+    padding: var(--space-2) var(--space-4);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.15s ease, transform 0.1s ease;
+    transition: background var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
   }
   .btn-primary:hover {
     background: var(--accent-hover);
@@ -170,30 +210,58 @@ code, pre, .font-mono {
     background: transparent;
     color: var(--text-primary);
     border: 0.5px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    padding: 8px 14px;
+    border-radius: var(--radius-default);
+    padding: var(--space-2) var(--space-3);
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
+    transition: border-color var(--duration-fast) var(--ease-out),
+                background var(--duration-fast) var(--ease-out);
   }
   .btn-secondary:hover {
     border-color: var(--border-strong);
     background: var(--bg-overlay);
   }
+  .btn-secondary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 
-  /* 幽灵按钮 */
+  /* 幽灵按钮 - 无边框，hover 时显示背景 */
   .btn-ghost {
     background: transparent;
-    color: var(--accent);
+    color: var(--text-secondary);
     border: none;
-    border-radius: var(--radius-sm);
-    padding: 6px 12px;
+    border-radius: var(--radius-default);
+    padding: var(--space-1) var(--space-3);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
   }
   .btn-ghost:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+  }
+  .btn-ghost:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Accent 幽灵按钮 */
+  .btn-ghost-accent {
+    background: transparent;
+    color: var(--accent);
+    border: none;
+    border-radius: var(--radius-default);
+    padding: var(--space-1) var(--space-3);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-out);
+  }
+  .btn-ghost-accent:hover {
     background: var(--accent-muted);
   }
 
@@ -201,111 +269,209 @@ code, pre, .font-mono {
   .btn-danger {
     background: transparent;
     color: var(--color-error-text);
-    border: 0.5px solid rgba(248, 113, 113, 0.3);
-    border-radius: var(--radius-sm);
-    padding: 8px 14px;
+    border: 0.5px solid rgba(248, 113, 113, 0.2);
+    border-radius: var(--radius-default);
+    padding: var(--space-2) var(--space-3);
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out);
   }
   .btn-danger:hover {
     background: var(--color-error-muted);
-    border-color: var(--color-error);
+    border-color: rgba(248, 113, 113, 0.4);
+  }
+  .btn-danger:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
-  /* 卡片 - 纯色背景，微妙边框 */
+  /* 危险主按钮 */
+  .btn-danger-primary {
+    background: var(--color-error);
+    color: white;
+    border: none;
+    border-radius: var(--radius-default);
+    padding: var(--space-2) var(--space-4);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-out);
+  }
+  .btn-danger-primary:hover {
+    background: rgba(248, 113, 113, 0.9);
+  }
+
+  /* ============================================
+     卡片系统 - 纯色背景，微妙边框，无阴影
+     ============================================ */
   .card {
     background: var(--bg-elevated);
     border: 0.5px solid var(--border-default);
-    border-radius: var(--radius-default);
-    padding: 20px;
-    transition: border-color 0.15s ease;
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    transition: border-color var(--duration-normal) var(--ease-out);
   }
   .card:hover {
     border-color: var(--border-strong);
-    /* 禁止：不加 box-shadow，不改变背景色 */
+    /* Railway 规范：禁止添加 box-shadow */
+  }
+  .card-interactive {
+    cursor: pointer;
+  }
+  .card-interactive:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-overlay);
   }
 
-  /* 输入框 */
+  /* ============================================
+     输入框系统 - Railway 风格
+     ============================================ */
   .input {
     background: var(--bg-overlay);
     border: 0.5px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    padding: 8px 12px;
+    border-radius: var(--radius-default);
+    padding: var(--space-2) var(--space-3);
     font-size: 14px;
     color: var(--text-primary);
     width: 100%;
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color var(--duration-fast) var(--ease-out),
+                background var(--duration-fast) var(--ease-out);
   }
   .input::placeholder {
     color: var(--text-tertiary);
   }
-  .input:hover {
+  .input:hover:not(:focus) {
     border-color: var(--border-strong);
   }
   .input:focus {
-    border-color: rgba(168, 85, 247, 0.5);
-    box-shadow: 0 0 0 3px var(--accent-muted);
+    border-color: rgba(168, 85, 247, 0.4);
+    /* Railway 规范：使用边框而非 box-shadow 表示焦点 */
+  }
+  .input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .input-error {
+    border-color: rgba(248, 113, 113, 0.3);
+  }
+  .input-error:focus {
+    border-color: rgba(248, 113, 113, 0.5);
+  }
+  
+  /* 输入框尺寸变体 */
+  .input-sm {
+    padding: var(--space-1) var(--space-2);
+    font-size: 13px;
+  }
+  .input-lg {
+    padding: var(--space-3) var(--space-4);
+    font-size: 15px;
+  }
+  
+  /* 带图标输入框容器 */
+  .input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-icon {
+    position: absolute;
+    left: var(--space-3);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+  .input-icon-accent {
+    color: var(--accent);
+  }
+  .input-with-icon .input {
+    padding-left: 40px;
+  }
+  .input-action {
+    position: absolute;
+    right: var(--space-2);
+    padding: var(--space-1);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+  .input-action:hover {
+    color: var(--text-secondary);
   }
 
-  /* 状态徽标 */
+  /* ============================================
+     状态徽标系统
+     ============================================ */
   .badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: 11px;
     font-weight: 500;
     padding: 3px 10px;
-    border-radius: var(--radius-badge);
+    border-radius: 100px;
+    letter-spacing: 0.02em;
   }
+  
   /* 小圆点指示器 */
-  .badge::before {
-    content: '';
+  .badge-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
+    flex-shrink: 0;
   }
 
-  .badge--running {
+  .badge--success {
     background: var(--color-success-muted);
     color: var(--color-success-text);
   }
-  .badge--running::before {
+  .badge--success .badge-dot {
     background: var(--color-success);
   }
 
-  .badge--failed {
+  .badge--warning {
+    background: var(--color-warning-muted);
+    color: var(--color-warning-text);
+  }
+  .badge--warning .badge-dot {
+    background: var(--color-warning);
+  }
+
+  .badge--error {
     background: var(--color-error-muted);
     color: var(--color-error-text);
   }
-  .badge--failed::before {
+  .badge--error .badge-dot {
     background: var(--color-error);
   }
 
-  .badge--deploying {
+  .badge--info {
     background: var(--color-info-muted);
     color: var(--color-info-text);
   }
-  .badge--deploying::before {
+  .badge--info .badge-dot {
     background: var(--color-info);
-    animation: pulseStatus 1.5s infinite;
+    animation: pulseStatus 1.5s ease-in-out infinite;
   }
 
-  .badge--stopped {
+  .badge--neutral {
     background: var(--color-neutral-muted);
     color: var(--color-neutral-text);
   }
-  .badge--stopped::before {
+  .badge--neutral .badge-dot {
     background: var(--color-neutral);
   }
 
-  /* 侧边栏导航 */
+  /* ============================================
+     侧边栏导航系统
+     ============================================ */
   .sidebar {
     background: var(--bg-surface);
     border-right: 0.5px solid var(--border-subtle);
     width: 240px;
-    padding: 16px 12px;
+    padding: var(--space-4) var(--space-3);
   }
 
   .nav-item {
@@ -313,19 +479,31 @@ code, pre, .font-mono {
     align-items: center;
     gap: 10px;
     padding: 7px 12px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-default);
     font-size: 14px;
+    font-weight: 500;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: background 0.1s, color 0.1s;
+    transition: background var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
   }
   .nav-item:hover {
     background: var(--bg-elevated);
     color: var(--text-primary);
   }
   .nav-item.active {
-    background: var(--bg-elevated);
+    background: var(--accent-muted);
     color: var(--text-primary);
+  }
+  .nav-item.active .nav-item-icon {
+    color: var(--accent);
+  }
+
+  .nav-item-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--text-tertiary);
   }
 
   .nav-section-title {
@@ -334,10 +512,12 @@ code, pre, .font-mono {
     text-transform: uppercase;
     letter-spacing: 0.07em;
     color: var(--text-tertiary);
-    padding: 12px 12px 4px;
+    padding: var(--space-3) var(--space-3) var(--space-1);
   }
 
-  /* 数据表格 */
+  /* ============================================
+     数据表格系统
+     ============================================ */
   .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -349,12 +529,12 @@ code, pre, .font-mono {
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--text-tertiary);
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     text-align: left;
     border-bottom: 0.5px solid var(--border-subtle);
   }
   .data-table td {
-    padding: 12px 12px;
+    padding: var(--space-3) var(--space-3);
     color: var(--text-secondary);
     border-bottom: 0.5px solid var(--border-subtle);
     vertical-align: middle;
@@ -364,12 +544,14 @@ code, pre, .font-mono {
     color: var(--text-primary);
   }
 
-  /* 日志输出面板 */
+  /* ============================================
+     日志输出面板
+     ============================================ */
   .log-panel {
     background: var(--bg-base);
     border: 0.5px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    padding: 16px;
+    border-radius: var(--radius-default);
+    padding: var(--space-4);
     overflow-y: auto;
     max-height: 400px;
     font-family: 'JetBrains Mono', monospace;
@@ -382,11 +564,13 @@ code, pre, .font-mono {
   .log-line-error { color: var(--color-error); }
   .log-line-dim { color: var(--text-tertiary); }
 
-  /* 指标卡 */
+  /* ============================================
+     指标卡
+     ============================================ */
   .metric-card {
     background: var(--bg-overlay);
-    border-radius: var(--radius-sm);
-    padding: 16px;
+    border-radius: var(--radius-default);
+    padding: var(--space-4);
   }
   .metric-label {
     font-size: 11px;
@@ -394,40 +578,54 @@ code, pre, .font-mono {
     text-transform: uppercase;
     letter-spacing: 0.07em;
     color: var(--text-tertiary);
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
   .metric-value {
     font-size: 24px;
     font-weight: 500;
     color: var(--text-primary);
     line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
 
-  /* Toast 通知 */
+  /* ============================================
+     Toast 通知
+     ============================================ */
   .toast {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
+    bottom: var(--space-6);
+    right: var(--space-6);
     min-width: 280px;
-    padding: 12px 16px;
-    border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-default);
     font-size: 13px;
     border: 0.5px solid;
-    backdrop-filter: blur(8px);
     z-index: 999;
   }
   .toast--success {
-    background: rgba(20, 21, 24, 0.95);
-    border-color: rgba(74, 222, 128, 0.3);
+    background: var(--bg-overlay);
+    border-color: rgba(74, 222, 128, 0.2);
     color: var(--color-success-text);
   }
   .toast--error {
-    background: rgba(20, 21, 24, 0.95);
-    border-color: rgba(248, 113, 113, 0.3);
+    background: var(--bg-overlay);
+    border-color: rgba(248, 113, 113, 0.2);
     color: var(--color-error-text);
   }
+  .toast--warning {
+    background: var(--bg-overlay);
+    border-color: rgba(250, 204, 21, 0.2);
+    color: var(--color-warning-text);
+  }
+  .toast--info {
+    background: var(--bg-overlay);
+    border-color: rgba(96, 165, 250, 0.2);
+    color: var(--color-info-text);
+  }
 
-  /* 复选框 */
+  /* ============================================
+     复选框
+     ============================================ */
   .checkbox {
     position: relative;
     display: inline-flex;
@@ -451,10 +649,10 @@ code, pre, .font-mono {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s ease;
+    transition: all var(--duration-fast) var(--ease-out);
   }
   .checkbox:hover .checkbox-custom {
-    border-color: rgba(168, 85, 247, 0.5);
+    border-color: rgba(168, 85, 247, 0.4);
   }
   .checkbox input:checked + .checkbox-custom {
     background: var(--accent);
@@ -467,29 +665,30 @@ code, pre, .font-mono {
   .checkbox-check {
     opacity: 0;
     transform: scale(0);
-    transition: all 0.15s ease;
-  }
-  .checkbox input:focus-visible + .checkbox-custom {
-    box-shadow: 0 0 0 3px var(--accent-muted);
+    transition: all var(--duration-fast) var(--ease-out);
+    color: white;
   }
   .checkbox input:disabled + .checkbox-custom {
     opacity: 0.4;
     cursor: not-allowed;
   }
 
-  /* 下拉菜单 */
+  /* ============================================
+     下拉菜单
+     ============================================ */
   .dropdown {
     background: var(--bg-overlay);
     border: 0.5px solid var(--border-default);
-    border-radius: var(--radius-default);
+    border-radius: var(--radius-md);
     overflow: hidden;
+    /* Railway 规范：不使用 box-shadow */
   }
   .dropdown-item {
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     font-size: 13px;
     color: var(--text-primary);
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background var(--duration-fast) var(--ease-out);
   }
   .dropdown-item:hover {
     background: var(--bg-elevated);
@@ -500,39 +699,65 @@ code, pre, .font-mono {
   .dropdown-item-danger:hover {
     background: var(--color-error-muted);
   }
+  .dropdown-divider {
+    height: 0.5px;
+    background: var(--border-subtle);
+    margin: var(--space-1) 0;
+  }
 
-  /* Modal */
+  /* ============================================
+     Modal 对话框
+     ============================================ */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 13, 15, 0.85);
+    z-index: 100;
+    /* Railway 规范：仅在 Modal 背景使用 backdrop-filter */
+    backdrop-filter: blur(8px);
+  }
+  
   .modal {
     background: var(--bg-overlay);
     border: 0.5px solid var(--border-default);
     border-radius: var(--radius-lg);
+    /* Railway 规范：Modal 可使用轻微阴影 */
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
   }
 
-  /* 分隔线 */
+  /* ============================================
+     分隔线
+     ============================================ */
   .divider {
     height: 0.5px;
     background: var(--border-subtle);
   }
+  .divider-strong {
+    height: 0.5px;
+    background: var(--border-default);
+  }
 
-  /* 空状态 */
+  /* ============================================
+     空状态
+     ============================================ */
   .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 48px 0;
+    padding: var(--space-12) 0;
     text-align: center;
   }
   .empty-state-icon {
     color: var(--text-tertiary);
     font-size: 48px;
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4);
   }
   .empty-state-title {
     font-size: 16px;
     font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
   .empty-state-description {
     font-size: 14px;
@@ -540,19 +765,21 @@ code, pre, .font-mono {
     max-width: 320px;
   }
 
-  /* 进度条 */
+  /* ============================================
+     进度条
+     ============================================ */
   .progress {
     width: 100%;
-    height: 6px;
+    height: 4px;
     background: var(--bg-overlay);
-    border-radius: 3px;
+    border-radius: 2px;
     overflow: hidden;
   }
   .progress-bar {
     height: 100%;
     background: var(--accent);
-    border-radius: 3px;
-    transition: width 0.3s ease;
+    border-radius: 2px;
+    transition: width 0.3s var(--ease-out);
   }
   .progress-bar--success {
     background: var(--color-success);
@@ -560,10 +787,45 @@ code, pre, .font-mono {
   .progress-bar--error {
     background: var(--color-error);
   }
+  .progress-bar--warning {
+    background: var(--color-warning);
+  }
+  
+  /* 磁盘进度条（稍大） */
+  .progress-disk {
+    height: 6px;
+    border-radius: 3px;
+  }
+  .progress-disk .progress-bar {
+    border-radius: 3px;
+  }
+
+  /* ============================================
+     Tooltip
+     ============================================ */
+  .tooltip {
+    position: absolute;
+    padding: var(--space-1) var(--space-2);
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+    font-size: 11px;
+    border-radius: var(--radius-sm);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--duration-fast) var(--ease-out);
+    pointer-events: none;
+    z-index: 50;
+    border: 0.5px solid var(--border-default);
+    white-space: nowrap;
+  }
+  .group:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 /* ============================================
-   动画
+   动画系统 - Railway 风格偏好快速、微妙
    ============================================ */
 @keyframes pulseStatus {
   0%, 100% { opacity: 1; }
@@ -577,7 +839,7 @@ code, pre, .font-mono {
 
 @keyframes slideUp {
   from {
-    transform: translateY(10px);
+    transform: translateY(8px);
     opacity: 0;
   }
   to {
@@ -589,7 +851,7 @@ code, pre, .font-mono {
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -597,24 +859,43 @@ code, pre, .font-mono {
   }
 }
 
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .animate-fade-in {
-  animation: fadeIn 0.15s ease-out;
+  animation: fadeIn var(--duration-normal) var(--ease-out);
 }
 
 .animate-slide-up {
-  animation: slideUp 0.2s ease-out;
+  animation: slideUp var(--duration-slow) var(--ease-out);
 }
 
 .animate-slide-down {
-  animation: slideDown 0.15s ease-out;
+  animation: slideDown var(--duration-normal) var(--ease-out);
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--duration-normal) var(--ease-out);
+}
+
+.animate-pulse-status {
+  animation: pulseStatus 1.5s ease-in-out infinite;
 }
 
 /* ============================================
-   滚动条样式
+   滚动条样式 - Railway 风格：微妙、不突兀
    ============================================ */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -623,7 +904,7 @@ code, pre, .font-mono {
 
 ::-webkit-scrollbar-thumb {
   background: var(--border-subtle);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -634,46 +915,46 @@ code, pre, .font-mono {
   background: transparent;
 }
 
-/* 自定义滚动条 */
+/* 自定义滚动条（用于代码区域等） */
 .scrollbar-custom {
   scrollbar-width: thin;
   scrollbar-color: var(--border-subtle) transparent;
 }
 
 .scrollbar-custom::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
-  background: var(--border-subtle);
-  border-radius: 5px;
-  min-height: 60px;
+  background: var(--border-default);
+  border-radius: 4px;
+  min-height: 40px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background: var(--border-default);
+  background: var(--border-strong);
 }
 
 /* ============================================
    选择样式
    ============================================ */
 ::selection {
-  background-color: rgba(168, 85, 247, 0.3);
+  background-color: rgba(168, 85, 247, 0.25);
   color: inherit;
 }
 
 /* ============================================
-   焦点样式
+   焦点样式 - Railway 规范：使用边框而非 ring
    ============================================ */
 *:focus-visible {
-  outline: 2px solid rgba(168, 85, 247, 0.5);
-  outline-offset: 2px;
+  outline: none;
+  border-color: rgba(168, 85, 247, 0.4);
 }
 
 /* ============================================
@@ -734,7 +1015,7 @@ code, pre, .font-mono {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  transition: all 0.15s ease;
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
 .icon-container-sm { width: 24px; height: 24px; }
@@ -745,32 +1026,11 @@ code, pre, .font-mono {
 .icon-primary { color: var(--text-primary); }
 .icon-secondary { color: var(--text-secondary); }
 .icon-tertiary { color: var(--text-tertiary); }
+.icon-accent { color: var(--accent); }
 .icon-success { color: var(--color-success); }
 .icon-error { color: var(--color-error); }
 .icon-warning { color: var(--color-warning); }
-
-/* ============================================
-   Tooltip 样式
-   ============================================ */
-.tooltip {
-  position: absolute;
-  padding: 4px 8px;
-  background: var(--bg-overlay);
-  color: var(--text-primary);
-  font-size: 11px;
-  border-radius: var(--radius-sm);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.15s ease;
-  pointer-events: none;
-  z-index: 50;
-  border: 0.5px solid var(--border-default);
-}
-
-.group:hover .tooltip {
-  opacity: 1;
-  visibility: visible;
-}
+.icon-info { color: var(--color-info); }
 
 /* ============================================
    状态颜色类
@@ -801,14 +1061,14 @@ code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9em;
   background: var(--bg-overlay);
-  border: 0.5px solid var(--border-default);
+  border: 0.5px solid var(--border-subtle);
   border-radius: 4px;
   padding: 1px 5px;
   color: var(--text-primary);
 }
 
 /* ============================================
-   网格背景
+   网格背景（用于装饰）
    ============================================ */
 .bg-grid {
   background-image:
@@ -816,46 +1076,6 @@ code {
     linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
   background-size: 24px 24px;
 }
-
-/* ============================================
-   向后兼容别名（逐步移除）
-   ============================================ */
-/* Railway 别名 */
-.card-railway { background: var(--bg-elevated); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); padding: 20px; }
-.card-railway:hover { border-color: var(--border-strong); }
-.input-railway { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-sm); padding: 8px 12px; }
-.badge-railway { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: var(--radius-badge); }
-.sidebar-item { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: var(--radius-sm); font-size: 14px; cursor: pointer; transition: background 0.1s, color 0.1s; }
-.sidebar-item-active { background: var(--bg-elevated); color: var(--text-primary); }
-.sidebar-item-inactive { color: var(--text-secondary); }
-.sidebar-item-inactive:hover { background: var(--bg-elevated); color: var(--text-primary); }
-.divider-railway { height: 0.5px; background: var(--border-subtle); }
-.window-railway { background: var(--bg-base); border-radius: var(--radius-lg); border: 0.5px solid var(--border-default); }
-.dropdown-railway { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); overflow: hidden; }
-.table-railway { width: 100%; border-collapse: collapse; font-size: 13px; }
-.progress-railway { width: 100%; height: 6px; background: var(--bg-overlay); border-radius: 3px; overflow: hidden; }
-.progress-railway-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s ease; }
-.terminal-railway { background: #0D0D0D; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 12px; border-radius: var(--radius-md); }
-.tooltip-railway { position: absolute; padding: 4px 8px; background: var(--bg-overlay); color: var(--text-primary); font-size: 11px; border-radius: var(--radius-sm); opacity: 0; visibility: hidden; transition: all 0.15s ease; pointer-events: none; z-index: 50; border: 0.5px solid var(--border-default); }
-.glass-railway { background: rgba(11, 13, 15, 0.85); backdrop-filter: blur(20px) saturate(180%); }
-.bg-grid-railway { background-image: linear-gradient(to right, var(--border-subtle) 1px, transparent 1px), linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px); background-size: 24px 24px; }
-
-/* macOS 别名（逐步移除） */
-.card-macos { background: var(--bg-elevated); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); padding: 20px; }
-.input-macos { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-sm); padding: 8px 12px; }
-.badge-macos { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: var(--radius-badge); }
-.divider-macos { height: 0.5px; background: var(--border-subtle); }
-.window-macos { background: var(--bg-base); border-radius: var(--radius-lg); border: 0.5px solid var(--border-default); }
-.dropdown-macos { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); overflow: hidden; }
-.table-macos { width: 100%; border-collapse: collapse; font-size: 13px; }
-.progress-macos { width: 100%; height: 6px; background: var(--bg-overlay); border-radius: 3px; overflow: hidden; }
-.progress-macos-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s ease; }
-.terminal-macos { background: #0D0D0D; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 12px; border-radius: var(--radius-md); }
-.tooltip-macos { position: absolute; padding: 4px 8px; background: var(--bg-overlay); color: var(--text-primary); font-size: 11px; border-radius: var(--radius-sm); opacity: 0; visibility: hidden; transition: all 0.15s ease; pointer-events: none; z-index: 50; border: 0.5px solid var(--border-default); }
-.glass-macos { background: rgba(11, 13, 15, 0.85); backdrop-filter: blur(20px) saturate(180%); }
-.bg-grid-macos { background-image: linear-gradient(to right, var(--border-subtle) 1px, transparent 1px), linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px); background-size: 24px 24px; }
-.checkbox-macos { position: relative; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-.checkbox-macos input { position: absolute; opacity: 0; width: 0; height: 0; cursor: pointer; }
 
 /* ============================================
    Badge 变体
@@ -866,13 +1086,7 @@ code {
 .badge-warning { background: var(--color-warning-muted); color: var(--color-warning-text); }
 .badge-danger { background: var(--color-error-muted); color: var(--color-error-text); }
 .badge-info { background: var(--color-info-muted); color: var(--color-info-text); }
-
-/* ============================================
-   状态脉冲动画
-   ============================================ */
-.status-pulse {
-  animation: pulseStatus 1.5s ease-in-out infinite;
-}
+.badge-neutral { background: var(--color-neutral-muted); color: var(--color-neutral-text); }
 
 /* ============================================
    Shimmer 动画（加载进度条）
@@ -904,7 +1118,6 @@ code {
 .bg-bg-surface { background-color: var(--bg-surface); }
 .bg-bg-elevated { background-color: var(--bg-elevated); }
 .bg-bg-overlay { background-color: var(--bg-overlay); }
-.bg-bg-hover { background-color: var(--bg-hover); }
 
 .bg-background-primary { background-color: var(--background-primary); }
 .bg-background-secondary { background-color: var(--background-secondary); }
@@ -918,23 +1131,368 @@ code {
 .text-text-disabled { color: var(--text-disabled); }
 
 /* 边框颜色 */
+.border-border-subtle { border-color: var(--border-subtle); }
+.border-border-default { border-color: var(--border-default); }
+.border-border-strong { border-color: var(--border-strong); }
 .border-border-primary { border-color: var(--border-primary); }
 .border-border-secondary { border-color: var(--border-secondary); }
 .border-border-tertiary { border-color: var(--border-tertiary); }
 
-/* macOS 风格 */
-.bg-macos-blue { background-color: var(--macos-blue); }
-.text-macos-blue { color: var(--macos-blue); }
-.bg-macos-green { background-color: var(--macos-green); }
-.text-macos-green { color: var(--macos-green); }
-.bg-macos-purple { background-color: var(--macos-purple); }
-.text-macos-purple { color: var(--macos-purple); }
-.bg-macos-red { background-color: var(--macos-red); }
-.text-macos-red { color: var(--macos-red); }
-.bg-macos-yellow { background-color: var(--macos-yellow); }
-.text-macos-yellow { color: var(--macos-yellow); }
-.bg-macos-orange { background-color: var(--macos-orange); }
-.text-macos-orange { color: var(--macos-orange); }
+/* ============================================
+   交互状态类 - 替代 JS hover 处理
+   Railway 规范：使用 CSS 类而非 inline style + onMouseEnter
+   ============================================ */
+
+/* 卡片交互状态 */
+.card-hover:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-overlay);
+}
+.card-hover-border:hover {
+  border-color: var(--border-strong);
+}
+
+/* 按钮交互状态 */
+.btn-hover-bg:hover {
+  background: var(--bg-elevated);
+}
+.btn-hover-overlay:hover {
+  background: var(--bg-overlay);
+}
+.btn-hover-accent:hover {
+  background: var(--accent-hover);
+}
+.btn-hover-danger:hover {
+  background: var(--color-error-muted);
+  color: var(--color-error-text);
+}
+
+/* 文字交互状态 */
+.text-hover-primary:hover {
+  color: var(--text-primary);
+}
+.text-hover-secondary:hover {
+  color: var(--text-secondary);
+}
+.text-hover-accent:hover {
+  color: var(--accent);
+}
+.text-hover-danger:hover {
+  color: var(--color-error);
+}
+
+/* 边框交互状态 */
+.border-hover-strong:hover {
+  border-color: var(--border-strong);
+}
+.border-hover-accent:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+}
+.border-hover-danger:hover {
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+/* 关闭按钮 */
+.close-btn {
+  padding: var(--space-1) var(--space-2);
+  color: var(--text-tertiary);
+  border-radius: var(--radius-default);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+.close-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+/* 图标按钮 */
+.icon-btn {
+  padding: var(--space-1);
+  color: var(--text-tertiary);
+  border-radius: var(--radius-default);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+.icon-btn:hover {
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+}
+.icon-btn-accent:hover {
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+.icon-btn-danger:hover {
+  color: var(--color-error);
+  background: var(--color-error-muted);
+}
+
+/* 导航项交互状态 */
+.nav-hover:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+.nav-active {
+  background: var(--accent-muted);
+  color: var(--text-primary);
+}
+.nav-active .nav-icon {
+  color: var(--accent);
+}
+
+/* 下拉项交互状态 */
+.dropdown-hover:hover {
+  background: var(--bg-elevated);
+}
+.dropdown-danger:hover {
+  background: var(--color-error-muted);
+  color: var(--color-error-text);
+}
+
+/* Modal 头部 */
+.modal-header {
+  padding: var(--space-5) var(--space-6);
+  background: var(--bg-elevated);
+  border-bottom: 0.5px solid var(--border-subtle);
+}
+.modal-footer {
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-elevated);
+  border-top: 0.5px solid var(--border-subtle);
+}
+
+/* 表格行交互状态 */
+.table-row-hover:hover {
+  background: var(--bg-elevated);
+}
+.table-row-hover:hover td {
+  color: var(--text-primary);
+}
+
+/* 搜索框 */
+.search-input {
+  padding-left: 36px;
+}
+.search-icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+}
+
+/* 状态指示器 */
+.status-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-indicator-online {
+  background: var(--color-success);
+}
+.status-indicator-offline {
+  background: var(--color-error);
+}
+.status-indicator-warning {
+  background: var(--color-warning);
+}
+.status-indicator-info {
+  background: var(--color-info);
+  animation: pulseStatus 1.5s ease-in-out infinite;
+}
+
+/* 图标容器 */
+.icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+.icon-box-sm {
+  width: 24px;
+  height: 24px;
+}
+.icon-box-md {
+  width: 32px;
+  height: 32px;
+}
+.icon-box-lg {
+  width: 40px;
+  height: 40px;
+}
+.icon-box-accent {
+  background: var(--accent-muted);
+  border: 0.5px solid var(--accent);
+}
+.icon-box-success {
+  background: var(--color-success-muted);
+}
+.icon-box-warning {
+  background: var(--color-warning-muted);
+}
+.icon-box-error {
+  background: var(--color-error-muted);
+}
+.icon-box-info {
+  background: var(--color-info-muted);
+}
+
+/* 分隔线 */
+.divider-horizontal {
+  height: 0.5px;
+  background: var(--border-subtle);
+}
+.divider-vertical {
+  width: 0.5px;
+  background: var(--border-subtle);
+}
+
+/* 用户头像 */
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+.user-avatar-sm {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+.user-avatar-lg {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+/* 状态徽标 */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+.status-badge-online {
+  background: var(--color-success-muted);
+  color: var(--color-success-text);
+}
+.status-badge-offline {
+  background: var(--color-error-muted);
+  color: var(--color-error-text);
+}
+.status-badge-warning {
+  background: var(--color-warning-muted);
+  color: var(--color-warning-text);
+}
+
+/* 加载骨架屏 */
+.skeleton {
+  background: var(--bg-overlay);
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-text {
+  height: 14px;
+  border-radius: 4px;
+}
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-default);
+}
+.skeleton-card {
+  border: 0.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+/* ============================================
+   向后兼容别名（逐步移除）
+   ============================================ */
+/* Railway 别名 */
+.card-railway { background: var(--bg-elevated); border: 0.5px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-5); }
+.card-railway:hover { border-color: var(--border-strong); }
+.input-railway { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); padding: var(--space-2) var(--space-3); }
+.badge-railway { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px; }
+.sidebar-item { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: var(--radius-default); font-size: 14px; cursor: pointer; transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out); }
+.sidebar-item-active { background: var(--accent-muted); color: var(--text-primary); }
+.sidebar-item-inactive { color: var(--text-secondary); }
+.sidebar-item-inactive:hover { background: var(--bg-elevated); color: var(--text-primary); }
+.divider-railway { height: 0.5px; background: var(--border-subtle); }
+.window-railway { background: var(--bg-base); border-radius: var(--radius-lg); border: 0.5px solid var(--border-default); }
+.dropdown-railway { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-md); overflow: hidden; }
+.table-railway { width: 100%; border-collapse: collapse; font-size: 13px; }
+.progress-railway { width: 100%; height: 4px; background: var(--bg-overlay); border-radius: 2px; overflow: hidden; }
+.progress-railway-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s var(--ease-out); }
+.terminal-railway { background: #0D0D0D; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 12px; border-radius: var(--radius-md); }
+.tooltip-railway { position: absolute; padding: var(--space-1) var(--space-2); background: var(--bg-overlay); color: var(--text-primary); font-size: 11px; border-radius: var(--radius-sm); opacity: 0; visibility: hidden; transition: all var(--duration-fast) var(--ease-out); pointer-events: none; z-index: 50; border: 0.5px solid var(--border-default); }
+.bg-grid-railway { background-image: linear-gradient(to right, var(--border-subtle) 1px, transparent 1px), linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px); background-size: 24px 24px; }
+
+/* macOS 别名（逐步移除） */
+.card-macos { background: var(--bg-elevated); border: 0.5px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-5); }
+.input-macos { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-default); padding: var(--space-2) var(--space-3); }
+.badge-macos { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px; }
+.divider-macos { height: 0.5px; background: var(--border-subtle); }
+.window-macos { background: var(--bg-base); border-radius: var(--radius-lg); border: 0.5px solid var(--border-default); }
+.dropdown-macos { background: var(--bg-overlay); border: 0.5px solid var(--border-default); border-radius: var(--radius-md); overflow: hidden; }
+.table-macos { width: 100%; border-collapse: collapse; font-size: 13px; }
+.progress-macos { width: 100%; height: 4px; background: var(--bg-overlay); border-radius: 2px; overflow: hidden; }
+.progress-macos-bar { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s var(--ease-out); }
+.terminal-macos { background: #0D0D0D; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 12px; border-radius: var(--radius-md); }
+.tooltip-macos { position: absolute; padding: var(--space-1) var(--space-2); background: var(--bg-overlay); color: var(--text-primary); font-size: 11px; border-radius: var(--radius-sm); opacity: 0; visibility: hidden; transition: all var(--duration-fast) var(--ease-out); pointer-events: none; z-index: 50; border: 0.5px solid var(--border-default); }
+.bg-grid-macos { background-image: linear-gradient(to right, var(--border-subtle) 1px, transparent 1px), linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px); background-size: 24px 24px; }
+.checkbox-macos { position: relative; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.checkbox-macos input { position: absolute; opacity: 0; width: 0; height: 0; cursor: pointer; }
+
+/* macOS 风格颜色（兼容旧代码） */
+.bg-macos-blue { background-color: var(--color-info); }
+.text-macos-blue { color: var(--color-info); }
+.bg-macos-green { background-color: var(--color-success); }
+.text-macos-green { color: var(--color-success); }
+.bg-macos-purple { background-color: var(--accent); }
+.text-macos-purple { color: var(--accent); }
+.bg-macos-red { background-color: var(--color-error); }
+.text-macos-red { color: var(--color-error); }
+.bg-macos-yellow { background-color: var(--color-warning); }
+.text-macos-yellow { color: var(--color-warning); }
+.bg-macos-orange { background-color: #FF9F0A; }
+.text-macos-orange { color: #FF9F0A; }
 
 /* 边框样式 */
-.border-macos-blue { border-color: var(--macos-blue); }
+.border-macos-blue { border-color: var(--color-info); }
+
+/* ============================================
+   密码输入框切换按钮
+   ============================================ */
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--duration-fast) var(--ease-out);
+  z-index: 1;
+}
+
+.password-toggle-btn:hover {
+  color: var(--text-secondary);
+}
+
+.password-toggle-btn:active {
+  color: var(--text-primary);
+}

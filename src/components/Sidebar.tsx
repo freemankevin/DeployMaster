@@ -15,7 +15,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  LogOut,
 } from 'lucide-react';
 
 // Page types - all available pages
@@ -61,7 +60,6 @@ interface SidebarProps {
   currentPage?: PageType;
   onPageChange?: (page: PageType) => void;
   currentUser?: User | null;
-  onLogout?: () => void;
 }
 
 // Navigation structure
@@ -108,7 +106,6 @@ const navigationGroups: NavGroup[] = [
       { id: 'settings', label: 'Settings', icon: Settings },
     ],
     subItems: [
-      { id: 'settings-users', label: 'Users', isSubItem: true, adminOnly: true },
       { id: 'settings-audit', label: 'Audit', isSubItem: true, adminOnly: true },
       { id: 'settings-about', label: 'About', isSubItem: true },
     ],
@@ -122,7 +119,6 @@ const Sidebar = ({
   currentPage = 'hosts',
   onPageChange,
   currentUser,
-  onLogout,
 }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Set<PageType>>(new Set());
@@ -165,20 +161,6 @@ const Sidebar = ({
       subItems: filteredSubItems,
     };
   }).filter(group => group.items.length > 0);
-
-  const getUserInitials = () => {
-    if (!currentUser?.username) return '?';
-    return currentUser.username.charAt(0).toUpperCase();
-  };
-
-  const getRoleLabel = () => {
-    switch (currentUser?.role) {
-      case 'admin': return 'Admin';
-      case 'operator': return 'Operator';
-      case 'viewer': return 'Viewer';
-      default: return '';
-    }
-  };
 
   const collapsedClass = isCollapsed ? 'w-12 min-w-[48px]' : 'w-52';
 
@@ -373,79 +355,6 @@ const Sidebar = ({
         ))}
       </nav>
 
-      {/* Divider */}
-      <div className="mx-3 my-3" style={{ borderTop: '0.5px solid var(--border-subtle)' }} />
-
-      {/* User Profile */}
-      <div className={`p-2 shrink-0 ${isCollapsed ? 'flex justify-center' : ''}`}>
-        {isCollapsed ? (
-          <button
-            className="w-8 h-8 rounded-full flex items-center justify-center
-                      transition-opacity duration-150"
-            style={{ background: 'var(--accent)' }}
-            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-            title={currentUser?.username || 'User'}
-          >
-            <span className="text-white text-xs font-semibold">{getUserInitials()}</span>
-          </button>
-        ) : (
-          <div 
-            className="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-150 cursor-pointer group"
-            style={{ background: 'var(--bg-overlay)' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-elevated)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'var(--bg-overlay)'}
-          >
-            <div className="relative shrink-0">
-              <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ background: 'var(--accent)' }}
-              >
-                <span className="text-white text-xs font-semibold">{getUserInitials()}</span>
-              </div>
-              <div 
-                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
-                style={{ 
-                  background: 'var(--color-success)',
-                  border: '2px solid var(--bg-overlay)',
-                }}
-              />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <p
-                className="text-[13px] font-medium truncate"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {currentUser?.username || 'User'}
-              </p>
-              <p 
-                className="text-[11px] truncate"
-                style={{ color: 'var(--text-tertiary)' }}
-              >
-                {getRoleLabel()}
-              </p>
-            </div>
-
-            <button
-              onClick={onLogout}
-              className="p-1.5 rounded-lg transition-all duration-150 opacity-0 group-hover:opacity-100"
-              style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-error)';
-                e.currentTarget.style.background = 'var(--color-error-muted)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-tertiary)';
-                e.currentTarget.style.background = 'transparent';
-              }}
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-      </div>
     </aside>
   );
 };

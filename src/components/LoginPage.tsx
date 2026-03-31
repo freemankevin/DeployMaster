@@ -97,137 +97,199 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         />
         
         {/* Overlay - Railway style dark gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0B0D0F]/80 via-[#141518]/70 to-[#1C1E21]/60" />
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to bottom right, rgba(11, 13, 15, 0.85), rgba(20, 21, 24, 0.75), rgba(28, 30, 33, 0.65))',
+          }}
+        />
         
         {/* Left Content */}
-        <div className="relative z-10 text-center text-white p-10">
-          {/* Brand Icon */}
-          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20">
-            <Box size={40} className="text-white" />
+        <div className="relative z-10 text-center p-10">
+          {/* Brand Icon - Railway style: pure color, no gradient */}
+          <div 
+            className="w-20 h-20 mx-auto mb-6 rounded-xl flex items-center justify-center"
+            style={{
+              background: 'var(--accent-muted)',
+              border: '0.5px solid var(--accent)',
+            }}
+          >
+            <Box size={40} style={{ color: 'var(--accent)' }} />
           </div>
           
           {/* Brand Title */}
-          <h1 className="text-3xl font-semibold mb-3 tracking-tight">
+          <h1 
+            className="text-3xl font-semibold mb-3 tracking-tight"
+            style={{ color: 'var(--text-primary)' }}
+          >
             Cockpit
           </h1>
           
           {/* Brand Subtitle */}
-          <p className="text-base text-white/90 mb-12 font-normal">
+          <p 
+            className="text-base mb-12 font-normal"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             Modern Server Operations Management Platform
           </p>
           
-          {/* Features */}
+          {/* Features - Railway style cards */}
           <div className="flex flex-col gap-4 items-center">
-            <div className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-xl backdrop-blur-xl border border-white/10 text-sm font-medium min-w-[200px]">
-              <Terminal size={18} className="text-[#60A5FA]" />
+            <div 
+              className="flex items-center gap-3 px-6 py-3 rounded-lg text-sm font-medium min-w-[200px]"
+              style={{
+                background: 'var(--bg-overlay)',
+                border: '0.5px solid var(--border-default)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              <Terminal size={18} style={{ color: 'var(--color-info)' }} />
               <span>SSH Terminal Management</span>
             </div>
             
-            <div className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-xl backdrop-blur-xl border border-white/10 text-sm font-medium min-w-[200px]">
-              <FolderOpen size={18} className="text-[#A855F7]" />
+            <div 
+              className="flex items-center gap-3 px-6 py-3 rounded-lg text-sm font-medium min-w-[200px]"
+              style={{
+                background: 'var(--bg-overlay)',
+                border: '0.5px solid var(--border-default)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              <FolderOpen size={18} style={{ color: 'var(--accent)' }} />
               <span>SFTP File Transfer</span>
             </div>
             
-            <div className="flex items-center gap-3 px-6 py-3 bg-white/10 rounded-xl backdrop-blur-xl border border-white/10 text-sm font-medium min-w-[200px]">
-              <TrendingUp size={18} className="text-[#4ADE80]" />
+            <div 
+              className="flex items-center gap-3 px-6 py-3 rounded-lg text-sm font-medium min-w-[200px]"
+              style={{
+                background: 'var(--bg-overlay)',
+                border: '0.5px solid var(--border-default)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              <TrendingUp size={18} style={{ color: 'var(--color-success)' }} />
               <span>System Monitoring Dashboard</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Panel - Login Area */}
-      <div className="w-[480px] min-w-[400px] flex flex-col items-center justify-center p-10 bg-[#FAFAFA] relative">
+      {/* Right Panel - Login Area - Railway dark style */}
+      <div 
+        className="w-[480px] min-w-[400px] flex flex-col items-center justify-center p-10"
+        style={{ background: 'var(--bg-surface)' }}
+      >
         <div className="w-full max-w-[360px]">
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-[#0F0F10] mb-2 tracking-tight">
+            <h2 
+              className="text-xl font-semibold mb-2 tracking-tight"
+              style={{ color: 'var(--text-primary)' }}
+            >
               Welcome Back
             </h2>
-            <p className="text-sm text-[#52525B]">
-              Please login to your account
+            <p 
+              className="text-sm"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Sign in to your account
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            {/* Error Banner */}
+            {/* Error Banner - Railway style */}
             {error && (
-              <div className="flex items-center gap-2.5 px-4 py-3.5 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] text-sm">
-                <AlertCircle size={16} className="text-[#F87171]" />
+              <div 
+                className="flex items-center gap-2.5 px-4 py-3.5 rounded-lg text-sm"
+                style={{
+                  background: 'var(--color-error-muted)',
+                  border: '0.5px solid rgba(248, 113, 113, 0.2)',
+                  color: 'var(--color-error-text)',
+                }}
+              >
+                <AlertCircle size={16} style={{ color: 'var(--color-error)' }} />
                 <span>{error}</span>
               </div>
             )}
 
-            {/* Username */}
+            {/* Username - Railway style */}
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-[#334155]">
+              <label 
+                className="text-sm font-medium text-text-secondary"
+              >
                 Username
               </label>
-              <div className="relative flex items-center">
-                <User size={16} className="absolute left-3.5 text-[#A855F7]" />
+              <div className="input-with-icon">
+                <User 
+                  size={16} 
+                  className="input-icon input-icon-accent" 
+                />
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter username"
-                  className="w-full py-3.5 pl-11 pr-4 text-sm border border-[#E2E8F0] rounded-lg bg-white text-[#1E293B] outline-none transition-all duration-150 focus:border-[#A855F7] focus:shadow-[0_0_0_3px_rgba(168,85,247,0.15)]"
+                  placeholder="Enter your username"
+                  className="input py-3.5"
                   disabled={loading}
                   autoComplete="username"
                 />
               </div>
             </div>
 
-            {/* Password */}
+            {/* Password - Railway style */}
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-[#334155]">
+              <label 
+                className="text-sm font-medium text-text-secondary"
+              >
                 Password
               </label>
-              <div className="relative flex items-center">
-                <Lock size={16} className="absolute left-3.5 text-[#A855F7]" />
+              <div className="input-with-icon">
+                <Lock 
+                  size={16} 
+                  className="input-icon input-icon-accent" 
+                />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  className="w-full py-3.5 pl-11 pr-12 text-sm border border-[#E2E8F0] rounded-lg bg-white text-[#1E293B] outline-none transition-all duration-150 focus:border-[#A855F7] focus:shadow-[0_0_0_3px_rgba(168,85,247,0.15)]"
+                  placeholder="Enter your password"
+                  className="input py-3.5"
+                  style={{ paddingRight: '44px' }}
                   disabled={loading}
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 p-1 bg-none border-none cursor-pointer flex items-center justify-center transition-colors duration-150 hover:text-[#64748B]"
+                  className="input-action"
                   tabIndex={-1}
                 >
                   {showPassword ? (
-                    <EyeOff size={16} className="text-[#94A3B8]" />
+                    <EyeOff size={16} />
                   ) : (
-                    <Eye size={16} className="text-[#94A3B8]" />
+                    <Eye size={16} />
                   )}
                 </button>
               </div>
             </div>
 
-            {/* Login Button - Railway style: solid color, no gradient */}
+            {/* Login Button - Railway style */}
             <button
               type="submit"
-              className={`flex items-center justify-center gap-2 w-full py-3.5 px-6 text-sm font-medium text-white bg-[#A855F7] border-none rounded-lg cursor-pointer transition-all duration-150 mt-2 ${
-                loading 
-                  ? 'opacity-70 cursor-not-allowed' 
-                  : 'hover:bg-[#9333EA] hover:-translate-y-0.5 active:translate-y-0'
-              }`}
+              className="flex items-center justify-center gap-2 w-full py-3.5 px-6 text-sm font-medium text-white mt-2 btn-primary"
               disabled={loading}
+              style={{ opacity: loading ? 0.7 : 1 }}
             >
               {loading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  Logging in...
+                  Signing in...
                 </>
               ) : (
                 <>
                   <LogIn size={16} />
-                  Login
+                  Sign In
                 </>
               )}
             </button>

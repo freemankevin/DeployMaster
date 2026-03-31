@@ -6,7 +6,6 @@ import AddHostModal from './components/AddHostModal';
 import TerminalModal from './components/TerminalModal';
 import SFTPModal from './components/SFTPModal';
 import LoginPage from './components/LoginPage';
-import UserManagement from './components/UserManagement';
 import PlaceholderPage from './components/PlaceholderPage';
 import { ToastContainer } from './components/Toast';
 import { useToast } from './hooks/useToast';
@@ -61,6 +60,11 @@ function App() {
     setIsLoggedIn(false);
     setCurrentUser(null);
     setCurrentPage('hosts');
+  }, []);
+
+  // Handle user update (from settings modal)
+  const handleUserUpdate = useCallback((updatedUser: User) => {
+    setCurrentUser(updatedUser);
   }, []);
 
   // Load host list
@@ -283,7 +287,6 @@ function App() {
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         currentUser={currentUser}
-        onLogout={handleLogout}
       />
 
       {/* Main Content */}
@@ -300,7 +303,11 @@ function App() {
         </div>
         
         {/* Header */}
-        <Header currentUser={currentUser} onLogout={handleLogout} />
+        <Header 
+          currentUser={currentUser} 
+          onLogout={handleLogout}
+          onUserUpdate={handleUserUpdate}
+        />
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6 relative z-10">
@@ -317,8 +324,6 @@ function App() {
               onCopyHost={handleCopyHost}
               onRefresh={loadHosts}
             />
-          ) : currentPage === 'settings-users' ? (
-            <UserManagement currentUser={currentUser} />
           ) : (
             <PlaceholderPage page={currentPage} />
           )}

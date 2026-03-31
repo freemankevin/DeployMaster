@@ -3,6 +3,19 @@ import type { User } from '../../types';
 import { styles, getRoleBadgeStyle, roleLabels } from './styles';
 import { useUserManagement } from './useUserManagement';
 import { UserFormModal, DeleteConfirmModal, ResetPasswordModal, AuditLogsModal } from './Modals';
+import {
+  Users,
+  BookText,
+  Plus,
+  Loader2,
+  Inbox,
+  ShieldCheck,
+  Wrench,
+  Eye,
+  Pencil,
+  Key,
+  Trash2,
+} from 'lucide-react';
 
 interface UserManagementProps {
   currentUser: User;
@@ -44,18 +57,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
       <div style={styles.header}>
         <div>
           <h2 style={styles.title}>
-            <i className="bi bi-people" style={styles.titleIcon} />
+            <Users className="w-6 h-6" style={styles.titleIcon} />
             User Management
           </h2>
           <p style={styles.subtitle}>Manage system users and permissions</p>
         </div>
         <div style={styles.headerActions}>
           <button onClick={() => setShowAuditLogs(true)} style={styles.auditButton}>
-            <i className="bi bi-journal-text" />
+            <BookText className="w-4 h-4" />
             Audit Logs
           </button>
           <button onClick={() => { resetForm(); setShowCreateModal(true); }} style={styles.createButton}>
-            <i className="bi bi-plus-lg" />
+            <Plus className="w-4 h-4" />
             Create User
           </button>
         </div>
@@ -65,12 +78,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
       <div style={styles.tableContainer}>
         {loading ? (
           <div style={styles.loading}>
-            <i className="bi bi-arrow-repeat" style={styles.loadingIcon} />
+            <Loader2 className="w-5 h-5 animate-spin" style={styles.loadingIcon} />
             Loading...
           </div>
         ) : users.length === 0 ? (
           <div style={styles.empty}>
-            <i className="bi bi-inbox" style={styles.emptyIcon} />
+            <Inbox className="w-12 h-12" style={styles.emptyIcon} />
             <p>No users found</p>
           </div>
         ) : (
@@ -102,7 +115,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                   </td>
                   <td style={styles.td}>
                     <span style={getRoleBadgeStyle(user.role)}>
-                      <i className={`bi ${user.role === 'admin' ? 'bi-shield-check' : user.role === 'operator' ? 'bi-wrench' : 'bi-eye'}`} />
+                      {user.role === 'admin' ? (
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                      ) : user.role === 'operator' ? (
+                        <Wrench className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
                       {roleLabels[user.role]}
                     </span>
                   </td>
@@ -119,14 +138,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                   <td style={styles.td}>
                     <div style={styles.actions}>
                       <button onClick={() => openEditModal(user)} style={styles.actionButton} title="Edit">
-                        <i className="bi bi-pencil" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => { setSelectedUser(user); setShowResetPasswordModal(true); }}
                         style={styles.actionButton}
                         title="Reset Password"
                       >
-                        <i className="bi bi-key" />
+                        <Key className="w-4 h-4" />
                       </button>
                       {user.id !== currentUser.id && (
                         <button
@@ -134,7 +153,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) => {
                           style={styles.deleteButton}
                           title="Delete"
                         >
-                          <i className="bi bi-trash" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>

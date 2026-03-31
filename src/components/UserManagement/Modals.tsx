@@ -1,6 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { User, UserRole, AuditLog, CreateUserRequest } from '../../types';
 import { styles } from './styles';
+import {
+  X,
+  Plus,
+  Check,
+  Loader2,
+  Trash2,
+  Key,
+  BookText,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
+
+// Password input with toggle visibility
+interface PasswordInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  label: string;
+}
+
+const PasswordInput: React.FC<PasswordInputProps> = ({ value, onChange, placeholder, label }) => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <div style={styles.formGroup}>
+      <label style={styles.label}>{label}</label>
+      <div style={styles.passwordWrapper}>
+        <input
+          type={showPassword ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          style={{ ...styles.input, ...styles.passwordInput }}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="password-toggle-btn"
+          title={showPassword ? '隐藏密码' : '显示密码'}
+        >
+          {showPassword ? (
+            <EyeOff className="w-4 h-4" />
+          ) : (
+            <Eye className="w-4 h-4" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // User Form Modal
 interface UserFormModalProps {
@@ -33,7 +83,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             {mode === 'create' ? 'Create User' : 'Edit User'}
           </h3>
           <button onClick={onClose} style={styles.closeButton}>
-            <i className="bi bi-x-lg" />
+            <X className="w-4 h-4" />
           </button>
         </div>
         <div style={styles.modalBody}>
@@ -49,16 +99,12 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                   style={styles.input}
                 />
               </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Password *</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => onFormChange({ ...formData, password: e.target.value })}
-                  placeholder="Enter password (at least 6 characters)"
-                  style={styles.input}
-                />
-              </div>
+              <PasswordInput
+                value={formData.password}
+                onChange={(password) => onFormChange({ ...formData, password })}
+                placeholder="Enter password (at least 6 characters)"
+                label="Password *"
+              />
             </>
           )}
           <div style={styles.formGroup}>
@@ -95,9 +141,26 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
           </div>
         </div>
         <div style={styles.modalFooter}>
-          <button onClick={onClose} style={styles.cancelButton}>Cancel</button>
+          <button onClick={onClose} style={styles.cancelButton}>
+            <X className="w-4 h-4" style={{ marginRight: '6px' }} />
+            Cancel
+          </button>
           <button onClick={onSubmit} disabled={loading} style={styles.confirmButton}>
-            {loading ? 'Processing...' : mode === 'create' ? 'Create' : 'Save'}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" style={{ marginRight: '6px' }} />
+                Processing...
+              </>
+            ) : (
+              <>
+                {mode === 'create' ? (
+                  <Plus className="w-4 h-4" style={{ marginRight: '6px' }} />
+                ) : (
+                  <Check className="w-4 h-4" style={{ marginRight: '6px' }} />
+                )}
+                {mode === 'create' ? 'Create' : 'Save'}
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -129,7 +192,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
         <div style={styles.modalHeader}>
           <h3 style={styles.modalTitle}>Confirm Delete</h3>
           <button onClick={onClose} style={styles.closeButton}>
-            <i className="bi bi-x-lg" />
+            <X className="w-4 h-4" />
           </button>
         </div>
         <div style={styles.modalBody}>
@@ -138,9 +201,22 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
           </p>
         </div>
         <div style={styles.modalFooter}>
-          <button onClick={onClose} style={styles.cancelButton}>Cancel</button>
+          <button onClick={onClose} style={styles.cancelButton}>
+            <X className="w-4 h-4" style={{ marginRight: '6px' }} />
+            Cancel
+          </button>
           <button onClick={onConfirm} disabled={loading} style={styles.deleteConfirmButton}>
-            {loading ? 'Deleting...' : 'Delete'}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" style={{ marginRight: '6px' }} />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4" style={{ marginRight: '6px' }} />
+                Delete
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -176,28 +252,37 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
         <div style={styles.modalHeader}>
           <h3 style={styles.modalTitle}>Reset Password</h3>
           <button onClick={onClose} style={styles.closeButton}>
-            <i className="bi bi-x-lg" />
+            <X className="w-4 h-4" />
           </button>
         </div>
         <div style={styles.modalBody}>
           <p style={styles.confirmText}>
             Set a new password for user <strong>{user.username}</strong>
           </p>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>New Password</label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => onPasswordChange(e.target.value)}
-              placeholder="Enter new password (at least 6 characters)"
-              style={styles.input}
-            />
-          </div>
+          <PasswordInput
+            value={newPassword}
+            onChange={onPasswordChange}
+            placeholder="Enter new password (at least 6 characters)"
+            label="New Password"
+          />
         </div>
         <div style={styles.modalFooter}>
-          <button onClick={onClose} style={styles.cancelButton}>Cancel</button>
+          <button onClick={onClose} style={styles.cancelButton}>
+            <X className="w-4 h-4" style={{ marginRight: '6px' }} />
+            Cancel
+          </button>
           <button onClick={onConfirm} disabled={loading} style={styles.confirmButton}>
-            {loading ? 'Processing...' : 'Reset Password'}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" style={{ marginRight: '6px' }} />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Key className="w-4 h-4" style={{ marginRight: '6px' }} />
+                Reset Password
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -224,11 +309,11 @@ export const AuditLogsModal: React.FC<AuditLogsModalProps> = ({
       <div style={{ ...styles.modal, maxWidth: '900px', maxHeight: '80vh' }}>
         <div style={styles.modalHeader}>
           <h3 style={styles.modalTitle}>
-            <i className="bi bi-journal-text" style={{ marginRight: '8px' }} />
+            <BookText className="w-4 h-4" style={{ marginRight: '8px' }} />
             Audit Logs
           </h3>
           <button onClick={onClose} style={styles.closeButton}>
-            <i className="bi bi-x-lg" />
+            <X className="w-4 h-4" />
           </button>
         </div>
         <div style={{ ...styles.modalBody, padding: 0, maxHeight: '60vh', overflow: 'auto' }}>

@@ -194,6 +194,13 @@ export interface UpdatePasswordRequest {
   new_password: string;
 }
 
+// Update profile request
+export interface UpdateProfileRequest {
+  username?: string;
+  email?: string;
+  phone?: string;
+}
+
 // Reset password request
 export interface ResetPasswordRequest {
   new_password: string;

@@ -157,19 +157,10 @@ export const Dialog = ({
               border: '0.5px solid var(--border-default)',
             }}
           >
-            {/* Close button */}
+            {/* Close button - Railway style */}
             <button
               onClick={handleClose}
-              className="absolute top-3 right-3 p-1.5 rounded-lg transition-all duration-150"
-              style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--text-primary)';
-                e.currentTarget.style.background = 'var(--bg-elevated)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-tertiary)';
-                e.currentTarget.style.background = 'transparent';
-              }}
+              className="absolute top-3 right-3 close-btn"
             >
               <X className="w-4 h-4" />
             </button>
@@ -214,38 +205,15 @@ export const Dialog = ({
               <div className="flex items-center justify-end gap-2 mt-6">
                 <button
                   onClick={handleClose}
-                  className="px-4 py-2 text-[13px] font-medium rounded-lg transition-all duration-150"
-                  style={{ 
-                    color: 'var(--text-secondary)',
-                    background: 'transparent',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--text-primary)';
-                    e.currentTarget.style.background = 'var(--bg-elevated)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--text-secondary)';
-                    e.currentTarget.style.background = 'transparent';
-                  }}
+                  className="px-4 py-2 text-[13px] font-medium rounded-lg btn-ghost"
                 >
                   {cancelText}
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className="px-4 py-2 text-[13px] font-medium text-white rounded-lg transition-all duration-150"
-                  style={{ 
-                    background: isDanger ? 'var(--color-error)' : 'var(--accent)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = isDanger 
-                      ? 'rgba(248, 113, 113, 0.9)' 
-                      : 'var(--accent-hover)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = isDanger 
-                      ? 'var(--color-error)' 
-                      : 'var(--accent)';
-                  }}
+                  className={`px-4 py-2 text-[13px] font-medium text-white rounded-lg transition-all duration-150 ${
+                    isDanger ? 'btn-danger-primary' : 'btn-primary'
+                  }`}
                 >
                   {confirmText || (isDelete ? 'Delete' : 'Confirm')}
                 </button>
