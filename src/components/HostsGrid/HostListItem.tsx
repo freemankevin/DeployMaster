@@ -18,13 +18,11 @@ import OSIcon, { getOSLabel } from '../OSIcon';
 import StatusBadge from './StatusBadge';
 import DiskProgressBar from './DiskProgressBar';
 import ActionMenu from './ActionMenu';
-import Checkbox from '../Checkbox';
 import { formatMemory, getSystemDisk, getDiskTextColor, bytesToGB } from './types';
 import type { HostListItemProps } from './types';
 
 // Default column widths fallback - Railway 风格优化
 const defaultWidths = {
-  checkbox: 40,
   id: 140,
   hostName: 180,
   status: 100,
@@ -44,7 +42,6 @@ export const HostListItem = ({
   isMenuOpen,
   isRefreshing,
   copiedField,
-  isSelected,
   columnWidths,
   onToggleExpand,
   onToggleMenu,
@@ -57,7 +54,7 @@ export const HostListItem = ({
   onCopyHost,
   onOpenTerminal,
   onOpenSFTP,
-  onSelect
+  onExport,
 }: HostListItemProps) => {
   const widths = columnWidths || defaultWidths;
   const systemDisk = getSystemDisk(host.disks);
@@ -74,9 +71,6 @@ export const HostListItem = ({
         onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-overlay)'}
         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
       >
-        <div className="flex items-center justify-center shrink-0" style={{ width: widths.checkbox, padding: '12px 8px 12px 12px' }}>
-          <Checkbox checked={isSelected} onChange={onSelect} />
-        </div>
         {/* ID - Hidden */}
         <div className="flex items-center shrink-0 overflow-hidden hidden" style={{ width: widths.id, padding: '12px' }}>
           <span
@@ -86,8 +80,35 @@ export const HostListItem = ({
             {host.host_id}
           </span>
         </div>
-        {/* Host Name - 显示 */}
-        <div className="flex items-center shrink-0 overflow-hidden" style={{ width: widths.hostName, padding: '12px' }}>
+        {/* IP - 左侧显示 */}
+        <div className="flex items-center shrink-0 overflow-hidden" style={{ width: widths.ip, padding: '12px' }}>
+          <div className="flex items-center gap-1.5 group/copy">
+            <span
+              className="text-xs"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              {host.address}
+            </span>
+            <button
+              onClick={() => onCopy(host.address, `host-${host.id}-ip`)}
+              className="p-1 rounded transition-all shrink-0 relative opacity-0 group-hover/copy:opacity-100 active:scale-90 flex items-center justify-center"
+              title="Copy"
+            >
+              {copiedField === `host-${host.id}-ip` ? (
+                <Check className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
+              ) : (
+                <Copy
+                  className="w-3 h-3"
+                  style={{ color: 'var(--text-tertiary)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                />
+              )}
+            </button>
+          </div>
+        </div>
+        {/* Host Name - Hidden */}
+        <div className="flex items-center shrink-0 overflow-hidden hidden" style={{ width: widths.hostName, padding: '12px' }}>
           <div className="flex items-center gap-1.5 group/copy min-w-0">
             <span
               className="text-xs truncate"
@@ -113,8 +134,8 @@ export const HostListItem = ({
             </button>
           </div>
         </div>
-        {/* Status - 显示 */}
-        <div className="flex items-center shrink-0 overflow-hidden" style={{ width: widths.status, padding: '12px' }}>
+        {/* Status - Hidden */}
+        <div className="flex items-center shrink-0 overflow-hidden hidden" style={{ width: widths.status, padding: '12px' }}>
           <StatusBadge status={host.status} />
         </div>
         <div className="flex items-center shrink-0 overflow-hidden" style={{ width: widths.specs, padding: '12px' }}>
@@ -135,7 +156,7 @@ export const HostListItem = ({
           </span>
         </div>
         <div className="flex items-center shrink-0 overflow-hidden" style={{ width: widths.arch, padding: '12px' }}>
-          <span 
+          <span
             className="text-xs font-mono"
             style={{ color: 'var(--text-primary)' }}
           >
@@ -174,32 +195,6 @@ export const HostListItem = ({
         </div>
         <div className="flex items-center shrink-0 overflow-hidden" style={{ width: widths.os, padding: '12px' }}>
           <OSIcon osKey={host.os_key} systemType={host.system_type} size="sm" title={osTooltip} />
-        </div>
-        <div className="flex items-center shrink-0 overflow-hidden" style={{ width: widths.ip, padding: '12px' }}>
-          <div className="flex items-center gap-1.5 group/copy">
-            <span 
-              className="text-xs"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {host.address}
-            </span>
-            <button
-              onClick={() => onCopy(host.address, `host-${host.id}-ip`)}
-              className="p-1 rounded transition-all shrink-0 relative opacity-0 group-hover/copy:opacity-100 active:scale-90 flex items-center justify-center"
-              title="Copy"
-            >
-              {copiedField === `host-${host.id}-ip` ? (
-                <Check className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
-              ) : (
-                <Copy 
-                  className="w-3 h-3"
-                  style={{ color: 'var(--text-tertiary)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
-                />
-              )}
-            </button>
-          </div>
         </div>
         <div className="flex items-center shrink-0 overflow-hidden" style={{ width: widths.disk, padding: '12px' }}>
           {systemDisk ? (
@@ -317,6 +312,7 @@ export const HostListItem = ({
               onTestConnection={onTestConnection}
               onRefresh={onRefresh}
               onCopyHost={onCopyHost}
+              onExport={onExport}
             />
           </div>
         </div>

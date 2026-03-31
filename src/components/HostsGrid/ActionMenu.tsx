@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Pencil, Copy, Plug, Trash2 } from 'lucide-react';
+import { Pencil, Copy, Plug, Trash2, Download } from 'lucide-react';
 import type { ActionMenuProps } from './types';
 
 export const ActionMenu = ({
@@ -12,7 +12,8 @@ export const ActionMenu = ({
   onDelete,
   onTestConnection,
   onRefresh,
-  onCopyHost
+  onCopyHost,
+  onExport
 }: ActionMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -124,6 +125,14 @@ export const ActionMenu = ({
       >
         <Plug className="w-3 h-3 text-macos-purple" />
         Test
+      </button>
+      <button
+        onClick={() => handleAction(onExport)}
+        className="w-full px-3 py-1.5 text-left text-xs text-white
+                 hover:bg-macos-blue/20 flex items-center gap-2 transition-colors"
+      >
+        <Download className="w-3 h-3 text-macos-purple" />
+        Export
       </button>
       <div className="h-px bg-border-secondary my-1" />
       <button

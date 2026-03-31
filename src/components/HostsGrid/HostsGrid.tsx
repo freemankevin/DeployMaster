@@ -1,10 +1,6 @@
 import type { SSHHost } from '@/types';
-import { Plus, Search, RotateCw, Download } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import HostListItem from './HostListItem';
-import Checkbox from '../Checkbox';
-import MoreActionsMenu from './MoreActionsMenu';
-import BatchConfirmDialog from './BatchConfirmDialog';
-import Pagination from './Pagination';
 import FilterDropdown from './FilterDropdown';
 import { useHostsGrid } from './useHostsGrid';
 import { useColumnResize } from '@/hooks/useColumnResize';
@@ -12,7 +8,6 @@ import type { HostsGridProps, ColumnWidths } from './types';
 
 // Default column widths - Railway 风格优化
 const defaultColumnWidths: ColumnWidths = {
-  checkbox: 40,
   id: 140,
   hostName: 180,
   status: 100,
@@ -27,7 +22,7 @@ const defaultColumnWidths: ColumnWidths = {
 };
 
 // Hidden columns (保留用于导出，UI 中隐藏)
-const hiddenColumns = ['id', 'swap', 'kernel'];
+const hiddenColumns = ['id', 'hostName', 'status', 'swap', 'kernel'];
 
 const HostsGrid = ({
   hosts,
@@ -48,11 +43,6 @@ const HostsGrid = ({
   });
 
   const {
-    currentPage,
-    pageSize,
-    totalPages,
-    handlePageChange,
-    handlePageSizeChange,
     statusFilter,
     osFilter,
     archFilter,
@@ -64,13 +54,6 @@ const HostsGrid = ({
     setArchFilter,
     searchQuery,
     setSearchQuery,
-    selectedHosts,
-    selectedHostObjects,
-    handleSelectHost,
-    handleSelectAll,
-    isAllSelected,
-    isRefreshing,
-    handleRefresh,
     activeMenu,
     setActiveMenu,
     expandedHost,
@@ -80,19 +63,7 @@ const HostsGrid = ({
     handleClickOutside,
     copiedField,
     copyToClipboard,
-    isMoreActionsOpen,
-    setIsMoreActionsOpen,
-    batchDialog,
-    handleBatchDelete,
-    handleBatchShutdown,
-    handleBatchRestart,
-    executeBatchDelete,
-    executeBatchShutdown,
-    executeBatchRestart,
-    closeBatchDialog,
-    getBatchDialogConfig,
     filteredHosts,
-    paginatedHosts,
     handleExport,
   } = useHostsGrid({ hosts, onRefresh });
 
@@ -102,8 +73,6 @@ const HostsGrid = ({
     }
     setActiveMenu(null);
   };
-
-  const dialogConfig = getBatchDialogConfig();
 
   if (loading) {
     return (
@@ -127,7 +96,30 @@ const HostsGrid = ({
     <div className="space-y-3">
       {/* Operation bar - macOS Dark Mode style */}
       <div className="flex items-center gap-3">
-        {/* Left side: operation button group */}
+        {/* Left side: Search box */}
+        <div className="flex items-center gap-2">
+          {/* Search box */}
+          <div className="relative">
+            <Search className="w-[12px] h-[12px] absolute left-2.5 top-1/2 -translate-y-1/2 text-text-tertiary" />
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-[280px] lg:w-[360px] pl-7 pr-2 py-2 bg-background-tertiary/80 border border-border-primary
+                       rounded-md text-xs text-text-primary placeholder-text-tertiary h-[34px]
+                       transition-all duration-200 ease-macos
+                       shadow-macos-input
+                       focus:outline-none focus:border-macos-blue focus:shadow-macos-input-focus
+                       hover:border-border-tertiary"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          </div>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1"></div>
+
+        {/* Right side: Add button */}
         <div className="flex items-center gap-2">
           {/* Add host button */}
           <button
@@ -140,73 +132,8 @@ const HostsGrid = ({
                      active:shadow-macos-button-active active:scale-[0.97]"
           >
             <Plus className="w-[11px] h-[11px]" />
-            <span>Add Host</span>
+            <span>NEW</span>
           </button>
-
-          {/* More actions dropdown */}
-          <MoreActionsMenu
-            isOpen={isMoreActionsOpen}
-            selectedCount={selectedHosts.size}
-            onToggle={() => setIsMoreActionsOpen(!isMoreActionsOpen)}
-            onClose={() => setIsMoreActionsOpen(false)}
-            onShutdown={handleBatchShutdown}
-            onRestart={handleBatchRestart}
-            onDelete={handleBatchDelete}
-          />
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1"></div>
-
-        {/* Right side: Search + Tools */}
-        <div className="flex items-center gap-2">
-          {/* Search box */}
-          <div className="relative">
-            <Search className="w-[12px] h-[12px] absolute left-2.5 top-1/2 -translate-y-1/2 text-text-tertiary" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-[140px] lg:w-[180px] pl-7 pr-2 py-2 bg-background-tertiary/80 border border-border-primary
-                       rounded-md text-xs text-text-primary placeholder-text-tertiary h-[34px]
-                       transition-all duration-200 ease-macos
-                       shadow-macos-input
-                       focus:outline-none focus:border-macos-blue focus:shadow-macos-input-focus
-                       hover:border-border-tertiary"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          </div>
-
-          {/* Tool group */}
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              title="Refresh"
-              className="flex items-center justify-center w-[34px] h-[34px]
-                       bg-background-tertiary/80 border border-border-primary rounded-md
-                       hover:border-border-tertiary hover:bg-background-hover
-                       text-text-secondary transition-all duration-200 ease-macos
-                       shadow-macos-button
-                       active:shadow-macos-button-active active:scale-[0.97]
-                       disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
-            >
-              <RotateCw className={`w-[12px] h-[12px] text-macos-green ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
-
-            <button
-              onClick={handleExport}
-              title="Export"
-              className="flex items-center justify-center w-[34px] h-[34px]
-                       bg-background-tertiary/80 border border-border-primary rounded-md
-                       hover:border-border-tertiary hover:bg-background-hover
-                       text-text-secondary transition-all duration-200 ease-macos
-                       shadow-macos-button
-                       active:shadow-macos-button-active active:scale-[0.97]"
-            >
-              <Download className="w-[12px] h-[12px] text-macos-purple" />
-            </button>
-          </div>
         </div>
       </div>
 
@@ -215,13 +142,6 @@ const HostsGrid = ({
         <div className="overflow-x-auto">
           {/* Table header */}
           <div className="flex bg-background-tertiary border-b border-border-primary text-xs" style={{ minWidth: Object.values(colWidths).reduce((a, b) => a + b, 0) }}>
-          {/* Checkbox */}
-          <div className="relative flex items-center justify-center shrink-0" style={{ width: colWidths.checkbox }}>
-            <div className="flex-1 pl-3 pr-2 py-2.5 flex items-center justify-center">
-              <Checkbox checked={isAllSelected} onChange={handleSelectAll} />
-            </div>
-            <div {...getResizeHandleProps('checkbox')}><div {...getResizeIndicatorProps('checkbox')} /></div>
-          </div>
           {/* ID - Hidden */}
           <div className="relative flex items-center shrink-0 hidden" style={{ width: colWidths.id }}>
             <div className="flex-1 px-2 py-2.5 flex items-center">
@@ -229,15 +149,22 @@ const HostsGrid = ({
             </div>
             <div {...getResizeHandleProps('id')}><div {...getResizeIndicatorProps('id')} /></div>
           </div>
-          {/* Host Name - 显示 */}
-          <div className="relative flex items-center shrink-0" style={{ width: colWidths.hostName }}>
+          {/* IP - 左侧显示 */}
+          <div className="relative flex items-center shrink-0" style={{ width: colWidths.ip }}>
+            <div className="flex-1 px-2 py-2.5 flex items-center">
+              <span className="font-medium text-text-tertiary uppercase tracking-wide">IP</span>
+            </div>
+            <div {...getResizeHandleProps('ip')}><div {...getResizeIndicatorProps('ip')} /></div>
+          </div>
+          {/* Host Name - Hidden */}
+          <div className="relative flex items-center shrink-0 hidden" style={{ width: colWidths.hostName }}>
             <div className="flex-1 px-2 py-2.5 flex items-center">
               <span className="font-medium text-text-tertiary uppercase tracking-wide">Host Name</span>
             </div>
             <div {...getResizeHandleProps('hostName')}><div {...getResizeIndicatorProps('hostName')} /></div>
           </div>
-          {/* Status - 显示 */}
-          <div className="relative flex items-center shrink-0" style={{ width: colWidths.status }}>
+          {/* Status - Hidden */}
+          <div className="relative flex items-center shrink-0 hidden" style={{ width: colWidths.status }}>
             <div className="flex-1 px-2 py-2.5 flex items-center">
               <FilterDropdown column="Status" options={statusOptions} selectedValues={statusFilter} onChange={setStatusFilter} />
             </div>
@@ -278,13 +205,6 @@ const HostsGrid = ({
             </div>
             <div {...getResizeHandleProps('os')}><div {...getResizeIndicatorProps('os')} /></div>
           </div>
-          {/* IPv4 Address */}
-          <div className="relative flex items-center shrink-0" style={{ width: colWidths.ip }}>
-            <div className="flex-1 px-2 py-2.5 flex items-center">
-              <span className="font-medium text-text-tertiary uppercase tracking-wide">IP</span>
-            </div>
-            <div {...getResizeHandleProps('ip')}><div {...getResizeIndicatorProps('ip')} /></div>
-          </div>
           {/* Disk */}
           <div className="relative flex items-center shrink-0" style={{ width: colWidths.disk }}>
             <div className="flex-1 px-2 py-2.5 flex items-center">
@@ -302,7 +222,7 @@ const HostsGrid = ({
 
         {/* Host list */}
         <div className="divide-y divide-border-secondary">
-          {paginatedHosts.map((host) => (
+          {filteredHosts.map((host) => (
             <HostListItem
               key={host.id}
               host={host}
@@ -310,7 +230,6 @@ const HostsGrid = ({
               isMenuOpen={activeMenu === host.id}
               isRefreshing={refreshingHostId === host.id}
               copiedField={copiedField}
-              isSelected={selectedHosts.has(host.id)}
               columnWidths={colWidths}
               onToggleExpand={() => setExpandedHost(expandedHost === host.id ? null : host.id)}
               onToggleMenu={() => setActiveMenu(activeMenu === host.id ? null : host.id)}
@@ -323,42 +242,12 @@ const HostsGrid = ({
               onCopyHost={() => handleCopyHost(host)}
               onOpenTerminal={() => onOpenTerminal(host)}
               onOpenSFTP={() => onOpenSFTP?.(host)}
-              onSelect={(checked) => handleSelectHost(host.id, checked)}
+              onExport={() => handleExport(host)}
             />
           ))}
         </div>
-
-        {/* Pagination bar */}
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filteredHosts.length}
-          pageSize={pageSize}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-        />
         </div>
       </div>
-
-      {/* Batch Operation Confirmation Dialog */}
-      {dialogConfig && (
-        <BatchConfirmDialog
-          isOpen={batchDialog.isOpen}
-          title={dialogConfig.title}
-          message={dialogConfig.message}
-          hosts={selectedHostObjects}
-          confirmText={dialogConfig.confirmText}
-          confirmButtonClass={dialogConfig.confirmButtonClass}
-          onConfirm={
-            batchDialog.type === 'delete'
-              ? executeBatchDelete
-              : batchDialog.type === 'shutdown'
-              ? executeBatchShutdown
-              : executeBatchRestart
-          }
-          onCancel={closeBatchDialog}
-        />
-      )}
     </div>
   );
 };

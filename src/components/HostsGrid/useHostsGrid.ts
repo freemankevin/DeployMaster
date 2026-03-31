@@ -263,27 +263,27 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
     }
   }, [batchDialog.type, selectedHosts.size]);
   
-  // Export
-  const handleExport = useCallback(() => {
-    // Helper function to format memory (same as frontend display)
-    const formatMemory = (memoryGb?: number): string => {
-      if (!memoryGb) return '';
-      if (memoryGb >= 1024) {
-        return `${(memoryGb / 1024).toFixed(1)}T`;
-      }
-      return `${memoryGb}G`;
-    };
+  // Helper function to format memory (same as frontend display)
+  const formatMemory = useCallback((memoryGb?: number): string => {
+    if (!memoryGb) return '';
+    if (memoryGb >= 1024) {
+      return `${(memoryGb / 1024).toFixed(1)}T`;
+    }
+    return `${memoryGb}G`;
+  }, []);
 
-    // Helper function to format disk info: physical_disk-mount_point-total(usage%)
-    const formatDiskInfo = (disks?: { device: string; physical_disk?: string; mount_point: string; total: number; usage: number }[]): string => {
-      if (!disks || disks.length === 0) return '';
-      return disks.map(d => {
-        const physicalDisk = d.physical_disk || d.device || '';
-        const totalGB = (d.total / (1024 * 1024 * 1024)).toFixed(0);
-        return `${physicalDisk}-${d.mount_point}-${totalGB}G(${d.usage.toFixed(0)}%)`;
-      }).join('; ');
-    };
+  // Helper function to format disk info: physical_disk-mount_point-total(usage%)
+  const formatDiskInfo = useCallback((disks?: { device: string; physical_disk?: string; mount_point: string; total: number; usage: number }[]): string => {
+    if (!disks || disks.length === 0) return '';
+    return disks.map(d => {
+      const physicalDisk = d.physical_disk || d.device || '';
+      const totalGB = (d.total / (1024 * 1024 * 1024)).toFixed(0);
+      return `${physicalDisk}-${d.mount_point}-${totalGB}G(${d.usage.toFixed(0)}%)`;
+    }).join('; ');
+  }, []);
 
+  // Export single host
+  const handleExportSingle = useCallback((host: SSHHost) => {
     const headers = [
       'Host ID',
       'Hostname', 
@@ -303,7 +303,7 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
       'Description'
     ];
     
-    const rows = filteredHosts.map(host => [
+    const rows = [[
       host.host_id || '',
       host.name || '',
       host.address || '',
@@ -320,7 +320,7 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
       formatMemory(host.swap_gb) || '0',
       formatDiskInfo(host.disks),
       host.description || ''
-    ]);
+    ]];
     
     const csvContent = [
       headers.join(','),
@@ -330,9 +330,10 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Hosts_Export_${new Date().toISOString().split('T')[0]}.csv`;
+    const hostName = host.name || host.address || 'host';
+    link.download = `${hostName}_Export_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-  }, [filteredHosts]);
+  }, [formatMemory, formatDiskInfo]);
   
   return {
     // Pagination
@@ -402,6 +403,6 @@ export function useHostsGrid({ hosts, onRefresh }: UseHostsGridProps): UseHostsG
     paginatedHosts,
     
     // Export
-    handleExport,
+    handleExport: handleExportSingle,
   };
 }

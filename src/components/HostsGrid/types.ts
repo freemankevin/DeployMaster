@@ -18,7 +18,6 @@ export interface HostsGridProps {
 
 export interface ColumnWidths {
   [key: string]: number;
-  checkbox: number;
   id: number;
   hostName: number;
   status: number;
@@ -38,7 +37,6 @@ export interface HostListItemProps {
   isMenuOpen: boolean;
   isRefreshing: boolean;
   copiedField: string | null;
-  isSelected: boolean;
   columnWidths?: ColumnWidths;
   onToggleExpand: () => void;
   onToggleMenu: () => void;
@@ -51,7 +49,7 @@ export interface HostListItemProps {
   onCopyHost: () => void;
   onOpenTerminal: () => void;
   onOpenSFTP: () => void;
-  onSelect: (checked: boolean) => void;
+  onExport: () => void;
 }
 
 export interface HostGridCardProps {
@@ -70,6 +68,7 @@ export interface ActionMenuProps {
   onTestConnection: () => void;
   onRefresh: () => void;
   onCopyHost: () => void;
+  onExport: () => void;
 }
 
 export interface DiskProgressBarProps {
@@ -210,5 +209,5 @@ export interface UseHostsGridReturn {
   paginatedHosts: SSHHost[];
   
   // Export
-  handleExport: () => void;
+  handleExport: (host: SSHHost) => void;
 }
