@@ -216,6 +216,15 @@ const Header = ({ currentUser, onLogout, onUserUpdate }: HeaderProps) => {
             )}
           </button>
 
+          {/* Divider between notification and avatar */}
+          <div
+            className="w-px self-center"
+            style={{
+              height: '20px',
+              background: 'rgba(255, 255, 255, 0.15)',
+            }}
+          />
+
           {/* Notifications dropdown menu */}
           {showNotifications && createPortal(
             <div

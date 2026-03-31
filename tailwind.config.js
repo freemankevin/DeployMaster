@@ -133,6 +133,10 @@ export default {
           red: '#F87171',
           yellow: '#FACC15',
           orange: '#FF9F0A',
+          teal: '#2DD4BF',     // IPv4 Address 图标
+          pink: '#F472B6',     // Password 图标
+          indigo: '#818CF8',   // Copy mode hint 图标
+          gray: '#6B7280',     // macos-gray-2 hover
         },
       },
       // ============================================

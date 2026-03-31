@@ -138,7 +138,7 @@ const HostsGrid = ({
             className="flex items-center gap-2 px-4 py-2 text-white text-sm font-medium h-[36px] btn-primary"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Host</span>
+            <span>NEW</span>
           </button>
         </div>
       </div>

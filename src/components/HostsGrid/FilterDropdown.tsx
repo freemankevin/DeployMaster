@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Filter } from 'lucide-react';
 import Checkbox from '../Checkbox';
 
 // Filter dropdown component - Dark Mode
@@ -47,7 +48,7 @@ const FilterDropdown = ({ column, options, selectedValues, onChange }: FilterDro
         }`}
       >
         <span className="font-bold text-text-secondary">{column}</span>
-        <i className={`fa-solid fa-filter w-3 h-3 ${hasFilter ? 'text-macos-blue' : 'text-text-tertiary'}`}></i>
+        <Filter className={`w-3 h-3 ${hasFilter ? 'text-macos-blue' : 'text-text-tertiary'}`} />
       </button>
 
       {isOpen && (

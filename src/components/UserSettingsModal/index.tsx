@@ -3,6 +3,26 @@ import { createPortal } from 'react-dom';
 import type { User } from '../../types';
 import { authApi } from '../../services/authApi';
 import { useToast } from '../../hooks/useToast';
+import {
+  UserCog,
+  X,
+  User as UserIcon,
+  Key,
+  Loader2,
+  Camera,
+  UserCircle,
+  Mail,
+  Phone,
+  Check,
+  Lock,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  AlertCircle,
+  ShieldCheck,
+  Calendar,
+  Wrench,
+} from 'lucide-react';
 
 interface NotificationData {
   type: 'success' | 'error' | 'info';
@@ -268,10 +288,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
     viewer: 'Viewer',
   };
 
-  const roleIcons: Record<string, string> = {
-    admin: 'bi-shield-check',
-    operator: 'bi-wrench',
-    viewer: 'bi-eye',
+  const roleIcons: Record<string, React.ElementType> = {
+    admin: ShieldCheck,
+    operator: Wrench,
+    viewer: Eye,
   };
 
   return createPortal(
@@ -315,10 +335,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             style={{ borderBottom: '0.5px solid var(--border-default)' }}
           >
             <h2
-              className="text-base font-semibold"
+              className="text-base font-semibold flex items-center"
               style={{ color: 'var(--text-primary)' }}
             >
-              <i className="bi bi-person-gear mr-2" style={{ color: 'var(--accent)' }} />
+              <UserCog className="w-4 h-4 mr-2" style={{ color: 'var(--accent)' }} />
               User Settings
             </h2>
             <button
@@ -337,7 +357,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 e.currentTarget.style.color = 'var(--text-secondary)';
               }}
             >
-              <i className="bi bi-x-lg" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
@@ -348,13 +368,13 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           >
             <button
               onClick={() => setActiveTab('profile')}
-              className="px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors relative"
+              className="px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors relative flex items-center"
               style={{
                 color: activeTab === 'profile' ? 'var(--accent)' : 'var(--text-secondary)',
                 background: activeTab === 'profile' ? 'var(--accent-muted)' : 'transparent',
               }}
             >
-              <i className="bi bi-person mr-1.5" />
+              <UserIcon className="w-4 h-4 mr-1.5" />
               Profile
               {activeTab === 'profile' && (
                 <div
@@ -365,13 +385,13 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('password')}
-              className="px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors relative"
+              className="px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors relative flex items-center"
               style={{
                 color: activeTab === 'password' ? 'var(--accent)' : 'var(--text-secondary)',
                 background: activeTab === 'password' ? 'var(--accent-muted)' : 'transparent',
               }}
             >
-              <i className="bi bi-key mr-1.5" />
+              <Key className="w-4 h-4 mr-1.5" />
               Password
               {activeTab === 'password' && (
                 <div
@@ -418,10 +438,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                       }}
                     >
                       {loading ? (
-                        <i className="bi bi-arrow-repeat animate-spin text-white text-lg" />
+                        <Loader2 className="w-5 h-5 text-white animate-spin" />
                       ) : (
                         <>
-                          <i className="bi bi-camera text-white text-lg" />
+                          <Camera className="w-5 h-5 text-white" />
                           <span className="text-white text-xs mt-1">Upload</span>
                         </>
                       )}
@@ -459,10 +479,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 {/* Username field */}
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
+                    className="block text-sm font-medium mb-2 flex items-center"
                     style={{ color: 'var(--text-primary)' }}
                   >
-                    <i className="bi bi-person-badge mr-1.5" style={{ color: 'var(--accent)' }} />
+                    <UserCircle className="w-4 h-4 mr-1.5" style={{ color: 'var(--accent)' }} />
                     Username
                   </label>
                   <input
@@ -484,10 +504,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 {/* Email field */}
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
+                    className="block text-sm font-medium mb-2 flex items-center"
                     style={{ color: 'var(--text-primary)' }}
                   >
-                    <i className="bi bi-envelope mr-1.5" style={{ color: 'var(--accent)' }} />
+                    <Mail className="w-4 h-4 mr-1.5" style={{ color: 'var(--accent)' }} />
                     Email Address
                   </label>
                   <input
@@ -507,10 +527,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 {/* Phone field */}
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
+                    className="block text-sm font-medium mb-2 flex items-center"
                     style={{ color: 'var(--text-primary)' }}
                   >
-                    <i className="bi bi-phone mr-1.5" style={{ color: 'var(--accent)' }} />
+                    <Phone className="w-4 h-4 mr-1.5" style={{ color: 'var(--accent)' }} />
                     Phone Number
                   </label>
                   <input
@@ -531,7 +551,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 <button
                   onClick={handleProfileUpdate}
                   disabled={loading}
-                  className="w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors"
+                  className="w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center"
                   style={{
                     background: 'var(--accent)',
                     color: 'white',
@@ -539,9 +559,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                   }}
                 >
                   {loading ? (
-                    <i className="bi bi-arrow-repeat animate-spin mr-2" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <i className="bi bi-check-lg mr-2" />
+                    <Check className="w-4 h-4 mr-2" />
                   )}
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -551,10 +571,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 {/* Current password */}
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
+                    className="block text-sm font-medium mb-2 flex items-center"
                     style={{ color: 'var(--text-primary)' }}
                   >
-                    <i className="bi bi-lock mr-1.5" style={{ color: 'var(--accent)' }} />
+                    <Lock className="w-4 h-4 mr-1.5" style={{ color: 'var(--accent)' }} />
                     Current Password
                   </label>
                   <div className="relative">
@@ -578,7 +598,11 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                       onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
                       onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
                     >
-                      <i className={`bi ${showOldPassword ? 'bi-eye-slash' : 'bi-eye'} text-base`} />
+                      {showOldPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -586,10 +610,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 {/* New password */}
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
+                    className="block text-sm font-medium mb-2 flex items-center"
                     style={{ color: 'var(--text-primary)' }}
                   >
-                    <i className="bi bi-key mr-1.5" style={{ color: 'var(--accent)' }} />
+                    <Key className="w-4 h-4 mr-1.5" style={{ color: 'var(--accent)' }} />
                     New Password
                   </label>
                   <div className="relative">
@@ -614,7 +638,11 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                       onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
                       onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
                     >
-                      <i className={`bi ${showNewPassword ? 'bi-eye-slash' : 'bi-eye'} text-base`} />
+                      {showNewPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -622,10 +650,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 {/* Confirm password */}
                 <div>
                   <label
-                    className="block text-sm font-medium mb-2"
+                    className="block text-sm font-medium mb-2 flex items-center"
                     style={{ color: 'var(--text-primary)' }}
                   >
-                    <i className="bi bi-check2-lock mr-1.5" style={{ color: 'var(--accent)' }} />
+                    <LockKeyhole className="w-4 h-4 mr-1.5" style={{ color: 'var(--accent)' }} />
                     Confirm New Password
                   </label>
                   <div className="relative">
@@ -649,15 +677,19 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                       onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
                       onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
                     >
-                      <i className={`bi ${showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'} text-base`} />
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                   {passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword && (
                     <p
-                      className="text-xs mt-2"
+                      className="text-xs mt-2 flex items-center"
                       style={{ color: 'var(--color-error)' }}
                     >
-                      <i className="bi bi-exclamation-circle mr-1" />
+                      <AlertCircle className="w-3 h-3 mr-1" />
                       Passwords do not match
                     </p>
                   )}
@@ -667,7 +699,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 <button
                   onClick={handlePasswordUpdate}
                   disabled={loading}
-                  className="w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors"
+                  className="w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center"
                   style={{
                     background: 'var(--accent)',
                     color: 'white',
@@ -675,9 +707,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                   }}
                 >
                   {loading ? (
-                    <i className="bi bi-arrow-repeat animate-spin mr-2" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <i className="bi bi-check-lg mr-2" />
+                    <Check className="w-4 h-4 mr-2" />
                   )}
                   {loading ? 'Changing...' : 'Change Password'}
                 </button>
@@ -687,17 +719,17 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
 
           {/* Footer info */}
           <div
-            className="px-6 py-3 text-xs"
+            className="px-6 py-3 text-xs flex items-center"
             style={{
               background: 'var(--bg-secondary)',
               color: 'var(--text-secondary)',
               borderTop: '0.5px solid var(--border-default)',
             }}
           >
-            <i className="bi bi-shield-check mr-1.5" />
+            <ShieldCheck className="w-3 h-3 mr-1.5" />
             Role: {roleLabels[currentUser.role] || currentUser.role}
             <span className="mx-2">•</span>
-            <i className="bi bi-calendar3 mr-1.5" />
+            <Calendar className="w-3 h-3 mr-1.5" />
             Registered: {new Date(currentUser.created_at).toLocaleDateString('en-US')}
           </div>
         </div>

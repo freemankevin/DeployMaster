@@ -155,7 +155,7 @@ const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMini
                     className="shrink-0 px-2.5 text-text-tertiary hover:text-white bg-[#1a1a1c] hover:bg-[#222224] rounded-r-md border border-l-0 border-white/[0.08] transition-all flex items-center justify-center self-stretch"
                     title="Close filter"
                   >
-                    <i className="fa-solid fa-xmark text-[10px]" />
+                    <X className="w-[10px] h-[10px]" />
                   </button>
                 </div>
               </div>
@@ -177,7 +177,7 @@ const SFTPModal = ({ host, onClose, isMinimized: externalMinimized, onToggleMini
                   <div className="absolute inset-0 bg-macos-blue/10 flex items-center justify-center z-10 pointer-events-none">
                     <div className="bg-[#1a1a1c] px-6 py-4 rounded-xl shadow-2xl border border-macos-blue/30 backdrop-blur-xl">
                       <div className="flex items-center gap-3 text-macos-blue">
-                        <i className="fa-solid fa-cloud-arrow-up text-2xl" />
+                        <UploadCloud className="w-6 h-6" />
                         <span className="text-base font-medium">Drop to upload</span>
                       </div>
                     </div>
